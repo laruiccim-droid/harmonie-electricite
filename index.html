@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Harmonie Élec">
+<title>Harmonie Électricité</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222;
+    --border: #2a2a2a;
+    --accent: #f5a623;
+    --accent2: #e8420a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text: #f0f0f0;
+    --muted: #888;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    max-width: 480px;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,15,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+  .topbar-logo span { color: var(--text); }
+  .sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    transition: background 0.4s;
+  }
+  .sync-dot.green { background: var(--green); }
+  .sync-dot.syncing { background: var(--accent); animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: rgba(20,20,20,0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 16px; height: 16px;
+    background: var(--accent2);
+    border-radius: 50%;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700;
+  }
+  .nav-icon-wrap { position: relative; }
+
+  /* CONTENT */
+  .content {
+    padding: 16px 16px 100px;
+  }
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* === DICTAPHONE === */
+  #mic-section {
+    text-align: center;
+    padding: 8px 0 16px;
+  }
+  .mic-btn {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    background: var(--surface2);
+    color: var(--accent);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin: 0 auto;
+    box-shadow: 0 0 0 0 rgba(245,166,35,0.4);
+  }
+  .mic-btn.recording {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+    animation: micpulse 1.2s infinite;
+  }
+  @keyframes micpulse {
+    0% { box-shadow: 0 0 0 0 rgba(232,66,10,0.5); }
+    70% { box-shadow: 0 0 0 18px rgba(232,66,10,0); }
+    100% { box-shadow: 0 0 0 0 rgba(232,66,10,0); }
+  }
+  .mic-btn svg { width: 36px; height: 36px; }
+  .mic-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .transcript-area {
+    width: 100%;
+    min-height: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 12px;
+    resize: none;
+    margin: 12px 0 10px;
+    outline: none;
+    line-height: 1.5;
+  }
+  .transcript-area:focus { border-color: var(--accent); }
+  .tag-row {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tag-btn {
+    padding: 6px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tag-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(245,166,35,0.1);
+  }
+
+  /* NOTES LIST */
+  .note-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .note-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .tag-devis { background: rgba(245,166,35,0.2); color: var(--accent); }
+  .tag-client { background: rgba(34,197,94,0.2); color: var(--green); }
+  .tag-chantier { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .tag-materiel { background: rgba(232,66,10,0.2); color: #f87171; }
+  .tag-idee { background: rgba(139,92,246,0.2); color: #c084fc; }
+  .note-body { flex: 1; }
+  .note-text { font-size: 14px; line-height: 1.45; }
+  .note-time { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+  .note-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .note-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0 4px; }
+  .note-del:hover { color: var(--red); }
+  .empty-state { text-align: center; color: var(--muted); padding: 32px 16px; font-size: 14px; }
+
+  /* === CHECKLIST === */
+  .checklist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .progress-bar-wrap { background: var(--surface2); border-radius: 6px; height: 6px; flex: 1; margin: 0 12px; }
+  .progress-bar-fill { background: var(--accent); height: 6px; border-radius: 6px; transition: width 0.4s; }
+  .progress-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .check-item {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+  }
+  .check-item.locked { opacity: 0.4; }
+  .check-item.done { border-color: var(--green); opacity: 0.7; }
+  .check-item.skipped { border-color: var(--muted); opacity: 0.5; }
+  .check-item-top { display: flex; align-items: center; gap: 10px; }
+  .check-number {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+  .check-item.active .check-number { border-color: var(--accent); color: var(--accent); }
+  .check-item.done .check-number { background: var(--green); border-color: var(--green); color: #000; }
+  .check-label { font-size: 14px; font-weight: 600; flex: 1; }
+  .check-detail { font-size: 12px; color: var(--muted); margin: 6px 0 10px 38px; }
+  .check-btns { display: flex; gap: 7px; margin-top: 10px; margin-left: 38px; }
+
+  /* === CLIENTS === */
+  .urgency-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+  .urgency-high { background: rgba(239,68,68,0.2); color: #f87171; }
+  .urgency-medium { background: rgba(245,166,35,0.2); color: var(--accent); }
+  .urgency-low { background: rgba(34,197,94,0.2); color: var(--green); }
+
+  .client-item {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .client-item.done { opacity: 0.5; }
+  .client-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .client-name { font-weight: 700; font-size: 15px; }
+  .client-type { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .client-note { font-size: 13px; line-height: 1.4; margin-bottom: 10px; background: var(--surface); padding: 8px 10px; border-radius: 8px; }
+  .client-btns { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  /* AI RESPONSE */
+  .ai-response {
+    background: var(--surface);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    display: none;
+  }
+  .ai-response.visible { display: block; }
+  .ai-loading { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* AGENDA */
+  .agenda-event {
+    display: flex;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+  .event-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 50px;
+    margin-top: 1px;
+  }
+  .event-body { flex: 1; }
+  .event-title { font-size: 14px; font-weight: 600; }
+  .event-location { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* IA PANEL */
+  .ia-shortcuts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .shortcut-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+  }
+  .shortcut-btn:active { transform: scale(0.97); background: var(--surface); }
+  .shortcut-icon { font-size: 20px; display: block; margin-bottom: 6px; }
+
+  .ia-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+  .ia-input:focus { border-color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px max(20px, env(safe-area-inset-bottom));
+    width: 100%; max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .modal-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 11px 13px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  select.modal-input option { background: var(--surface2); }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* COPY BTN */
+  .copy-btn {
+    margin-top: 8px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 24px;
+    z-index: 300;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">⚡ Harmonie<span> Élec</span></div>
+  <div class="sync-indicator">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncLabel">Local</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TAB: DICTAPHONE -->
+  <div class="tab active" id="tab-dict">
+    <div class="section-header">
+      <div class="section-title">Dictaphone</div>
+    </div>
+    <div class="card">
+      <div id="mic-section">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+        </button>
+        <div class="mic-status" id="micStatus">Appuyer pour dicter</div>
+      </div>
+      <textarea class="transcript-area" id="transcriptArea" placeholder="La transcription apparaît ici... ou tape directement"></textarea>
+      <div class="tag-row" id="tagRow">
+        <button class="tag-btn selected" data-tag="devis" onclick="selectTag(this)">Devis</button>
+        <button class="tag-btn" data-tag="client" onclick="selectTag(this)">Client</button>
+        <button class="tag-btn" data-tag="chantier" onclick="selectTag(this)">Chantier</button>
+        <button class="tag-btn" data-tag="materiel" onclick="selectTag(this)">Matériel</button>
+        <button class="tag-btn" data-tag="idee" onclick="selectTag(this)">Idée</button>
+      </div>
+      <button class="btn btn-primary btn-full" id="saveNoteBtn" onclick="saveNote()">💾 Enregistrer la note</button>
+    </div>
+
+    <div class="section-header" style="margin-top:8px;">
+      <div class="card-title" style="margin:0">Notes du jour</div>
+      <button class="btn btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="generateDailySummary()">📋 Résumé IA</button>
+    </div>
+    <div id="notesList"></div>
+    <div class="ai-response" id="summaryResponse"></div>
+  </div>
+
+  <!-- TAB: CHECKLIST -->
+  <div class="tab" id="tab-check">
+    <div class="section-header">
+      <div class="section-title">Fin de journée</div>
+      <button class="btn btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="generateChecklist()">⚡ Générer</button>
+    </div>
+    <div class="checklist-header">
+      <span class="progress-label" id="checkProgress">0/0</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="checkProgressBar" style="width:0%"></div></div>
+      <button class="btn btn-green" style="font-size:12px;padding:7px 12px;" id="tomorrowBtn" onclick="prepareTomorrow()" disabled>Préparer demain →</button>
+    </div>
+    <div id="checklistItems"></div>
+    <div class="ai-response" id="tomorrowResponse"></div>
+  </div>
+
+  <!-- TAB: CLIENTS -->
+  <div class="tab" id="tab-clients">
+    <div class="section-header">
+      <div class="section-title">Rappels clients</div>
+      <button class="btn btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openClientModal()">+ Ajouter</button>
+    </div>
+    <div id="clientsList"></div>
+  </div>
+
+  <!-- TAB: AGENDA -->
+  <div class="tab" id="tab-agenda">
+    <div class="section-header">
+      <div class="section-title">Planning</div>
+      <button class="btn btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="loadAgenda()">🔄 Actualiser</button>
+    </div>
+    <div id="agendaContent"><div class="empty-state">Chargement de l'agenda...</div></div>
+  </div>
+
+  <!-- TAB: IA -->
+  <div class="tab" id="tab-ia">
+    <div class="section-header">
+      <div class="section-title">Assistant IA</div>
+    </div>
+    <div class="ia-shortcuts">
+      <button class="shortcut-btn" onclick="setPrompt('Rédige un devis professionnel pour : ')"><span class="shortcut-icon">📄</span>Faire un devis</button>
+      <button class="shortcut-btn" onclick="setPrompt('Rédige un SMS de relance client professionnel mais chaleureux pour : ')"><span class="shortcut-icon">📱</span>Relance client</button>
+      <button class="shortcut-btn" onclick="setPrompt('Dresse la liste du matériel électrique nécessaire pour ce chantier : ')"><span class="shortcut-icon">🔌</span>Liste matériel</button>
+      <button class="shortcut-btn" onclick="setPrompt('Explique-moi la norme NFC 15-100 concernant : ')"><span class="shortcut-icon">📋</span>Normes NFC</button>
+      <button class="shortcut-btn" onclick="setPrompt('Rédige un compte-rendu de visite chantier pour : ')"><span class="shortcut-icon">🏗️</span>Compte-rendu</button>
+      <button class="shortcut-btn" onclick="setPrompt('Rédige un email professionnel de la part de Mathieu LARUICCI, gérant d\'Harmonie Électricité (06 31 13 47 01) pour : ')"><span class="shortcut-icon">✉️</span>Email pro</button>
+    </div>
+    <textarea class="ia-input" id="iaInput" placeholder="Décris ta situation ou ta demande..."></textarea>
+    <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="askAI()">⚡ Envoyer à l'IA</button>
+    <div class="ai-response" id="iaResponse"></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- NAV -->
+<nav>
+  <button class="nav-btn active" id="nav-dict" onclick="switchTab('dict')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+    Dictée
+  </button>
+  <button class="nav-btn" id="nav-check" onclick="switchTab('check')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    Checklist
+  </button>
+  <button class="nav-btn" id="nav-clients" onclick="switchTab('clients')">
+    <div class="nav-icon-wrap">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <div class="nav-badge" id="clientBadge" style="display:none">0</div>
+    </div>
+    Clients
+  </button>
+  <button class="nav-btn" id="nav-agenda" onclick="switchTab('agenda')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    Agenda
+  </button>
+  <button class="nav-btn" id="nav-ia" onclick="switchTab('ia')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    IA
+  </button>
+</nav>
+
+<!-- MODAL CLIENT -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-title">Nouveau rappel client</div>
+    <input class="modal-input" id="clientName" placeholder="Nom du client *" />
+    <select class="modal-input" id="clientType">
+      <option value="Répondeur">📞 Message répondeur</option>
+      <option value="SMS">💬 SMS reçu</option>
+      <option value="Email">✉️ Email</option>
+      <option value="Sur place">🏠 Demande sur place</option>
+    </select>
+    <textarea class="modal-input" id="clientNote" placeholder="Ce qu'il veut / ce qu'il a dit..." rows="3" style="resize:none;"></textarea>
+    <select class="modal-input" id="clientUrgency">
+      <option value="high">🔴 Urgent — à rappeler aujourd'hui</option>
+      <option value="medium">🟡 Cette semaine</option>
+      <option value="low">🟢 Pas pressé</option>
+    </select>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-secondary btn-full" onclick="closeClientModal()">Annuler</button>
+      <button class="btn btn-primary btn-full" onclick="saveClient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  CONFIG — SUPABASE
+// ============================================================
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+const CLAUDE_KEY_URL = 'https://api.anthropic.com/v1/messages';
+
+// ============================================================
+//  LOCAL STATE
+// ============================================================
+let NOTES = [];
+let CHECKLIST = [];
+let CLIENTS = [];
+
+let recognition = null;
+let isRecording = false;
+let selectedTag = 'devis';
+let syncTimer = null;
+let syncPending = false;
+
+// ============================================================
+//  SUPABASE HELPERS — stockage JSONB simple
+// ============================================================
+const SB_HEADERS = {
+  'apikey': SUPA_KEY,
+  'Authorization': 'Bearer ' + SUPA_KEY,
+  'Content-Type': 'application/json'
+};
+
+// Fetch all rows → returns array of objects stored in col "payload"
+async function sbGet(table) {
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?select=id,payload`, {
+      headers: SB_HEADERS
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    if (!Array.isArray(rows)) return null;
+    return rows.map(r => ({ id: r.id, ...r.payload }));
+  } catch { return null; }
+}
+
+// Upsert one item — store the whole object as payload, keyed by item.id
+async function sbUpsert(table, item) {
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ id: item.id, payload: item })
+    });
+    return r.ok || r.status === 201;
+  } catch { return false; }
+}
+
+// Delete one row by id
+async function sbDelete(table, id) {
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+    return r.ok;
+  } catch { return false; }
+}
+
+// Push entire local array: upsert all + delete rows not in local
+async function sbReplaceAll(table, items) {
+  try {
+    if (items.length) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(items.map(item => ({ id: item.id, payload: item })))
+      });
+      if (!r.ok && r.status !== 201) return false;
+    }
+    // Remove remote rows whose id is no longer in local
+    const localIds = items.map(i => i.id);
+    const remote = await sbGet(table);
+    if (remote) {
+      const toDelete = remote.filter(r => !localIds.includes(r.id));
+      for (const row of toDelete) await sbDelete(table, row.id);
+    }
+    return true;
+  } catch { return false; }
+}
+
+// ============================================================
+//  SYNC  — LOCAL FIRST, THEN PUSH / MERGE
+// ============================================================
+function setSyncState(state) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot' + (state === 'green' ? ' green' : state === 'syncing' ? ' syncing' : '');
+  lbl.textContent = state === 'green' ? 'Sync ✓' : state === 'syncing' ? 'Sync…' : 'Local';
+}
+
+function saveLocal() {
+  localStorage.setItem('he_notes', JSON.stringify(NOTES));
+  localStorage.setItem('he_checklist', JSON.stringify(CHECKLIST));
+  localStorage.setItem('he_clients', JSON.stringify(CLIENTS));
+}
+
+function loadLocal() {
+  try { NOTES = JSON.parse(localStorage.getItem('he_notes')) || []; } catch { NOTES = []; }
+  try { CHECKLIST = JSON.parse(localStorage.getItem('he_checklist')) || []; } catch { CHECKLIST = []; }
+  try { CLIENTS = JSON.parse(localStorage.getItem('he_clients')) || []; } catch { CLIENTS = []; }
+}
+
+// On startup: load local immediately, then sync from Supabase
+async function initSync() {
+  loadLocal();
+  renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
+
+  setSyncState('syncing');
+
+  const [remoteNotes, remoteCheck, remoteClients] = await Promise.all([
+    sbGet('notes'), sbGet('checklist'), sbGet('clients')
+  ]);
+
+  const anyOk = remoteNotes !== null || remoteCheck !== null || remoteClients !== null;
+  if (!anyOk) { setSyncState('red'); return; }
+
+  if (remoteNotes)   NOTES     = mergeArrays(NOTES,     remoteNotes);
+  if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
+  if (remoteClients) CLIENTS   = mergeArrays(CLIENTS,   remoteClients);
+
+  saveLocal();
+  renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
+  setSyncState('green');
+}
+
+// Merge two arrays by id — remote wins for conflicts
+function mergeArrays(local, remote) {
+  const map = {};
+  for (const item of local)  map[item.id] = item;
+  for (const item of remote) map[item.id] = item;
+  return Object.values(map).sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+}
+
+// Debounced push to Supabase after any change
+function schedulePush() {
+  saveLocal();
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushAll, 1500);
+  setSyncState('syncing');
+}
+
+async function pushAll() {
+  const results = await Promise.all([
+    sbReplaceAll('notes',     NOTES),
+    sbReplaceAll('checklist', CHECKLIST),
+    sbReplaceAll('clients',   CLIENTS)
+  ]);
+  setSyncState(results.every(Boolean) ? 'green' : 'red');
+}
+
+// ============================================================
+//  TABS
+// ============================================================
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('nav-' + t).classList.add('active');
+  if (t === 'agenda') loadAgenda();
+}
+
+// ============================================================
+//  DICTAPHONE
+// ============================================================
+function selectTag(btn) {
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedTag = btn.dataset.tag;
+}
+
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('Micro non disponible dans ce navigateur');
+    return;
+  }
+  if (isRecording) stopMic();
+  else startMic();
+}
+
+function startMic() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRec();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  let final = document.getElementById('transcriptArea').value;
+
+  recognition.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    document.getElementById('transcriptArea').value = final + interim;
+  };
+  recognition.onerror = () => stopMic();
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+
+  recognition.start();
+  isRecording = true;
+  document.getElementById('micBtn').classList.add('recording');
+  document.getElementById('micStatus').textContent = '● Enregistrement…';
+}
+
+function stopMic() {
+  if (recognition) { recognition.stop(); recognition = null; }
+  isRecording = false;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('micStatus').textContent = 'Appuyer pour dicter';
+}
+
+function saveNote() {
+  const text = document.getElementById('transcriptArea').value.trim();
+  if (!text) { showToast('La note est vide !'); return; }
+  if (isRecording) stopMic();
+
+  const note = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    tag: selectedTag,
+    text,
+    time: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+    date: new Date().toLocaleDateString('fr-FR'),
+    createdAt: Date.now()
+  };
+
+  NOTES.unshift(note);
+  document.getElementById('transcriptArea').value = '';
+  renderNotes();
+  schedulePush();
+  showToast('Note enregistrée ✓');
+}
+
+function deleteNote(id) {
+  NOTES = NOTES.filter(n => n.id !== id);
+  renderNotes();
+  schedulePush();
+}
+
+function renderNotes() {
+  const today = new Date().toLocaleDateString('fr-FR');
+  const todayNotes = NOTES.filter(n => n.date === today);
+  const el = document.getElementById('notesList');
+
+  if (!todayNotes.length) {
+    el.innerHTML = '<div class="empty-state">Aucune note aujourd\'hui<br>Appuie sur le micro pour commencer</div>';
+    return;
+  }
+
+  el.innerHTML = todayNotes.map(n => `
+    <div class="note-item">
+      <span class="note-tag tag-${n.tag}">${n.tag}</span>
+      <div class="note-body">
+        <div class="note-text">${escHtml(n.text)}</div>
+        <div class="note-time">${n.time}</div>
+        <div class="note-actions">
+          <button class="btn btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="treatNoteIA('${n.id}')">⚡ Traiter avec l'IA</button>
+          <button class="note-del" onclick="deleteNote('${n.id}')">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function treatNoteIA(id) {
+  const note = NOTES.find(n => n.id === id);
+  if (!note) return;
+  const prompts = {
+    devis: `Tu es l'assistant de Mathieu LARUICCI, gérant d'Harmonie Électricité (spécialiste alarme, vidéosurveillance, contrôle d'accès, IRVE). Rédige un devis structuré et professionnel à partir de cette note : "${note.text}"`,
+    client: `Rédige un SMS de rappel client chaleureux et professionnel de la part de Mathieu (Harmonie Électricité, 06 31 13 47 01) pour : "${note.text}"`,
+    materiel: `Dresse la liste du matériel électrique nécessaire (références incluses si possible) pour : "${note.text}"`,
+    chantier: `Rédige un compte-rendu de visite chantier structuré pour : "${note.text}"`,
+    idee: `Développe cette idée pour un artisan électricien et propose des actions concrètes : "${note.text}"`
+  };
+  const prompt = prompts[note.tag] || prompts.idee;
+  switchTab('ia');
+  document.getElementById('iaInput').value = prompt;
+  await askAI();
+}
+
+function generateDailySummary() {
+  const today = new Date().toLocaleDateString('fr-FR');
+  const todayNotes = NOTES.filter(n => n.date === today);
+  if (!todayNotes.length) { showToast('Aucune note aujourd\'hui'); return; }
+
+  const text = todayNotes.map(n => `[${n.tag}] ${n.text}`).join('\n');
+  const prompt = `Voici mes notes de la journée (Mathieu LARUICCI, Harmonie Électricité, électricien artisan) :\n\n${text}\n\nFais un résumé structuré avec : 1) Actions urgentes pour ce soir, 2) À faire demain matin, 3) Relances clients à prévoir.`;
+
+  document.getElementById('iaInput').value = prompt;
+  switchTab('ia');
+  askAI();
+}
+
+// ============================================================
+//  CHECKLIST
+// ============================================================
+async function generateChecklist() {
+  const today = new Date().toLocaleDateString('fr-FR');
+  const notes = NOTES.filter(n => n.date === today);
+  const urgentClients = CLIENTS.filter(c => !c.done && c.urgency === 'high');
+
+  const items = [];
+  if (urgentClients.length) {
+    urgentClients.forEach(c => items.push({
+      id: 'cl_' + c.id,
+      label: `Rappeler ${c.name}`,
+      detail: c.note,
+      cat: 'client',
+      done: false,
+      skipped: false,
+      createdAt: Date.now()
+    }));
+  }
+  notes.forEach(n => {
+    if (n.tag === 'devis') items.push({id:'ck_'+n.id, label:'Faire le devis', detail: n.text.slice(0,60)+'…', cat:'devis', done:false, skipped:false, createdAt: Date.now()});
+    if (n.tag === 'materiel') items.push({id:'cm_'+n.id, label:'Commander le matériel', detail: n.text.slice(0,60)+'…', cat:'materiel', done:false, skipped:false, createdAt: Date.now()});
+  });
+  if (!items.length) {
+    showToast('Aucune action détectée aujourd\'hui');
+    return;
+  }
+
+  CHECKLIST = items;
+  renderChecklist();
+  schedulePush();
+  switchTab('check');
+}
+
+function renderChecklist() {
+  const el = document.getElementById('checklistItems');
+  if (!CHECKLIST.length) {
+    el.innerHTML = '<div class="empty-state">Clique sur ⚡ Générer pour créer ta checklist du soir</div>';
+    updateCheckProgress();
+    return;
+  }
+
+  // Find first undone/unskipped
+  const activeIdx = CHECKLIST.findIndex(c => !c.done && !c.skipped);
+
+  el.innerHTML = CHECKLIST.map((item, i) => {
+    const isActive = i === activeIdx;
+    const isLocked = !item.done && !item.skipped && i > activeIdx;
+    let cls = 'check-item';
+    if (item.done) cls += ' done';
+    else if (item.skipped) cls += ' skipped';
+    else if (isActive) cls += ' active';
+    else if (isLocked) cls += ' locked';
+
+    const numContent = item.done ? '✓' : item.skipped ? '→' : i+1;
+    const btns = isActive ? `
+      <div class="check-btns">
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 13px;" onclick="checkDone(${i})">✓ Traité</button>
+        <button class="btn btn-secondary" style="font-size:12px;padding:8px 13px;" onclick="checkSkip(${i})">Reporter à demain</button>
+        <button class="btn btn-secondary" style="font-size:12px;padding:8px 13px;" onclick="checkIA(${i})">⚡ Aide IA</button>
+      </div>` : '';
+
+    return `<div class="${cls}">
+      <div class="check-item-top">
+        <div class="check-number">${numContent}</div>
+        <div class="check-label">${escHtml(item.label)}</div>
+      </div>
+      ${item.detail ? `<div class="check-detail">${escHtml(item.detail)}</div>` : ''}
+      ${btns}
+    </div>`;
+  }).join('');
+
+  updateCheckProgress();
+}
+
+function updateCheckProgress() {
+  const total = CHECKLIST.length;
+  const done = CHECKLIST.filter(c => c.done || c.skipped).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('checkProgress').textContent = `${done}/${total}`;
+  document.getElementById('checkProgressBar').style.width = pct + '%';
+  const btn = document.getElementById('tomorrowBtn');
+  btn.disabled = (done < total);
+}
+
+function checkDone(i) {
+  CHECKLIST[i].done = true;
+  renderChecklist();
+  schedulePush();
+}
+function checkSkip(i) {
+  CHECKLIST[i].skipped = true;
+  renderChecklist();
+  schedulePush();
+}
+async function checkIA(i) {
+  const item = CHECKLIST[i];
+  const prompts = {
+    client: `Rédige un SMS de rappel professionnel et chaleureux de la part de Mathieu (Harmonie Électricité 06 31 13 47 01) pour ce client : "${item.detail}"`,
+    devis: `Rédige un devis professionnel pour Harmonie Électricité (Mathieu LARUICCI) pour : "${item.detail}"`,
+    materiel: `Liste le matériel électrique à commander pour : "${item.detail}"`
+  };
+  switchTab('ia');
+  document.getElementById('iaInput').value = prompts[item.cat] || item.label;
+  await askAI();
+}
+
+function prepareTomorrow() {
+  const skipped = CHECKLIST.filter(c => c.skipped).map(c => c.label);
+  const prompt = `Je suis Mathieu LARUICCI (électricien artisan, Harmonie Électricité). Je termine ma journée. Actions reportées à demain : ${skipped.length ? skipped.join(', ') : 'aucune'}. Rédige un brief de 5 lignes maximum pour bien démarrer demain matin.`;
+  document.getElementById('iaInput').value = prompt;
+  switchTab('ia');
+  askAI();
+}
+
+// ============================================================
+//  CLIENTS
+// ============================================================
+function openClientModal() {
+  document.getElementById('clientModal').classList.add('open');
+  document.getElementById('clientName').focus();
+}
+function closeClientModal() {
+  document.getElementById('clientModal').classList.remove('open');
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientNote').value = '';
+}
+function saveClient() {
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) { showToast('Nom requis'); return; }
+  const client = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    name,
+    type: document.getElementById('clientType').value,
+    note: document.getElementById('clientNote').value.trim(),
+    urgency: document.getElementById('clientUrgency').value,
+    done: false,
+    createdAt: Date.now()
+  };
+  CLIENTS.unshift(client);
+  closeClientModal();
+  renderClients();
+  updateClientBadge();
+  schedulePush();
+  showToast('Client ajouté ✓');
+}
+
+function markClientDone(id) {
+  const c = CLIENTS.find(c => c.id === id);
+  if (c) { c.done = !c.done; }
+  renderClients();
+  updateClientBadge();
+  schedulePush();
+}
+
+function deleteClient(id) {
+  CLIENTS = CLIENTS.filter(c => c.id !== id);
+  renderClients();
+  updateClientBadge();
+  schedulePush();
+}
+
+async function replyClientIA(id) {
+  const c = CLIENTS.find(cl => cl.id === id);
+  if (!c) return;
+  const prompt = `Rédige un ${c.type === 'SMS' ? 'SMS' : 'message'} de rappel professionnel et chaleureux de la part de Mathieu (Harmonie Électricité, 06 31 13 47 01) pour ${c.name}. Contexte : ${c.note || 'rappel suite à message'}. Propose un créneau de visite.`;
+  switchTab('ia');
+  document.getElementById('iaInput').value = prompt;
+  await askAI();
+}
+
+function renderClients() {
+  const el = document.getElementById('clientsList');
+  if (!CLIENTS.length) {
+    el.innerHTML = '<div class="empty-state">Aucun client en attente<br>Clique sur + pour en ajouter un</div>';
+    return;
+  }
+  const order = { high: 0, medium: 1, low: 2 };
+  const sorted = [...CLIENTS].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (order[a.urgency]||1) - (order[b.urgency]||1);
+  });
+
+  el.innerHTML = sorted.map(c => `
+    <div class="client-item ${c.done ? 'done' : ''}">
+      <div class="client-top">
+        <div class="client-name">${escHtml(c.name)}</div>
+        <span class="urgency-badge urgency-${c.urgency}">${c.urgency === 'high' ? '🔴 Urgent' : c.urgency === 'medium' ? '🟡 Cette sem.' : '🟢 Sans urgence'}</span>
+      </div>
+      <div class="client-type">${c.type} · ${new Date(c.createdAt).toLocaleDateString('fr-FR')}</div>
+      ${c.note ? `<div class="client-note">${escHtml(c.note)}</div>` : ''}
+      <div class="client-btns">
+        <button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="replyClientIA('${c.id}')">⚡ Répondre IA</button>
+        <button class="btn ${c.done ? 'btn-secondary' : 'btn-green'}" style="font-size:12px;padding:7px 11px;" onclick="markClientDone('${c.id}')">${c.done ? '↩ Réouvrir' : '✓ Traité'}</button>
+        <button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="deleteClient('${c.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateClientBadge() {
+  const pending = CLIENTS.filter(c => !c.done && c.urgency === 'high').length;
+  const badge = document.getElementById('clientBadge');
+  badge.style.display = pending ? 'flex' : 'none';
+  badge.textContent = pending;
+}
+
+// ============================================================
+//  AGENDA (Google Calendar via Claude)
+// ============================================================
+async function loadAgenda() {
+  const el = document.getElementById('agendaContent');
+  el.innerHTML = '<div class="empty-state">Pour voir ton agenda, copie tes RDV du jour ici ou demande à Claude dans l\'onglet IA : "Qu\'ai-je de prévu aujourd\'hui ?"</div>';
+}
+
+// ============================================================
+//  IA PANEL — Gemini API (gratuit)
+// ============================================================
+
+const GEMINI_KEY = 'AIzaSyAapnZXEsXo56pyEbDu1X7DZoSccjZlvsU';
+const SYSTEM_CTX = `Tu es l'assistant personnel de Mathieu LARUICCI, gérant d'Harmonie Électricité, 225 Chemin des Bochets, 73170 Yenne. Tél : 06 31 13 47 01. Email : contact@harmonie-electricite.com. Spécialités : courant faible, alarme, vidéosurveillance, contrôle d'accès, automatisme, borne de recharge IRVE. Tu rédiges des réponses professionnelles, concises et directement utilisables. Réponds toujours en français.`;
+
+function setPrompt(text) {
+  document.getElementById('iaInput').value = text;
+  document.getElementById('iaInput').focus();
+}
+
+async function askAI() {
+  const input = document.getElementById('iaInput');
+  const prompt = input.value.trim();
+  if (!prompt) { showToast('Écris ta demande d\'abord'); return; }
+
+  const el = document.getElementById('iaResponse');
+  el.className = 'ai-response visible ai-loading';
+  el.textContent = '⚡ L\'IA réfléchit…';
+
+  const res = await callGemini(prompt);
+  el.className = 'ai-response visible';
+  el.innerHTML = escHtml(res) +
+    `<br><button class="btn btn-secondary copy-btn" style="margin-top:10px;" onclick="copyIAResponse()">📋 Copier</button>`;
+}
+
+async function callGemini(userPrompt) {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+    const body = {
+      system_instruction: { parts: [{ text: SYSTEM_CTX }] },
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
+    };
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      const err = await r.json();
+      return `Erreur API : ${err?.error?.message || r.status}`;
+    }
+    const d = await r.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text || 'Réponse vide';
+  } catch (e) {
+    return 'Erreur de connexion. Vérifie ta connexion internet.';
+  }
+}
+
+// Appelé depuis checklist / notes / clients
+async function callClaude(userPrompt) {
+  document.getElementById('iaInput').value = userPrompt;
+  switchTab('ia');
+  await askAI();
+}
+
+function copyIAResponse() {
+  const t = document.getElementById('iaResponse').innerText.replace('📋 Copier','').trim();
+  navigator.clipboard.writeText(t).then(() => showToast('Copié !'));
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+//  BOOT
+// ============================================================
+initSync();
+</script>
+</body>
+</html>
