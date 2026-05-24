@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Harmonie Électricité</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#222; --border:#2a2a2a;
+  --accent:#f5a623; --green:#22c55e; --red:#ef4444; --blue:#60a5fa;
+  --text:#f0f0f0; --muted:#888; --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:16px 16px 80px;}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--accent);}
+h2{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+label{display:block;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;}
+input,textarea,select{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:none;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:all .15s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-green{background:var(--green);color:#000;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{width:auto;padding:7px 12px;font-size:12px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+
+/* Ligne tableau */
+.ligne-header{display:grid;grid-template-columns:1fr 50px 80px 70px 30px;gap:4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:0 4px;margin-bottom:4px;}
+.ligne-row{display:grid;grid-template-columns:1fr 50px 80px 70px 30px;gap:4px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border);}
+.ligne-row:last-child{border-bottom:none;}
+.ligne-nom{font-size:12px;line-height:1.3;}
+.ligne-ref{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.ligne-input{padding:5px 6px;font-size:12px;text-align:center;}
+.ligne-total{font-size:12px;font-weight:700;color:var(--accent);text-align:right;}
+.ligne-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;width:28px;text-align:center;}
+.ligne-del:hover{color:var(--red);}
+
+/* Commander checkbox */
+.cmd-check{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.cmd-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+.cmd-check label{font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;margin:0;}
+
+/* Totaux */
+.totaux{background:var(--surface2);border-radius:10px;padding:12px;margin-top:8px;}
+.total-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;}
+.total-row.grand{font-size:17px;font-weight:800;color:var(--accent);}
+
+/* Signature */
+.sig-wrap{position:relative;background:var(--surface2);border:2px dashed var(--border);border-radius:10px;margin-top:6px;}
+canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none;}
+.sig-clear{position:absolute;top:6px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;}
+
+/* Modal catalogue */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:20px 16px max(20px,env(safe-area-inset-bottom));}
+.modal-sheet h3{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:12px;}
+.cat-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cat-row:active{opacity:.7;}
+.cat-ref{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:80px;flex-shrink:0;}
+.cat-nom{flex:1;font-size:13px;line-height:1.3;}
+.cat-pv{font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.topbar-logo{font-size:22px;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;flex:1;}
+.topbar-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
+
+/* Badge commande */
+.badge-cmd{background:rgba(96,165,250,.15);color:var(--blue);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-weight:700;font-size:13px;padding:10px 20px;border-radius:24px;z-index:300;opacity:0;transition:all .3s;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">⚡</span>
+  <div>
+    <div class="topbar-title" id="doc-title">Bon d'intervention</div>
+    <div class="topbar-num" id="doc-num">—</div>
+  </div>
+</div>
+
+<!-- INFOS CLIENT -->
+<h2>Client & chantier</h2>
+<div class="card">
+  <label>Nom du client</label>
+  <input type="text" id="f-client" placeholder="Nom Prénom">
+  <label>Adresse du chantier</label>
+  <input type="text" id="f-adresse" placeholder="Adresse">
+  <div class="row2">
+    <div><label>Téléphone</label><input type="tel" id="f-tel" placeholder="06..."></div>
+    <div><label>Email client</label><input type="email" id="f-email" placeholder="client@..."></div>
+  </div>
+  <label>Motif / description du problème</label>
+  <textarea id="f-motif" rows="3" placeholder="Ex. Le portail ne s'ouvre plus..."></textarea>
+</div>
+
+<!-- DATES & HORAIRES -->
+<h2>Dates & horaires</h2>
+<div class="card">
+  <div class="row2">
+    <div><label>Date</label><input type="text" id="f-date" placeholder="JJ/MM/AAAA"></div>
+    <div><label>N° document</label><input type="text" id="f-num" readonly style="color:var(--accent);font-family:'DM Mono',monospace;"></div>
+  </div>
+  <div class="row3">
+    <div><label>Arrivée</label><input type="time" id="f-heure-debut"></div>
+    <div><label>Départ</label><input type="time" id="f-heure-fin"></div>
+    <div><label>Durée</label><input type="text" id="f-duree" placeholder="0h00" readonly></div>
+  </div>
+</div>
+
+<!-- RAPPORT -->
+<h2 id="rapport-label">Rapport d'intervention</h2>
+<div class="card">
+  <textarea id="f-rapport" rows="5" placeholder="Décris ici ce qui a été fait, les observations, les préconisations..."></textarea>
+</div>
+
+<!-- FOURNITURES / MO -->
+<h2>Fournitures & main d'œuvre</h2>
+<div class="card">
+  <div class="ligne-header">
+    <span>Désignation</span><span style="text-align:center;">Qté</span><span style="text-align:right;">PU HT</span><span style="text-align:right;">Total HT</span><span></span>
+  </div>
+  <div id="lignes-list"></div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <button class="btn btn-secondary btn-sm" onclick="addMO()">+ Main d'œuvre</button>
+    <button class="btn btn-secondary btn-sm" onclick="addDep()">+ Déplacement</button>
+    <button class="btn btn-secondary btn-sm" onclick="openCatalogue()">+ Catalogue</button>
+    <button class="btn btn-secondary btn-sm" onclick="addLibre()">+ Ligne libre</button>
+  </div>
+</div>
+
+<!-- TVA & TOTAUX -->
+<div class="card">
+  <label>Taux TVA</label>
+  <select id="f-tva" onchange="refreshTotaux()">
+    <option value="20">20% (standard)</option>
+    <option value="10">10% (rénovation)</option>
+    <option value="5.5">5,5% (efficacité énergétique)</option>
+    <option value="0">0% (exonéré)</option>
+  </select>
+  <div class="totaux" style="margin-top:12px;">
+    <div class="total-row"><span>Total HT</span><strong id="t-ht">0,00 €</strong></div>
+    <div class="total-row"><span id="t-tva-label">TVA 20%</span><strong id="t-tva">0,00 €</strong></div>
+    <div class="total-row grand"><span>Total TTC</span><span id="t-ttc">0,00 €</span></div>
+  </div>
+</div>
+
+<!-- BON DE COMMANDE MATÉRIEL -->
+<div class="card" id="cmd-section" style="display:none;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <span style="font-size:16px;">📦</span>
+    <strong style="font-size:14px;">Matériel à commander</strong>
+    <span class="badge-cmd">BON DE COMMANDE</span>
+  </div>
+  <div id="cmd-list" style="font-size:13px;color:var(--muted);"></div>
+</div>
+
+<!-- CONDITIONS (devis uniquement) -->
+<div id="conditions-section" style="display:none;">
+  <h2>Conditions</h2>
+  <div class="card">
+    <label>Validité du devis</label>
+    <input type="text" id="f-validite" value="30 jours" placeholder="Ex. 30 jours">
+    <label>Conditions de paiement</label>
+    <textarea id="f-conditions" rows="2" placeholder="Ex. 30% à la commande, solde à la livraison">Règlement à réception de facture</textarea>
+  </div>
+</div>
+
+<!-- SIGNATURES -->
+<h2>Signatures</h2>
+<div class="card">
+  <label>Signature du client</label>
+  <div class="sig-wrap">
+    <canvas id="sig-client" width="440" height="140"></canvas>
+    <button class="sig-clear" onclick="clearSig('sig-client')">Effacer</button>
+  </div>
+  <label style="margin-top:12px;">Signature de l'intervenant (Mathieu LARUICCI)</label>
+  <div class="sig-wrap">
+    <canvas id="sig-intervenant" width="440" height="140"></canvas>
+    <button class="sig-clear" onclick="clearSig('sig-intervenant')">Effacer</button>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div class="card">
+  <label>Notes internes (non visibles sur le document)</label>
+  <textarea id="f-notes-internes" rows="2" placeholder="Remarques pour l'assistante, commandes à faire..."></textarea>
+</div>
+
+<!-- ACTIONS -->
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+  <button class="btn btn-primary" onclick="validerDoc()">✅ Valider et générer</button>
+  <button class="btn btn-secondary" onclick="envoyerEmail()">✉️ Envoyer par email au client</button>
+  <button class="btn btn-secondary" onclick="window.close()">Annuler</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL CATALOGUE -->
+<div class="modal-overlay" id="cat-modal" style="display:none;">
+  <div class="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3>📦 Catalogue</h3>
+      <button onclick="closeCatalogue()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div style="position:relative;margin-bottom:8px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);">🔍</span>
+      <input type="text" id="cat-q" placeholder="Référence ou désignation…" oninput="catSearch(this.value)"
+        style="padding-left:36px;" autofocus>
+    </div>
+    <div id="cat-results" style="max-height:50vh;overflow-y:auto;">
+      <div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>
+    </div>
+    <!-- Ajout quantité -->
+    <div id="cat-add-row" style="display:none;margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;" id="cat-selected-nom"></div>
+      <div class="row3">
+        <div><label>Quantité</label><input type="number" id="cat-qty" value="1" min="0.1" step="1"></div>
+        <div><label>PU HT (€)</label><input type="number" id="cat-pu" step="0.01" min="0"></div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="catConfirm()" style="width:100%;">Ajouter</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIG
+// ============================================================
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+const SB_H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' };
+const EMAIL_FROM = 'contact@harmonie-electricite.com';
+
+// ============================================================
+//  STATE
+// ============================================================
+let DOC_TYPE = 'bon'; // 'bon' | 'devis' | 'devis_later'
+let LIGNES = [];
+let CAT_CACHE = null;
+let CAT_SELECTED = null;
+let DOC_NUM = '';
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load', function() {
+  initSignatures();
+
+  // Récupérer données depuis l'app principale
+  let data = null;
+  try { data = JSON.parse(sessionStorage.getItem('he_bon_data')); } catch(e) {}
+
+  DOC_TYPE = (data && data.type) || 'bon';
+  const isBon = DOC_TYPE === 'bon';
+  const isDevis = DOC_TYPE === 'devis' || DOC_TYPE === 'devis_later';
+
+  // Titre
+  document.getElementById('doc-title').textContent = isBon ? 'Bon d\'intervention' : 'Devis';
+  document.getElementById('rapport-label').textContent = isBon ? 'Rapport d\'intervention' : 'Description des travaux';
+
+  // Numéro auto
+  DOC_NUM = genNumero(isBon ? 'BI' : 'D');
+  document.getElementById('f-num').value = DOC_NUM;
+  document.getElementById('doc-num').textContent = DOC_NUM;
+
+  // Conditions devis
+  if (isDevis) document.getElementById('conditions-section').style.display = 'block';
+
+  if (data) {
+    document.getElementById('f-client').value   = data.clientNom || '';
+    document.getElementById('f-adresse').value  = data.clientAdresse || data.adresse || '';
+    document.getElementById('f-tel').value      = data.clientTel || '';
+    document.getElementById('f-email').value    = data.clientEmail || '';
+    document.getElementById('f-motif').value    = data.description || '';
+    document.getElementById('f-date').value     = data.date || new Date().toLocaleDateString('fr-FR');
+    document.getElementById('f-rapport').placeholder = isBon
+      ? 'Décris ici ce qui a été fait...'
+      : 'Décris les travaux à réaliser...';
+
+    if (data.heureDebut) document.getElementById('f-heure-debut').value = data.heureDebut.replace('h',':').padEnd(5,'0');
+    if (data.heureFin) document.getElementById('f-heure-fin').value = data.heureFin.replace('h',':').padEnd(5,'0');
+
+    // Durée automatique depuis minuterie
+    if (data.dureeMin && data.dureeMin > 0) {
+      const h = Math.floor(data.dureeMin / 60);
+      const m = data.dureeMin % 60;
+      document.getElementById('f-duree').value = (h ? h + 'h' : '') + String(m).padStart(2,'0') + 'min';
+      // Ajouter ligne MO automatiquement
+      const dureeH = Math.round(data.dureeMin / 60 * 2) / 2; // arrondi 0.5h
+      if (dureeH > 0) {
+        LIGNES.push({ ref:'MO', nom:'Main d\'œuvre électricien', qty: dureeH, pu: 55, unite:'h', commander:false });
+        renderLignes();
+      }
+    }
+  } else {
+    document.getElementById('f-date').value = new Date().toLocaleDateString('fr-FR');
+  }
+
+  // Calcul durée auto si heures remplies
+  document.getElementById('f-heure-debut').addEventListener('change', calcDuree);
+  document.getElementById('f-heure-fin').addEventListener('change', calcDuree);
+
+  loadCatalogue();
+});
+
+function genNumero(prefix) {
+  const y = new Date().getFullYear();
+  const stored = JSON.parse(localStorage.getItem('he_doc_nums') || '{}');
+  const key = prefix + y;
+  stored[key] = (stored[key] || 0) + 1;
+  localStorage.setItem('he_doc_nums', JSON.stringify(stored));
+  return prefix + y + '-' + String(stored[key]).padStart(3,'0');
+}
+
+function calcDuree() {
+  const d = document.getElementById('f-heure-debut').value;
+  const f = document.getElementById('f-heure-fin').value;
+  if (!d || !f) return;
+  const [dh,dm] = d.split(':').map(Number);
+  const [fh,fm] = f.split(':').map(Number);
+  const mins = (fh*60+fm) - (dh*60+dm);
+  if (mins > 0) {
+    document.getElementById('f-duree').value = Math.floor(mins/60) + 'h' + String(mins%60).padStart(2,'0') + 'min';
+  }
+}
+
+// ============================================================
+//  LIGNES
+// ============================================================
+function addMO() {
+  LIGNES.push({ ref:'MO', nom:'Main d\'œuvre électricien', qty:1, pu:55, unite:'h', commander:false });
+  renderLignes();
+}
+function addDep() {
+  LIGNES.push({ ref:'DEP', nom:'Déplacement', qty:20, pu:0.50, unite:'km', commander:false });
+  renderLignes();
+}
+function addLibre() {
+  const nom = prompt('Désignation :');
+  if (!nom) return;
+  const pu = parseFloat(prompt('Prix unitaire HT (€) :', '0')) || 0;
+  LIGNES.push({ ref:'', nom:nom, qty:1, pu:pu, unite:'U', commander:false });
+  renderLignes();
+}
+
+function renderLignes() {
+  const el = document.getElementById('lignes-list');
+  if (!LIGNES.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px;">Aucune ligne</div>';
+    refreshTotaux();
+    refreshCommande();
+    return;
+  }
+  el.innerHTML = LIGNES.map(function(l, i) {
+    return '<div class="ligne-row">'
+      + '<div><div class="ligne-nom">' + esc(l.nom) + '</div><div class="ligne-ref">' + esc(l.ref) + '</div>'
+      + '<div class="cmd-check"><input type="checkbox" id="cmd-'+i+'" ' + (l.commander?'checked':'') + ' onchange="LIGNES['+i+'].commander=this.checked;refreshCommande()"><label for="cmd-'+i+'">À commander</label></div>'
+      + '</div>'
+      + '<input class="ligne-input" type="number" value="'+l.qty+'" min="0.1" step="0.5" onchange="LIGNES['+i+'].qty=parseFloat(this.value)||1;refreshTotaux()">'
+      + '<input class="ligne-input" type="number" value="'+l.pu+'" min="0" step="0.01" onchange="LIGNES['+i+'].pu=parseFloat(this.value)||0;refreshTotaux()" style="text-align:right;">'
+      + '<div class="ligne-total">' + (l.qty*l.pu).toFixed(2) + '€</div>'
+      + '<button class="ligne-del" onclick="LIGNES.splice('+i+',1);renderLignes()">🗑</button>'
+      + '</div>';
+  }).join('');
+  refreshTotaux();
+  refreshCommande();
+}
+
+function refreshTotaux() {
+  const ht = LIGNES.reduce(function(s,l){ return s + l.qty*l.pu; }, 0);
+  const tvaRate = parseFloat(document.getElementById('f-tva').value) || 20;
+  const tva = ht * tvaRate / 100;
+  document.getElementById('t-ht').textContent = ht.toFixed(2) + ' €';
+  document.getElementById('t-tva-label').textContent = 'TVA ' + tvaRate + '%';
+  document.getElementById('t-tva').textContent = tva.toFixed(2) + ' €';
+  document.getElementById('t-ttc').textContent = (ht+tva).toFixed(2) + ' €';
+  // Refresh total dans les lignes
+  document.querySelectorAll('.ligne-total').forEach(function(el, i) {
+    if (LIGNES[i]) el.textContent = (LIGNES[i].qty * LIGNES[i].pu).toFixed(2) + '€';
+  });
+}
+
+function refreshCommande() {
+  const toCmd = LIGNES.filter(function(l){ return l.commander; });
+  const section = document.getElementById('cmd-section');
+  section.style.display = toCmd.length ? 'block' : 'none';
+  if (!toCmd.length) return;
+  document.getElementById('cmd-list').innerHTML = toCmd.map(function(l){
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
+      + '<span>' + esc(l.nom) + '</span><strong>' + l.qty + ' ' + (l.unite||'U') + '</strong></div>';
+  }).join('');
+}
+
+// ============================================================
+//  CATALOGUE
+// ============================================================
+async function loadCatalogue() {
+  if (CAT_CACHE) return;
+  try {
+    let all = [];
+    let offset = 0;
+    while (true) {
+      const r = await fetch(SUPA_URL + '/rest/v1/catalogue?select=id,payload&limit=500&offset=' + offset, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      if (!r.ok) break;
+      const rows = await r.json();
+      if (!rows.length) break;
+      rows.forEach(function(row){ if(row.payload) all.push(row.payload); });
+      if (rows.length < 500) break;
+      offset += 500;
+    }
+    CAT_CACHE = all;
+  } catch(e) { CAT_CACHE = []; }
+}
+
+function openCatalogue() {
+  document.getElementById('cat-modal').style.display = 'flex';
+  document.getElementById('cat-q').value = '';
+  document.getElementById('cat-results').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>';
+  document.getElementById('cat-add-row').style.display = 'none';
+  setTimeout(function(){ document.getElementById('cat-q').focus(); }, 200);
+}
+function closeCatalogue() { document.getElementById('cat-modal').style.display = 'none'; }
+
+function catSearch(q) {
+  const el = document.getElementById('cat-results');
+  if (!CAT_CACHE || q.length < 2) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez au moins 2 caractères</div>';
+    return;
+  }
+  const ql = q.toLowerCase();
+  const results = CAT_CACHE.filter(function(e){
+    return e.ref && (e.ref.toLowerCase().includes(ql) || (e.nom && e.nom.toLowerCase().includes(ql)));
+  }).slice(0, 40);
+
+  if (!results.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Aucun résultat</div>';
+    return;
+  }
+  el.innerHTML = results.map(function(e) {
+    return '<div class="cat-row" onclick="catSelect(' + JSON.stringify(JSON.stringify(e)) + ')">'
+      + '<span class="cat-ref">' + esc(e.ref) + '</span>'
+      + '<span class="cat-nom">' + esc((e.nom||'').slice(0,60)) + (e.nom && e.nom.length>60?'…':'') + '</span>'
+      + '<span class="cat-pv">' + (e.pv||0).toFixed(2) + '€</span>'
+      + '</div>';
+  }).join('');
+}
+
+function catSelect(jsonStr) {
+  const e = JSON.parse(jsonStr);
+  CAT_SELECTED = e;
+  document.getElementById('cat-selected-nom').textContent = e.ref + ' — ' + (e.nom||'').slice(0,50);
+  document.getElementById('cat-pu').value = (e.pv || 0).toFixed(2);
+  document.getElementById('cat-qty').value = 1;
+  document.getElementById('cat-add-row').style.display = 'block';
+}
+
+function catConfirm() {
+  if (!CAT_SELECTED) return;
+  const qty = parseFloat(document.getElementById('cat-qty').value) || 1;
+  const pu  = parseFloat(document.getElementById('cat-pu').value) || 0;
+  LIGNES.push({ ref: CAT_SELECTED.ref, nom: CAT_SELECTED.nom || CAT_SELECTED.ref, qty: qty, pu: pu, unite: CAT_SELECTED.unite || 'U', commander: false });
+  renderLignes();
+  closeCatalogue();
+  toast(CAT_SELECTED.ref + ' ajouté ✓');
+  CAT_SELECTED = null;
+}
+
+// ============================================================
+//  SIGNATURES
+// ============================================================
+function initSignatures() {
+  ['sig-client','sig-intervenant'].forEach(function(id) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+
+    function getPos(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const src = ev.touches ? ev.touches[0] : ev;
+      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    }
+    function start(ev) { ev.preventDefault(); drawing=true; const p=getPos(ev); lastX=p.x; lastY=p.y; ctx.beginPath(); ctx.moveTo(lastX,lastY); }
+    function move(ev) { if(!drawing)return; ev.preventDefault(); const p=getPos(ev); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; }
+    function end(ev) { drawing=false; }
+
+    canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',end);
+    canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',end);
+  });
+}
+
+function clearSig(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function sigIsEmpty(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  // Check if any pixel is not background color
+  for (let i=0; i<data.length; i+=4) {
+    if (data[i] < 20 && data[i+1] < 20 && data[i+2] < 20) continue; // dark = background
+    return false;
+  }
+  return true;
+}
+
+// ============================================================
+//  VALIDER & SAUVEGARDER
+// ============================================================
+async function validerDoc() {
+  const client = document.getElementById('f-client').value.trim();
+  if (!client) { toast('Le nom du client est obligatoire'); return; }
+
+  const isBon = DOC_TYPE === 'bon';
+  const tvaRate = parseFloat(document.getElementById('f-tva').value) || 20;
+  const ht = LIGNES.reduce(function(s,l){ return s+l.qty*l.pu; },0);
+  const tva = ht * tvaRate / 100;
+
+  const doc = {
+    id: DOC_NUM,
+    type: DOC_TYPE,
+    numero: DOC_NUM,
+    date: document.getElementById('f-date').value,
+    heureDebut: document.getElementById('f-heure-debut').value,
+    heureFin: document.getElementById('f-heure-fin').value,
+    duree: document.getElementById('f-duree').value,
+    client: client,
+    adresse: document.getElementById('f-adresse').value,
+    tel: document.getElementById('f-tel').value,
+    email: document.getElementById('f-email').value,
+    motif: document.getElementById('f-motif').value,
+    rapport: document.getElementById('f-rapport').value,
+    lignes: LIGNES,
+    tvaRate: tvaRate,
+    totalHT: ht,
+    totalTVA: tva,
+    totalTTC: ht + tva,
+    validite: document.getElementById('f-validite')?.value || '',
+    conditions: document.getElementById('f-conditions')?.value || '',
+    notesInternes: document.getElementById('f-notes-internes').value,
+    sigClientOk: !sigIsEmpty('sig-client'),
+    sigIntervenantOk: !sigIsEmpty('sig-intervenant'),
+    sigClientData: document.getElementById('sig-client').toDataURL(),
+    sigIntervenantData: document.getElementById('sig-intervenant').toDataURL(),
+    createdAt: Date.now(),
+    statut: 'valide'
+  };
+
+  // Sauvegarder dans Supabase
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/devis', {
+      method: 'POST',
+      headers: SB_H,
+      body: JSON.stringify({ id: doc.id, payload: doc })
+    });
+    if (r.ok || r.status === 201) {
+      toast('Document enregistré ✓');
+    }
+  } catch(e) { toast('Erreur de sauvegarde'); }
+
+  // Afficher résumé
+  afficherResume(doc);
+}
+
+function afficherResume(doc) {
+  const isBon = doc.type === 'bon';
+  const toCmd = doc.lignes.filter(function(l){ return l.commander; });
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:flex;align-items:flex-end;justify-content:center;';
+
+  const sheet = document.createElement('div');
+  sheet.className = 'modal-sheet';
+
+  let h = '<h3>✅ ' + (isBon ? 'Bon d\'intervention' : 'Devis') + ' ' + esc(doc.numero) + '</h3>';
+  h += '<div style="color:var(--green);font-size:14px;margin-bottom:16px;">Document enregistré avec succès</div>';
+  h += '<div style="font-size:13px;margin-bottom:6px;"><strong>Client :</strong> ' + esc(doc.client) + '</div>';
+  h += '<div style="font-size:13px;margin-bottom:6px;"><strong>Date :</strong> ' + esc(doc.date) + '</div>';
+  if (doc.heureDebut) h += '<div style="font-size:13px;margin-bottom:6px;"><strong>Horaires :</strong> ' + esc(doc.heureDebut) + ' → ' + esc(doc.heureFin || '—') + '</div>';
+  h += '<div style="font-size:16px;font-weight:800;color:var(--accent);margin:12px 0;">Total TTC : ' + doc.totalTTC.toFixed(2) + ' €</div>';
+  if (doc.sigClientOk) h += '<div style="color:var(--green);font-size:13px;">✓ Signé par le client</div>';
+  if (doc.sigIntervenantOk) h += '<div style="color:var(--green);font-size:13px;">✓ Signé par l\'intervenant</div>';
+  if (toCmd.length) {
+    h += '<div style="margin-top:12px;padding:10px;background:rgba(96,165,250,.1);border-radius:8px;font-size:13px;">';
+    h += '<strong style="color:var(--blue);">📦 ' + toCmd.length + ' article(s) à commander</strong><br>';
+    h += toCmd.map(function(l){ return l.qty + ' × ' + l.nom.slice(0,40); }).join('<br>');
+    h += '</div>';
+  }
+  sheet.innerHTML = h;
+
+  const btnEmail = document.createElement('button');
+  btnEmail.className = 'btn btn-green';
+  btnEmail.style.marginTop = '14px';
+  btnEmail.textContent = '✉️ Envoyer par email';
+  btnEmail.onclick = function() { overlay.remove(); envoyerEmail(doc); };
+  sheet.appendChild(btnEmail);
+
+  const btnFermer = document.createElement('button');
+  btnFermer.className = 'btn btn-secondary';
+  btnFermer.style.marginTop = '8px';
+  btnFermer.textContent = 'Fermer';
+  btnFermer.onclick = function() { overlay.remove(); };
+  sheet.appendChild(btnFermer);
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+// ============================================================
+//  EMAIL
+// ============================================================
+function envoyerEmail(doc) {
+  if (!doc) {
+    // Construire depuis le formulaire si pas encore validé
+    doc = {
+      numero: DOC_NUM,
+      type: DOC_TYPE,
+      client: document.getElementById('f-client').value,
+      email: document.getElementById('f-email').value,
+      date: document.getElementById('f-date').value,
+      motif: document.getElementById('f-motif').value,
+      rapport: document.getElementById('f-rapport').value,
+      lignes: LIGNES,
+      tvaRate: parseFloat(document.getElementById('f-tva').value)||20,
+      totalHT: LIGNES.reduce(function(s,l){return s+l.qty*l.pu;},0)
+    };
+    doc.totalTVA = doc.totalHT * doc.tvaRate / 100;
+    doc.totalTTC = doc.totalHT + doc.totalTVA;
+  }
+
+  const isBon = doc.type === 'bon';
+  const dest = doc.email || document.getElementById('f-email').value;
+  if (!dest) { toast('Adresse email du client manquante'); return; }
+
+  const lignesText = (doc.lignes||[]).map(function(l){
+    return l.qty + ' ' + (l.unite||'U') + ' × ' + l.nom + ' : ' + (l.qty*l.pu).toFixed(2) + '€ HT';
+  }).join('\n');
+
+  const subject = encodeURIComponent((isBon ? 'Bon d\'intervention' : 'Devis') + ' N°' + doc.numero + ' — Harmonie Électricité');
+  const body = encodeURIComponent(
+    (isBon ? 'Bon d\'intervention' : 'Devis') + ' N°' + doc.numero + '\n'
+    + 'Date : ' + (doc.date||'') + '\n'
+    + 'Client : ' + (doc.client||'') + '\n\n'
+    + (doc.motif ? 'Motif : ' + doc.motif + '\n\n' : '')
+    + (doc.rapport ? 'Rapport : ' + doc.rapport + '\n\n' : '')
+    + '--- Détail ---\n' + lignesText + '\n\n'
+    + 'Total HT : ' + (doc.totalHT||0).toFixed(2) + ' €\n'
+    + 'TVA ' + (doc.tvaRate||20) + '% : ' + (doc.totalTVA||0).toFixed(2) + ' €\n'
+    + 'Total TTC : ' + (doc.totalTTC||0).toFixed(2) + ' €\n\n'
+    + '---\nHarmonie Électricité — Mathieu LARUICCI\n'
+    + '06 31 13 47 01 — contact@harmonie-electricite.com\n'
+    + 'www.harmonie-electricite.com'
+  );
+
+  window.location.href = 'mailto:' + dest + '?subject=' + subject + '&body=' + body + '&from=' + encodeURIComponent(EMAIL_FROM);
+  toast('Application email ouverte ✓');
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
