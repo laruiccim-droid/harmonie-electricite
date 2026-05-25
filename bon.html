@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Harmonie Électricité</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#222; --border:#2a2a2a;
+  --accent:#f5a623; --green:#22c55e; --red:#ef4444; --blue:#60a5fa;
+  --text:#f0f0f0; --muted:#888; --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;padding:16px 16px 80px;}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--accent);}
+h2{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+label{display:block;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;}
+input,textarea,select{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:none;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:all .15s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-green{background:var(--green);color:#000;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{width:auto;padding:7px 12px;font-size:12px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+
+/* Ligne tableau */
+.ligne-header{display:grid;grid-template-columns:1fr 50px 80px 70px 30px;gap:4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:0 4px;margin-bottom:4px;}
+.ligne-row{display:grid;grid-template-columns:1fr 50px 80px 70px 30px;gap:4px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border);}
+.ligne-row:last-child{border-bottom:none;}
+.ligne-nom{font-size:12px;line-height:1.3;}
+.ligne-ref{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.ligne-input{padding:5px 6px;font-size:12px;text-align:center;}
+.ligne-total{font-size:12px;font-weight:700;color:var(--accent);text-align:right;}
+.ligne-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;width:28px;text-align:center;}
+.ligne-del:hover{color:var(--red);}
+
+/* Commander checkbox */
+.cmd-check{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.cmd-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+.cmd-check label{font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;margin:0;}
+
+/* Totaux */
+.totaux{background:var(--surface2);border-radius:10px;padding:12px;margin-top:8px;}
+.total-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;}
+.total-row.grand{font-size:17px;font-weight:800;color:var(--accent);}
+
+/* Signature */
+.sig-wrap{position:relative;background:#ffffff;border:2px dashed #aaa;border-radius:10px;margin-top:6px;}
+canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none;}
+.sig-clear{position:absolute;top:6px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;}
+
+/* Modal catalogue */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:20px 16px max(20px,env(safe-area-inset-bottom));}
+.modal-sheet h3{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:12px;}
+.cat-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.cat-row:active{opacity:.7;}
+.cat-ref{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:80px;flex-shrink:0;}
+.cat-nom{flex:1;font-size:13px;line-height:1.3;}
+.cat-pv{font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.topbar-logo{font-size:22px;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;flex:1;}
+.topbar-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
+
+/* Badge commande */
+.badge-cmd{background:rgba(96,165,250,.15);color:var(--blue);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-weight:700;font-size:13px;padding:10px 20px;border-radius:24px;z-index:300;opacity:0;transition:all .3s;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">⚡</span>
+  <div>
+    <div class="topbar-title" id="doc-title">Bon d'intervention</div>
+    <div class="topbar-num" id="doc-num">—</div>
+  </div>
+</div>
+
+<!-- INFOS CLIENT -->
+<h2>Client & chantier</h2>
+<div class="card">
+  <label>Nom du client</label>
+  <input type="text" id="f-client" placeholder="Nom Prénom">
+  <label>Adresse du chantier</label>
+  <input type="text" id="f-adresse" placeholder="Adresse">
+  <div class="row2">
+    <div><label>Téléphone</label><input type="tel" id="f-tel" placeholder="06..."></div>
+    <div><label>Email client</label><input type="email" id="f-email" placeholder="client@..."></div>
+  </div>
+  <label>Motif / description du problème</label>
+  <textarea id="f-motif" rows="3" placeholder="Ex. Le portail ne s'ouvre plus..."></textarea>
+</div>
+
+<!-- DATES & HORAIRES -->
+<h2>Dates & horaires</h2>
+<div class="card">
+  <div class="row2">
+    <div><label>Date</label><input type="text" id="f-date" placeholder="JJ/MM/AAAA"></div>
+    <div><label>N° document</label><input type="text" id="f-num" readonly style="color:var(--accent);font-family:'DM Mono',monospace;"></div>
+  </div>
+  <div class="row3">
+    <div><label>Arrivée</label><input type="time" id="f-heure-debut"></div>
+    <div><label>Départ</label><input type="time" id="f-heure-fin"></div>
+    <div><label>Durée</label><input type="text" id="f-duree" placeholder="0h00" readonly></div>
+  </div>
+</div>
+
+<!-- RAPPORT -->
+<h2 id="rapport-label">Rapport d'intervention</h2>
+<div class="card">
+  <textarea id="f-rapport" rows="5" placeholder="Décris ici ce qui a été fait, les observations, les préconisations..."></textarea>
+</div>
+
+<!-- FOURNITURES / MO -->
+<h2>Fournitures & main d'œuvre</h2>
+<div class="card">
+  <div class="ligne-header">
+    <span>Désignation</span><span style="text-align:center;">Qté</span><span style="text-align:right;">PU HT</span><span style="text-align:right;">Total HT</span><span></span>
+  </div>
+  <div id="lignes-list"></div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <button class="btn btn-secondary btn-sm" onclick="addMO()">+ Main d'œuvre</button>
+    <button class="btn btn-secondary btn-sm" onclick="addDep()">+ Déplacement</button>
+    <button class="btn btn-secondary btn-sm" onclick="openCatalogue()">+ Catalogue</button>
+    <button class="btn btn-secondary btn-sm" onclick="addLibre()">+ Ligne libre</button>
+  </div>
+</div>
+
+<!-- TVA & TOTAUX -->
+<div class="card">
+  <label>Taux TVA</label>
+  <select id="f-tva" onchange="refreshTotaux()">
+    <option value="20">20% (standard)</option>
+    <option value="10">10% (rénovation)</option>
+    <option value="5.5">5,5% (efficacité énergétique)</option>
+    <option value="0">0% (exonéré)</option>
+  </select>
+  <div class="totaux" style="margin-top:12px;">
+    <div class="total-row"><span>Total HT</span><strong id="t-ht">0,00 €</strong></div>
+    <div class="total-row"><span id="t-tva-label">TVA 20%</span><strong id="t-tva">0,00 €</strong></div>
+    <div class="total-row grand"><span>Total TTC</span><span id="t-ttc">0,00 €</span></div>
+  </div>
+</div>
+
+<!-- BON DE COMMANDE MATÉRIEL -->
+<div class="card" id="cmd-section" style="display:none;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <span style="font-size:16px;">📦</span>
+    <strong style="font-size:14px;">Matériel à commander</strong>
+    <span class="badge-cmd">BON DE COMMANDE</span>
+  </div>
+  <div id="cmd-list" style="font-size:13px;color:var(--muted);"></div>
+</div>
+
+<!-- CONDITIONS (devis uniquement) -->
+<div id="conditions-section" style="display:none;">
+  <h2>Conditions</h2>
+  <div class="card">
+    <label>Validité du devis</label>
+    <input type="text" id="f-validite" value="30 jours" placeholder="Ex. 30 jours">
+    <label>Conditions de paiement</label>
+    <textarea id="f-conditions" rows="2" placeholder="Ex. 30% à la commande, solde à la livraison">Règlement à réception de facture</textarea>
+  </div>
+</div>
+
+<!-- SIGNATURES -->
+<h2>Signatures</h2>
+<div class="card">
+  <label>Signature du client</label>
+  <div class="sig-wrap">
+    <canvas id="sig-client" width="440" height="140"></canvas>
+    <button class="sig-clear" onclick="clearSig('sig-client')">Effacer</button>
+  </div>
+  <label style="margin-top:12px;">Signature de l'intervenant (Mathieu LARUICCI)</label>
+  <div class="sig-wrap">
+    <canvas id="sig-intervenant" width="440" height="140"></canvas>
+    <button class="sig-clear" onclick="clearSig('sig-intervenant')">Effacer</button>
+  </div>
+</div>
+
+<!-- NOTES INTERNES -->
+<div class="card" id="notes-internes-card">
+  <label style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:16px;">🔒</span>
+    Notes internes <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(non visibles sur le document client)</span>
+  </label>
+  <textarea id="f-notes-internes" rows="3" placeholder="Remarques pour l'assistante, matériel à commander, suite à donner..."></textarea>
+</div>
+
+<!-- ACTIONS -->
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;" id="actions-bar">
+  <button class="btn btn-primary" id="btn-valider" onclick="validerDoc()">✅ Valider et enregistrer</button>
+  <button class="btn btn-green" id="btn-envoyer" onclick="genererPDFEtEmail()" style="display:none;">📄 PDF + ✉️ Envoyer au client</button>
+  <button class="btn btn-secondary" id="btn-pdf" onclick="genererPDF()" style="display:none;">📄 Télécharger PDF</button>
+  <button class="btn btn-secondary" id="btn-fermer" onclick="window.close()">Annuler</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL CATALOGUE -->
+<div class="modal-overlay" id="cat-modal" style="display:none;">
+  <div class="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3>📦 Catalogue</h3>
+      <button onclick="closeCatalogue()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div style="position:relative;margin-bottom:8px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);">🔍</span>
+      <input type="text" id="cat-q" placeholder="Référence ou désignation…" oninput="catSearch(this.value)" placeholder="Référence (ex: MO) ou mot-clé…"
+        style="padding-left:36px;" autofocus>
+    </div>
+    <div id="cat-results" style="max-height:50vh;overflow-y:auto;">
+      <div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>
+    </div>
+    <!-- Ajout quantité -->
+    <div id="cat-add-row" style="display:none;margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;" id="cat-selected-nom"></div>
+      <div class="row3">
+        <div><label>Quantité</label><input type="number" id="cat-qty" value="1" min="0.1" step="1"></div>
+        <div><label>PU HT (€)</label><input type="number" id="cat-pu" step="0.01" min="0"></div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="catConfirm()" style="width:100%;">Ajouter</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIG
+// ============================================================
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+const SB_H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' };
+const EMAIL_FROM = 'contact@harmonie-electricite.com';
+
+// ============================================================
+//  STATE
+// ============================================================
+let DOC_TYPE = 'bon'; // 'bon' | 'devis' | 'devis_later'
+let LIGNES = [];
+let CAT_CACHE = null;
+let CAT_SELECTED = null;
+let DOC_NUM = '';
+let DOC_EVENT_ID = '';
+let DOC_VALIDE = false;
+
+function basculerEtatValide() {
+  DOC_VALIDE = true;
+  // Griser bouton valider
+  const bv = document.getElementById('btn-valider');
+  if (bv) { bv.textContent = '\u2705 Enregistr\u00e9'; bv.disabled = true; bv.style.opacity = '0.45'; bv.style.cursor = 'not-allowed'; }
+  // Afficher boutons PDF/Email
+  const be = document.getElementById('btn-envoyer');
+  const bp = document.getElementById('btn-pdf');
+  if (be) be.style.display = 'flex';
+  if (bp) bp.style.display = 'flex';
+  // Annuler -> Fermer
+  const bf = document.getElementById('btn-fermer');
+  if (bf) { bf.textContent = 'Fermer'; }
+  // Verrouiller champs sauf notes internes
+  document.querySelectorAll('input, textarea, select').forEach(function(f) {
+    if (f.id === 'f-notes-internes') return;
+    f.setAttribute('readonly', true);
+    f.style.opacity = '0.65';
+    f.style.pointerEvents = 'none';
+  });
+  // Désactiver boutons d'ajout lignes
+  document.querySelectorAll('.btn-sm').forEach(function(b) {
+    b.disabled = true; b.style.opacity = '0.35';
+  });
+  // Désactiver suppressions lignes
+  document.querySelectorAll('.ligne-del').forEach(function(b) {
+    b.disabled = true; b.style.opacity = '0.2';
+  });
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load', function() {
+  initSignatures();
+
+  // Récupérer données depuis l'app principale
+  let data = null;
+  try { data = JSON.parse(sessionStorage.getItem('he_bon_data')); } catch(e) {}
+
+  // Nettoyer les clés PDF mode au cas où elles traîneraient
+  sessionStorage.removeItem('he_bon_pdf_mode');
+  sessionStorage.removeItem('he_bon_doc');
+
+  // Doc existant depuis la liste docs (pour PDF/email)
+  try {
+    const existing = sessionStorage.getItem('he_bon_existing');
+    if (existing) {
+      window._existingDoc = JSON.parse(existing);
+      sessionStorage.removeItem('he_bon_existing');
+      // Pré-remplir les lignes depuis le doc existant
+      if (window._existingDoc.lignes && window._existingDoc.lignes.length) {
+        LIGNES = window._existingDoc.lignes.map(function(l) {
+          return { ref:l.ref||'', nom:l.nom||'', qty:l.qty||1, pu:l.pu||0, unite:l.unite||'U', commander:l.commander||false };
+        });
+      }
+    }
+  } catch(e) {}
+
+  DOC_TYPE = (data && data.type) || 'bon';
+  DOC_EVENT_ID = (data && data.eventId) || '';
+  const isBon = DOC_TYPE === 'bon';
+  const isDevis = DOC_TYPE === 'devis' || DOC_TYPE === 'devis_later';
+
+  // Titre
+  document.getElementById('doc-title').textContent = isBon ? 'Bon d\'intervention' : 'Devis';
+  document.getElementById('rapport-label').textContent = isBon ? 'Rapport d\'intervention' : 'Description des travaux';
+
+  // Numéro auto
+  DOC_NUM = genNumero(isBon ? 'BI' : 'D');
+  document.getElementById('f-num').value = DOC_NUM;
+  document.getElementById('doc-num').textContent = DOC_NUM;
+
+  // Conditions devis
+  if (isDevis) document.getElementById('conditions-section').style.display = 'block';
+
+  if (data) {
+    document.getElementById('f-client').value   = data.clientNom || '';
+    document.getElementById('f-adresse').value  = data.clientAdresse || data.adresse || '';
+    document.getElementById('f-tel').value      = data.clientTel || '';
+    document.getElementById('f-email').value    = data.clientEmail || '';
+    document.getElementById('f-motif').value    = data.description || '';
+    document.getElementById('f-date').value     = data.date || new Date().toLocaleDateString('fr-FR');
+    document.getElementById('f-rapport').placeholder = isBon
+      ? 'Décris ici ce qui a été fait...'
+      : 'Décris les travaux à réaliser...';
+
+    if (data.heureDebut) document.getElementById('f-heure-debut').value = data.heureDebut.replace('h',':').padEnd(5,'0');
+    if (data.heureFin) document.getElementById('f-heure-fin').value = data.heureFin.replace('h',':').padEnd(5,'0');
+
+    // Durée automatique depuis minuterie
+    if (data.dureeMin && data.dureeMin > 0) {
+      const h = Math.floor(data.dureeMin / 60);
+      const m = data.dureeMin % 60;
+      document.getElementById('f-duree').value = (h ? h + 'h' : '') + String(m).padStart(2,'0') + 'min';
+      // Ajouter ligne MO automatiquement
+      const dureeH = Math.ceil(data.dureeMin / 60); // heure entamée = heure due
+      if (dureeH > 0) {
+        LIGNES.push({ ref:'MO', nom:'Main d\'œuvre électricien', qty: dureeH, pu: 57, unite:'h', commander:false });
+        renderLignes();
+      }
+    }
+
+    // Lignes pré-générées par l'IA
+    if (data.lignes && data.lignes.length) {
+      data.lignes.forEach(function(l) {
+        LIGNES.push({
+          ref: l.ref || '',
+          nom: l.nom || '',
+          qty: l.qty || 1,
+          pu: l.pu || 0,
+          unite: l.unite || 'U',
+          commander: false
+        });
+      });
+      renderLignes();
+    }
+  } else {
+    document.getElementById('f-date').value = new Date().toLocaleDateString('fr-FR');
+  }
+
+  // Calcul durée auto si heures remplies
+  document.getElementById('f-heure-debut').addEventListener('change', calcDuree);
+  document.getElementById('f-heure-fin').addEventListener('change', calcDuree);
+
+  loadCatalogue();
+});
+
+function genNumero(prefix) {
+  const y = new Date().getFullYear();
+  const stored = JSON.parse(localStorage.getItem('he_doc_nums') || '{}');
+  const key = prefix + y;
+  stored[key] = (stored[key] || 0) + 1;
+  localStorage.setItem('he_doc_nums', JSON.stringify(stored));
+  return prefix + y + '-' + String(stored[key]).padStart(3,'0');
+}
+
+function calcDuree() {
+  const d = document.getElementById('f-heure-debut').value;
+  const f = document.getElementById('f-heure-fin').value;
+  if (!d || !f) return;
+  const [dh,dm] = d.split(':').map(Number);
+  const [fh,fm] = f.split(':').map(Number);
+  const mins = (fh*60+fm) - (dh*60+dm);
+  if (mins > 0) {
+    document.getElementById('f-duree').value = Math.floor(mins/60) + 'h' + String(mins%60).padStart(2,'0') + 'min';
+  }
+}
+
+// ============================================================
+//  LIGNES
+// ============================================================
+function addMO() {
+  // Chercher toutes les références MO dans le catalogue
+  var moItems = [];
+  if (CAT_CACHE) {
+    moItems = CAT_CACHE.filter(function(e) {
+      return e.ref && /^mo/i.test(e.ref);
+    }).slice(0, 10);
+  }
+  // Toujours avoir MO de base
+  if (!moItems.find(function(e){ return e.ref.toUpperCase()==='MO'; })) {
+    moItems.unshift({ ref:'MO', nom:'Main d\'œuvre électricien', pv:57, unite:'h' });
+  }
+
+  if (moItems.length <= 1) {
+    // Un seul choix, ajouter directement
+    LIGNES.push({ ref:'MO', nom:'Main d\'œuvre électricien', qty:1, pu:57, unite:'h', commander:false });
+    renderLignes(); return;
+  }
+  showPickerModal('Main d\'œuvre', moItems, function(item) {
+    LIGNES.push({ ref:item.ref, nom:item.nom, qty:1, pu:item.pv, unite:item.unite||'h', commander:false });
+    renderLignes();
+  });
+}
+
+function addDep() {
+  var depItems = [];
+  if (CAT_CACHE) {
+    depItems = CAT_CACHE.filter(function(e) {
+      return e.ref && (/^dep/i.test(e.ref) || /^depla/i.test(e.ref) || /^deplaof/i.test(e.ref));
+    }).slice(0, 10);
+  }
+  if (!depItems.find(function(e){ return e.ref.toUpperCase()==='DEP'; })) {
+    depItems.unshift({ ref:'DEP', nom:'Déplacement', pv:0.50, unite:'km' });
+  }
+
+  if (depItems.length <= 1) {
+    LIGNES.push({ ref:'DEP', nom:'Déplacement', qty:20, pu:0.50, unite:'km', commander:false });
+    renderLignes(); return;
+  }
+  showPickerModal('Déplacement', depItems, function(item) {
+    LIGNES.push({ ref:item.ref, nom:item.nom, qty:item.unite==='km'?20:1, pu:item.pv, unite:item.unite||'km', commander:false });
+    renderLignes();
+  });
+}
+
+function showPickerModal(title, items, onSelect) {
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.id = 'picker-modal';
+
+  var html = '<div class="modal-sheet" style="max-height:60vh;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+    + '<h3 style="margin:0;font-size:16px;">🔧 ' + title + '</h3>'
+    + '<button onclick="document.getElementById(\'picker-modal\').remove()" style="background:none;border:none;color:#888;font-size:22px;cursor:pointer;">×</button>'
+    + '</div>';
+
+  items.forEach(function(item, i) {
+    html += '<div onclick="pickerSelect(' + i + ')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 8px;border-bottom:1px solid #2a2a2a;cursor:pointer;">'
+      + '<div>'
+      + '<div style="font-family:monospace;font-size:10px;color:#888;">' + item.ref + '</div>'
+      + '<div style="font-size:14px;font-weight:600;">' + item.nom.slice(0,50) + '</div>'
+      + '</div>'
+      + '<div style="font-weight:700;color:#f5a623;">' + item.pv.toFixed(2) + '€/' + (item.unite||'U') + '</div>'
+      + '</div>';
+  });
+
+  html += '</div>';
+  overlay.innerHTML = html;
+  overlay.onclick = function(ev) { if (ev.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+
+  window._pickerItems = items;
+  window._pickerCallback = onSelect;
+}
+
+function pickerSelect(i) {
+  var item = window._pickerItems[i];
+  var cb = window._pickerCallback;
+  document.getElementById('picker-modal')?.remove();
+  if (item && cb) cb(item);
+}
+function addLibre() {
+  const nom = prompt('Désignation :');
+  if (!nom) return;
+  const pu = parseFloat(prompt('Prix unitaire HT (€) :', '0')) || 0;
+  LIGNES.push({ ref:'', nom:nom, qty:1, pu:pu, unite:'U', commander:false });
+  renderLignes();
+}
+
+function renderLignes() {
+  const el = document.getElementById('lignes-list');
+  if (!LIGNES.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px;">Aucune ligne</div>';
+    refreshTotaux();
+    refreshCommande();
+    return;
+  }
+  el.innerHTML = LIGNES.map(function(l, i) {
+    return '<div class="ligne-row">'
+      + '<div><div class="ligne-nom">' + esc(l.nom) + '</div><div class="ligne-ref">' + esc(l.ref) + '</div>'
+      + '<div class="cmd-check"><input type="checkbox" id="cmd-'+i+'" ' + (l.commander?'checked':'') + ' onchange="LIGNES['+i+'].commander=this.checked;refreshCommande()"><label for="cmd-'+i+'">À commander</label></div>'
+      + '</div>'
+      + '<input class="ligne-input" type="number" value="'+l.qty+'" min="0.1" step="0.5" onchange="LIGNES['+i+'].qty=parseFloat(this.value)||1;refreshTotaux()">'
+      + '<input class="ligne-input" type="number" value="'+l.pu+'" min="0" step="0.01" onchange="LIGNES['+i+'].pu=parseFloat(this.value)||0;refreshTotaux()" style="text-align:right;">'
+      + '<div class="ligne-total">' + (l.qty*l.pu).toFixed(2) + '€</div>'
+      + '<button class="ligne-del" onclick="LIGNES.splice('+i+',1);renderLignes()">🗑</button>'
+      + '</div>';
+  }).join('');
+  refreshTotaux();
+  refreshCommande();
+}
+
+function refreshTotaux() {
+  const ht = LIGNES.reduce(function(s,l){ return s + l.qty*l.pu; }, 0);
+  const tvaRate = parseFloat(document.getElementById('f-tva').value) || 20;
+  const tva = ht * tvaRate / 100;
+  document.getElementById('t-ht').textContent = ht.toFixed(2) + ' €';
+  document.getElementById('t-tva-label').textContent = 'TVA ' + tvaRate + '%';
+  document.getElementById('t-tva').textContent = tva.toFixed(2) + ' €';
+  document.getElementById('t-ttc').textContent = (ht+tva).toFixed(2) + ' €';
+  // Refresh total dans les lignes
+  document.querySelectorAll('.ligne-total').forEach(function(el, i) {
+    if (LIGNES[i]) el.textContent = (LIGNES[i].qty * LIGNES[i].pu).toFixed(2) + '€';
+  });
+}
+
+function refreshCommande() {
+  const toCmd = LIGNES.filter(function(l){ return l.commander; });
+  const section = document.getElementById('cmd-section');
+  section.style.display = toCmd.length ? 'block' : 'none';
+  if (!toCmd.length) return;
+  document.getElementById('cmd-list').innerHTML = toCmd.map(function(l){
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">'
+      + '<span>' + esc(l.nom) + '</span><strong>' + l.qty + ' ' + (l.unite||'U') + '</strong></div>';
+  }).join('');
+}
+
+// ============================================================
+//  CATALOGUE
+// ============================================================
+async function loadCatalogue() {
+  if (CAT_CACHE) return;
+  // Entrées fixes toujours disponibles
+  const fixed = [
+    { ref:'MO', nom:'Main d\'œuvre électricien', pv:57, unite:'h' },
+    { ref:'DEP', nom:'Déplacement', pv:0.50, unite:'km' },
+    { ref:'FORFAIT', nom:'Forfait déplacement', pv:25, unite:'U' }
+  ];
+  try {
+    let all = [];
+    let offset = 0;
+    while (true) {
+      const r = await fetch(SUPA_URL + '/rest/v1/catalogue?select=id,payload&limit=500&offset=' + offset, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      if (!r.ok) break;
+      const rows = await r.json();
+      if (!rows.length) break;
+      rows.forEach(function(row){ if(row.payload) all.push(row.payload); });
+      if (rows.length < 500) break;
+      offset += 500;
+    }
+    CAT_CACHE = fixed.concat(all);
+  } catch(e) { CAT_CACHE = fixed; }
+}
+
+function openCatalogue() {
+  document.getElementById('cat-modal').style.display = 'flex';
+  document.getElementById('cat-q').value = '';
+  document.getElementById('cat-results').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>';
+  document.getElementById('cat-add-row').style.display = 'none';
+  setTimeout(function(){ document.getElementById('cat-q').focus(); }, 200);
+}
+function closeCatalogue() { document.getElementById('cat-modal').style.display = 'none'; }
+
+// Résultats de recherche catalogue (indexés pour éviter les problèmes de quotes)
+var CAT_RESULTS = [];
+
+function catSearch(q) {
+  const el = document.getElementById('cat-results');
+  if (!CAT_CACHE) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Chargement...</div>';
+    return;
+  }
+  if (!q || q.length < 1) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher</div>';
+    return;
+  }
+  const ql = q.toLowerCase().trim();
+  // Recherche : référence exacte en priorité, puis nom
+  CAT_RESULTS = CAT_CACHE.filter(function(e){
+    if (!e.ref && !e.nom) return false;
+    const refMatch = e.ref && e.ref.toLowerCase().includes(ql);
+    const nomMatch = e.nom && e.nom.toLowerCase().includes(ql);
+    return refMatch || nomMatch;
+  });
+  // Trier : ref exacte en premier
+  CAT_RESULTS.sort(function(a, b) {
+    const aExact = a.ref && a.ref.toLowerCase() === ql ? -1 : 0;
+    const bExact = b.ref && b.ref.toLowerCase() === ql ? -1 : 0;
+    return aExact - bExact;
+  });
+  CAT_RESULTS = CAT_RESULTS.slice(0, 40);
+
+  if (!CAT_RESULTS.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Aucun résultat pour « ' + esc(q) + ' »</div>';
+    return;
+  }
+  el.innerHTML = CAT_RESULTS.map(function(e, i) {
+    return '<div class="cat-row" onclick="catSelectByIndex(' + i + ')">'
+      + '<span class="cat-ref">' + esc(e.ref||'') + '</span>'
+      + '<span class="cat-nom">' + esc((e.nom||'').slice(0,60)) + (e.nom && e.nom.length>60?'…':'') + '</span>'
+      + '<span class="cat-pv">' + (e.pv||0).toFixed(2) + '€</span>'
+      + '</div>';
+  }).join('');
+}
+
+function catSelectByIndex(i) {
+  const e = CAT_RESULTS[i];
+  if (!e) return;
+  CAT_SELECTED = e;
+  const nomEl = document.getElementById('cat-selected-nom');
+  const puEl = document.getElementById('cat-pu');
+  const qtyEl = document.getElementById('cat-qty');
+  const rowEl = document.getElementById('cat-add-row');
+  if (nomEl) nomEl.textContent = (e.ref ? e.ref + ' — ' : '') + (e.nom||'').slice(0,50);
+  if (puEl) puEl.value = (e.pv || 0).toFixed(2);
+  if (qtyEl) qtyEl.value = 1;
+  if (rowEl) rowEl.style.display = 'block';
+  // Scroll to add row
+  if (rowEl) rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function catConfirm() {
+  if (!CAT_SELECTED) return;
+  const qty = parseFloat(document.getElementById('cat-qty').value) || 1;
+  const pu  = parseFloat(document.getElementById('cat-pu').value) || 0;
+  LIGNES.push({ ref: CAT_SELECTED.ref, nom: CAT_SELECTED.nom || CAT_SELECTED.ref, qty: qty, pu: pu, unite: CAT_SELECTED.unite || 'U', commander: false });
+  renderLignes();
+  closeCatalogue();
+  toast(CAT_SELECTED.ref + ' ajouté ✓');
+  CAT_SELECTED = null;
+}
+
+// ============================================================
+//  SIGNATURES
+// ============================================================
+function initSignatures() {
+  ['sig-client','sig-intervenant'].forEach(function(id) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+
+    function getPos(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const src = ev.touches ? ev.touches[0] : ev;
+      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    }
+    function start(ev) { ev.preventDefault(); drawing=true; const p=getPos(ev); lastX=p.x; lastY=p.y; ctx.beginPath(); ctx.moveTo(lastX,lastY); }
+    function move(ev) { if(!drawing)return; ev.preventDefault(); const p=getPos(ev); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; }
+    function end(ev) { drawing=false; }
+
+    canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',end);
+    canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',end);
+  });
+}
+
+function clearSig(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function sigIsEmpty(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  // Check if any pixel is not background color
+  for (let i=0; i<data.length; i+=4) {
+    if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) continue; // white = background
+    return false;
+  }
+  return true;
+}
+
+// ============================================================
+//  VALIDER & SAUVEGARDER
+// ============================================================
+async function validerDoc() {
+  const client = document.getElementById('f-client').value.trim();
+  if (!client) { toast('Le nom du client est obligatoire'); return; }
+
+  const isBon = DOC_TYPE === 'bon';
+  const tvaRate = parseFloat(document.getElementById('f-tva').value) || 20;
+  const ht = LIGNES.reduce(function(s,l){ return s+l.qty*l.pu; },0);
+  const tva = ht * tvaRate / 100;
+
+  const doc = {
+    id: DOC_NUM,
+    type: DOC_TYPE,
+    numero: DOC_NUM,
+    date: document.getElementById('f-date').value,
+    heureDebut: document.getElementById('f-heure-debut').value,
+    heureFin: document.getElementById('f-heure-fin').value,
+    duree: document.getElementById('f-duree').value,
+    client: client,
+    adresse: document.getElementById('f-adresse').value,
+    tel: document.getElementById('f-tel').value,
+    email: document.getElementById('f-email').value,
+    motif: document.getElementById('f-motif').value,
+    rapport: document.getElementById('f-rapport').value,
+    lignes: LIGNES,
+    tvaRate: tvaRate,
+    totalHT: ht,
+    totalTVA: tva,
+    totalTTC: ht + tva,
+    validite: document.getElementById('f-validite')?.value || '',
+    conditions: document.getElementById('f-conditions')?.value || '',
+    notesInternes: document.getElementById('f-notes-internes').value,
+    sigClientOk: !sigIsEmpty('sig-client'),
+    sigIntervenantOk: !sigIsEmpty('sig-intervenant'),
+    sigClientData: document.getElementById('sig-client').toDataURL(),
+    sigIntervenantData: document.getElementById('sig-intervenant').toDataURL(),
+    eventId: DOC_EVENT_ID,
+    createdAt: Date.now(),
+    statut: 'valide'
+  };
+
+  // Sauvegarder dans Supabase
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/devis', {
+      method: 'POST',
+      headers: SB_H,
+      body: JSON.stringify({ id: doc.id, payload: doc })
+    });
+    if (r.ok || r.status === 201) {
+      toast('Document enregistré ✓');
+    }
+  } catch(e) { toast('Erreur de sauvegarde'); }
+
+  // Verrouiller le formulaire et changer les boutons
+  basculerEtatValide();
+
+  // Afficher résumé
+  afficherResume(doc);
+}
+
+function afficherResume(doc) {
+  const isBon = doc.type === 'bon';
+  const toCmd = (doc.lignes||[]).filter(function(l){ return l.commander; });
+
+  // Supprimer tout modal existant
+  document.getElementById('resume-modal')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'resume-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:0;';
+
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#1a1a1a;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px 40px;max-height:85vh;overflow-y:auto;';
+
+  // Contenu
+  let h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+  h += '<h3 style="margin:0;font-size:18px;font-family:sans-serif;font-weight:800;">✅ ' + esc(doc.numero) + '</h3>';
+  h += '<button onclick="document.getElementById(\'resume-modal\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>';
+  h += '</div>';
+  h += '<div style="color:#22c55e;font-size:13px;margin-bottom:10px;">Document enregistré ✓</div>';
+  h += '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">' + esc(doc.client||'—') + '</div>';
+  h += '<div style="font-size:13px;color:#888;margin-bottom:8px;">' + esc(doc.date||'') + (doc.heureDebut?' · '+esc(doc.heureDebut)+' → '+esc(doc.heureFin||''):'') + '</div>';
+  h += '<div style="font-size:20px;font-weight:800;color:#f5a623;margin-bottom:12px;">' + (doc.totalTTC||0).toFixed(2) + ' € TTC</div>';
+  if (doc.sigClientOk) h += '<div style="color:#22c55e;font-size:12px;margin-bottom:2px;">✓ Signé client</div>';
+  if (doc.sigIntervenantOk) h += '<div style="color:#22c55e;font-size:12px;margin-bottom:8px;">✓ Signé intervenant</div>';
+  if (toCmd.length) {
+    h += '<div style="padding:8px;background:rgba(96,165,250,.1);border-radius:8px;font-size:12px;margin-bottom:12px;">';
+    h += '<strong style="color:#60a5fa;">📦 ' + toCmd.length + ' article(s) à commander</strong>';
+    h += '</div>';
+  }
+  sheet.innerHTML = h;
+
+  // Bouton PDF + Email (principal — envoie avec pièce jointe automatique)
+  const btnEnvoyer = document.createElement('button');
+  btnEnvoyer.style.cssText = 'width:100%;padding:14px;border-radius:10px;border:none;background:#22c55e;color:#000;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;font-family:sans-serif;';
+  btnEnvoyer.textContent = '📄 PDF + ✉️ Envoyer au client';
+  btnEnvoyer.onclick = async function() {
+    overlay.remove();
+    await genererPDFEtEmail(doc);
+  };
+  sheet.appendChild(btnEnvoyer);
+
+  // Bouton PDF seul
+  const btnPDF = document.createElement('button');
+  btnPDF.style.cssText = 'width:100%;padding:12px;border-radius:10px;border:1px solid #2a2a2a;background:#222;color:#f0f0f0;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;font-family:sans-serif;';
+  btnPDF.textContent = '📄 Télécharger PDF seulement';
+  btnPDF.onclick = function() { genererPDF(doc); };
+  sheet.appendChild(btnPDF);
+
+  // Bouton Fermer — simple, les boutons PDF/Email sont sur le formulaire principal
+  const btnFermer = document.createElement('button');
+  btnFermer.style.cssText = 'width:100%;padding:12px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;color:#888;font-size:14px;cursor:pointer;font-family:sans-serif;margin-top:4px;';
+  btnFermer.textContent = '← Retour au document';
+  btnFermer.onclick = function() { overlay.remove(); };
+  sheet.appendChild(btnFermer);
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+// ============================================================
+//  EMAIL + PDF
+// ============================================================
+const SEND_EMAIL_URL = 'https://resonant-liger-cc04a6.netlify.app/.netlify/functions/send-email';
+const SUPA_URL_BON = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY_BON = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+
+// Récupérer le refresh token — localStorage ou Supabase (cross-domaine)
+async function getGoogleRefreshToken() {
+  const local = localStorage.getItem('gcal_refresh_token');
+  if (local) return local;
+  try {
+    const r = await fetch(SUPA_URL_BON + '/rest/v1/notes?id=eq.he_gcal_refresh&select=payload', {
+      headers: { 'apikey': SUPA_KEY_BON, 'Authorization': 'Bearer ' + SUPA_KEY_BON }
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      if (rows && rows.length && rows[0].payload && rows[0].payload.refresh_token) {
+        const rt = rows[0].payload.refresh_token;
+        localStorage.setItem('gcal_refresh_token', rt);
+        return rt;
+      }
+    }
+  } catch(e) {}
+  return null;
+}
+
+// Construire l'objet doc depuis le formulaire
+function docDepuisFormulaire() {
+  const ht = LIGNES.reduce(function(s,l){ return s+l.qty*l.pu; }, 0);
+  const tvaRate = parseFloat(document.getElementById('f-tva').value) || 20;
+  const tva = ht * tvaRate / 100;
+  return {
+    type: DOC_TYPE,
+    numero: DOC_NUM,
+    date: document.getElementById('f-date').value,
+    heureDebut: document.getElementById('f-heure-debut').value,
+    heureFin: document.getElementById('f-heure-fin').value,
+    duree: document.getElementById('f-duree').value,
+    client: document.getElementById('f-client').value.trim(),
+    adresse: document.getElementById('f-adresse').value.trim(),
+    tel: document.getElementById('f-tel').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    motif: document.getElementById('f-motif').value.trim(),
+    rapport: document.getElementById('f-rapport').value.trim(),
+    lignes: LIGNES,
+    tvaRate: tvaRate,
+    totalHT: ht,
+    totalTVA: tva,
+    totalTTC: ht + tva,
+    validite: document.getElementById('f-validite') ? document.getElementById('f-validite').value : '',
+    conditions: document.getElementById('f-conditions') ? document.getElementById('f-conditions').value : ''
+  };
+}
+
+// Point d'entrée unique — appelé depuis le bouton principal ET depuis afficherResume
+async function genererPDFEtEmail(docArg) {
+  const doc = docArg || docDepuisFormulaire();
+  const dest = doc.email;
+  if (!dest) { toast('Adresse email client manquante'); return; }
+
+  const refreshToken = await getGoogleRefreshToken();
+  if (!refreshToken) {
+    toast('Non connecté à Google — email classique');
+    envoyerEmailClassique(doc);
+    return;
+  }
+
+  toast('Génération du PDF…');
+  const pdfBase64 = await genererPDFBase64(doc);
+  if (!pdfBase64) { toast('Erreur génération PDF'); return; }
+
+  const isBon = doc.type === 'bon';
+  const filename = (isBon ? 'BI' : 'Devis') + '_' + doc.numero + '_' + (doc.client||'').replace(/\s+/g,'_') + '.pdf';
+
+  const lignesText = (doc.lignes||[]).map(function(l){
+    return '  ' + l.qty + ' ' + (l.unite||'U') + ' x ' + l.nom + ' : ' + (l.qty*l.pu).toFixed(2) + ' EUR HT';
+  }).join('\n');
+
+  const subject = (isBon ? "Bon d\'intervention" : 'Devis') + " N°" + doc.numero + " — Harmonie Électricité";
+  const bodyText = [
+    'Madame, Monsieur ' + doc.client + ',',
+    '',
+    'Veuillez trouver ci-joint ' + (isBon ? "notre bon d\'intervention" : 'notre devis') + ' N°' + doc.numero + '.',
+    doc.motif ? '' : null,
+    doc.motif ? 'Objet : ' + doc.motif : null,
+    '',
+    '--- Récapitulatif ---',
+    lignesText,
+    '',
+    'Total HT  : ' + (doc.totalHT||0).toFixed(2) + ' EUR',
+    'TVA ' + (doc.tvaRate||20) + '% : ' + (doc.totalTVA||0).toFixed(2) + ' EUR',
+    'Total TTC : ' + (doc.totalTTC||0).toFixed(2) + ' EUR',
+    '',
+    "Pour toute question, n\'hésitez pas à nous contacter.",
+    '',
+    'Cordialement,',
+    'Mathieu LARUICCI',
+    'Harmonie Électricité',
+    '06 31 13 47 01 - contact@harmonie-electricite.com',
+    'www.harmonie-electricite.com'
+  ].filter(function(l){ return l !== null; }).join('\n');
+
+  toast('Envoi en cours…');
+  try {
+    const res = await fetch(SEND_EMAIL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        refresh_token: refreshToken,
+        to: dest,
+        subject: subject,
+        bodyText: bodyText,
+        pdfBase64: pdfBase64,
+        pdfFilename: filename
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('✅ Email envoyé avec PDF à ' + dest);
+    } else {
+      console.error('Gmail error:', data.error);
+      toast('Erreur Gmail — email classique');
+      envoyerEmailClassique(doc);
+    }
+  } catch(err) {
+    toast('Erreur réseau — email classique');
+    envoyerEmailClassique(doc);
+  }
+}
+
+// Email classique fallback
+function envoyerEmailClassique(doc) {
+  const dest = (doc && doc.email) || document.getElementById('f-email').value.trim();
+  if (!dest) { toast('Email client manquant'); return; }
+  const isBon = (doc ? doc.type : DOC_TYPE) === 'bon';
+  const num = (doc && doc.numero) || DOC_NUM;
+  const client = (doc && doc.client) || document.getElementById('f-client').value.trim() || 'Client';
+  const subject = encodeURIComponent((isBon ? "Bon d\'intervention" : 'Devis') + ' N°' + num + ' — Harmonie Électricité');
+  const body = encodeURIComponent('Madame, Monsieur ' + client + ',\n\nVeuillez trouver ci-joint notre document N°' + num + '.\n\nCordialement,\nMathieu LARUICCI\nHarmonie Électricité\n06 31 13 47 01');
+  window.location.href = 'mailto:' + dest + '?subject=' + subject + '&body=' + body;
+}
+
+// Alias pour compat
+function envoyerEmailAvecPDF(doc) { genererPDFEtEmail(doc); }
+
+// Générer PDF en base64 (pour envoi Gmail)
+async function genererPDFBase64(docData) {
+  if (!window.jsPDF) {
+    await new Promise(function(resolve, reject) {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  window._pdfReturnBase64 = true;
+  try {
+    const b64 = await genererPDF(docData);
+    window._pdfReturnBase64 = false;
+    return b64 || null;
+  } catch(e) {
+    window._pdfReturnBase64 = false;
+    return null;
+  }
+}
+
+
+// ── Logos Harmonie Électricité ──
+const LOGO_HE_B64 = 'data:image/jpeg;base64,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';
+const PICTO_HE_B64 = 'data:image/jpeg;base64,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';
+
+// ============================================================
+//  GÉNÉRATION PDF PROFESSIONNEL
+// ============================================================
+async function genererPDF(docData) {
+  toast('Génération du PDF…');
+
+  // Charger jsPDF dynamiquement
+  if (!window.jsPDF) {
+    await new Promise(function(resolve, reject) {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+
+  // Use provided doc data or read from form
+  const d = docData || null;
+  const isBon = d ? (d.type === 'bon') : (DOC_TYPE === 'bon');
+  const client  = (d ? d.client  : document.getElementById('f-client').value.trim())  || '—';
+  const adresse = (d ? d.adresse : document.getElementById('f-adresse').value.trim()) || '';
+  const tel     = (d ? d.tel     : document.getElementById('f-tel').value.trim())     || '';
+  const email   = (d ? d.email   : document.getElementById('f-email').value.trim())   || '';
+  const date    = (d ? d.date    : document.getElementById('f-date').value) || new Date().toLocaleDateString('fr-FR');
+  const hDebut  = d ? (d.heureDebut||'') : document.getElementById('f-heure-debut').value;
+  const hFin    = d ? (d.heureFin||'')   : document.getElementById('f-heure-fin').value;
+  const duree   = d ? (d.duree||'')      : document.getElementById('f-duree').value;
+  const motif   = (d ? d.motif   : document.getElementById('f-motif').value.trim())   || '';
+  const rapport = (d ? d.rapport : document.getElementById('f-rapport').value.trim()) || '';
+  const notes   = d ? '' : document.getElementById('f-notes-internes').value.trim();
+  const tvaRate = d ? (d.tvaRate||20) : (parseFloat(document.getElementById('f-tva').value) || 20);
+  const validite   = d ? (d.validite||'')    : (document.getElementById('f-validite')    ? document.getElementById('f-validite').value    : '');
+  const conditions = d ? (d.conditions||'')  : (document.getElementById('f-conditions')  ? document.getElementById('f-conditions').value  : '');
+  const lignesPDF  = d ? (d.lignes||[])      : LIGNES;
+  const docNum     = d ? (d.numero||DOC_NUM) : DOC_NUM;
+
+  const ht  = lignesPDF.reduce(function(s,l){ return s+l.qty*l.pu; }, 0);
+  const tva = ht * tvaRate / 100;
+  const ttc = ht + tva;
+
+  // Couleurs
+  const ORANGE  = [245, 166, 35];
+  const DARK    = [15, 15, 15];
+  const GREY    = [100, 100, 100];
+  const LGREY   = [240, 240, 240];
+  const WHITE   = [255, 255, 255];
+  const GREEN   = [34, 197, 94];
+
+  let y = 0;
+  const W = 210; // largeur A4
+  const M = 14;  // marge gauche
+  const MR = W - M; // marge droite
+
+  // ── EN-TÊTE ──────────────────────────────────────────────
+  // Fond noir en-tête (couleur du logo)
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, W, 40, 'F');
+  // Ligne dorée en bas de l'en-tête
+  doc.setFillColor(180, 145, 60);
+  doc.rect(0, 39, W, 1.5, 'F');
+
+  // Picto rond (gauche)
+  try {
+    doc.addImage(PICTO_HE_B64, 'PNG', M, 4, 28, 28);
+  } catch(e) {}
+
+  // Logo texte ELECTRICITE (centre-gauche)
+  try {
+    doc.addImage(LOGO_HE_B64, 'PNG', M + 32, 10, 55, 16);
+  } catch(e) {
+    // Fallback texte
+    doc.setTextColor(200, 165, 90);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('HARMONIE', M + 32, 20);
+    doc.setFontSize(9);
+    doc.text('ÉLECTRICITÉ', M + 32, 27);
+  }
+
+  // Nom artisan sous le logo
+  doc.setTextColor(100, 80, 20);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Mathieu LARUICCI — Électricien artisan', M, 36);
+
+  // Coordonnées en haut à droite
+  doc.setFontSize(7.5);
+  doc.setTextColor(40, 40, 40);
+  doc.setFont('helvetica', 'normal');
+  doc.text('225 Chemin des Bochets — 73170 Yenne', MR, 12, { align:'right' });
+  doc.text('06 31 13 47 01', MR, 18, { align:'right' });
+  doc.text('contact@harmonie-electricite.com', MR, 24, { align:'right' });
+  doc.text('www.harmonie-electricite.com', MR, 30, { align:'right' });
+  // Spécialités
+  doc.setFontSize(6.5);
+  doc.setTextColor(160, 130, 70);
+  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Borne IRVE · Automatisme', MR, 36, { align:'right' });
+
+  y = 46;
+
+  // ── TITRE DOCUMENT ───────────────────────────────────────
+  doc.setFillColor(...LGREY);
+  doc.rect(M, y, W - 2*M, 12, 'F');
+  doc.setTextColor(...DARK);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(isBon ? 'BON D\'INTERVENTION' : 'DEVIS', M + 4, y + 8);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...GREY);
+  doc.text('N° ' + DOC_NUM, MR, y + 8, { align:'right' });
+
+  y += 16;
+
+  // ── BLOC CLIENT + DATE ───────────────────────────────────
+  // Bloc client (gauche)
+  doc.setFillColor(250, 250, 250);
+  doc.roundedRect(M, y, 90, 32, 2, 2, 'F');
+  doc.setDrawColor(220, 220, 220);
+  doc.roundedRect(M, y, 90, 32, 2, 2, 'S');
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...ORANGE);
+  doc.text('CLIENT', M + 4, y + 6);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...DARK);
+  doc.text(client, M + 4, y + 13);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...GREY);
+  let cy = y + 19;
+  if (adresse) { doc.text(adresse.slice(0,45), M + 4, cy); cy += 5; }
+  if (tel)     { doc.text('Tél : ' + tel, M + 4, cy); cy += 5; }
+  if (email)   { doc.text(email.slice(0,40), M + 4, cy); }
+
+  // Bloc date/horaires (droite)
+  const bx = W - M - 90;
+  doc.setFillColor(250, 250, 250);
+  doc.roundedRect(bx, y, 90, 32, 2, 2, 'F');
+  doc.setDrawColor(220, 220, 220);
+  doc.roundedRect(bx, y, 90, 32, 2, 2, 'S');
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...ORANGE);
+  doc.text('INFORMATIONS', bx + 4, y + 6);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...DARK);
+  doc.text('Date : ' + date, bx + 4, y + 13);
+  if (hDebut && hFin) {
+    doc.text('Arrivée : ' + hDebut + '   Départ : ' + hFin, bx + 4, y + 19);
+  }
+  if (duree) {
+    doc.text('Durée : ' + duree, bx + 4, y + 25);
+  }
+  if (!isBon && validite) {
+    doc.text('Validité : ' + validite, bx + 4, y + 25);
+  }
+
+  y += 38;
+
+  // ── MOTIF ────────────────────────────────────────────────
+  if (motif) {
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...ORANGE);
+    doc.text('MOTIF / DESCRIPTION', M, y + 4);
+    y += 7;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...DARK);
+    const motifLines = doc.splitTextToSize(motif, W - 2*M);
+    doc.text(motifLines, M, y);
+    y += motifLines.length * 4.5 + 4;
+  }
+
+  // ── RAPPORT D'INTERVENTION ───────────────────────────────
+  if (rapport && isBon) {
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...ORANGE);
+    doc.text('RAPPORT D\'INTERVENTION', M, y + 4);
+    y += 7;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...DARK);
+    const rapLines = doc.splitTextToSize(rapport, W - 2*M);
+    doc.text(rapLines, M, y);
+    y += rapLines.length * 4.5 + 4;
+  }
+
+  // ── TABLEAU PRESTATIONS ──────────────────────────────────
+  y += 2;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...ORANGE);
+  doc.text('DÉTAIL DES PRESTATIONS', M, y + 4);
+  y += 7;
+
+  // En-tête tableau
+  doc.setFillColor(...DARK);
+  doc.rect(M, y, W - 2*M, 7, 'F');
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Réf.', M + 2, y + 5);
+  doc.text('Désignation', M + 20, y + 5);
+  doc.text('Qté', M + 115, y + 5, { align:'right' });
+  doc.text('Unité', M + 130, y + 5, { align:'right' });
+  doc.text('PU HT', M + 152, y + 5, { align:'right' });
+  doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
+  y += 7;
+
+  // Lignes tableau
+  doc.setFont('helvetica', 'normal');
+  lignesPDF.forEach(function(l, i) {
+    const rowH = 7;
+    // Alternance couleur
+    if (i % 2 === 0) {
+      doc.setFillColor(248, 248, 248);
+      doc.rect(M, y, W - 2*M, rowH, 'F');
+    }
+    doc.setDrawColor(230, 230, 230);
+    doc.rect(M, y, W - 2*M, rowH, 'S');
+
+    doc.setTextColor(...DARK);
+    doc.setFontSize(8);
+    // Ref
+    doc.text((l.ref||'').slice(0,10), M + 2, y + 5);
+    // Nom (tronqué)
+    const nom = (l.nom||'').slice(0, 50);
+    doc.text(nom, M + 20, y + 5);
+    // Qté
+    doc.text(String(l.qty), M + 115, y + 5, { align:'right' });
+    // Unité
+    doc.text(l.unite||'U', M + 130, y + 5, { align:'right' });
+    // PU HT
+    doc.text(l.pu.toFixed(2) + ' €', M + 152, y + 5, { align:'right' });
+    // Total HT
+    doc.setFont('helvetica', 'bold');
+    doc.text((l.qty * l.pu).toFixed(2) + ' €', W - M - 2, y + 5, { align:'right' });
+    doc.setFont('helvetica', 'normal');
+    y += rowH;
+  });
+
+  y += 4;
+
+  // ── TOTAUX ───────────────────────────────────────────────
+  const totW = 80;
+  const totX = W - M - totW;
+
+  doc.setFillColor(250, 250, 250);
+  doc.rect(totX, y, totW, 22, 'F');
+  doc.setDrawColor(220, 220, 220);
+  doc.rect(totX, y, totW, 22, 'S');
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...GREY);
+  doc.text('Total HT', totX + 4, y + 7);
+  doc.text('TVA ' + tvaRate + '%', totX + 4, y + 14);
+
+  doc.setTextColor(...DARK);
+  doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+  doc.text(tva.toFixed(2) + ' €', W - M - 2, y + 14, { align:'right' });
+
+  y += 22;
+
+  // Total TTC — fond orange
+  doc.setFillColor(...ORANGE);
+  doc.rect(totX, y, totW, 10, 'F');
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TOTAL TTC', totX + 4, y + 7);
+  doc.text(ttc.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+
+  y += 14;
+
+  // Conditions devis
+  if (!isBon && conditions) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...GREY);
+    doc.text('Conditions : ' + conditions, M, y);
+    y += 8;
+  }
+
+  // ── SIGNATURES ───────────────────────────────────────────
+  // Vérifier si on a de la place (sinon nouvelle page)
+  if (y > 220) { doc.addPage(); y = 20; }
+
+  y += 4;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...ORANGE);
+  doc.text('SIGNATURES', M, y);
+  y += 5;
+
+  const sigW = (W - 2*M - 10) / 2;
+
+  // Cadre signature client
+  doc.setDrawColor(200, 200, 200);
+  doc.setFillColor(252, 252, 252);
+  doc.rect(M, y, sigW, 35, 'FD');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...GREY);
+  doc.text('Signature du client', M + sigW/2, y + 5, { align:'center' });
+
+  // Intégrer image signature client si dessinée
+  try {
+    const canvasClient = document.getElementById('sig-client');
+    if (canvasClient && !sigIsEmpty('sig-client')) {
+      const sigData = canvasClient.toDataURL('image/png');
+      doc.addImage(sigData, 'PNG', M + 2, y + 7, sigW - 4, 24);
+    }
+  } catch(e) {}
+
+  doc.setFontSize(7);
+  doc.setTextColor(...DARK);
+  doc.text(client, M + sigW/2, y + 33, { align:'center' });
+
+  // Cadre signature intervenant
+  const sig2X = M + sigW + 10;
+  doc.setDrawColor(200, 200, 200);
+  doc.setFillColor(252, 252, 252);
+  doc.rect(sig2X, y, sigW, 35, 'FD');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...GREY);
+  doc.text('Signature de l\'intervenant', sig2X + sigW/2, y + 5, { align:'center' });
+
+  try {
+    const canvasInt = document.getElementById('sig-intervenant');
+    if (canvasInt && !sigIsEmpty('sig-intervenant')) {
+      const sigData2 = canvasInt.toDataURL('image/png');
+      doc.addImage(sigData2, 'PNG', sig2X + 2, y + 7, sigW - 4, 24);
+    }
+  } catch(e) {}
+
+  doc.setFontSize(7);
+  doc.setTextColor(...DARK);
+  doc.text('Mathieu LARUICCI', sig2X + sigW/2, y + 33, { align:'center' });
+
+  y += 40;
+
+  // ── PIED DE PAGE ─────────────────────────────────────────
+  const pageH = doc.internal.pageSize.getHeight();
+  doc.setFillColor(15, 15, 15);
+  doc.rect(0, pageH - 14, W, 14, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(200, 165, 90);
+  doc.text(
+    'Harmonie Électricité · 225 Chemin des Bochets, 73170 Yenne · 06 31 13 47 01 · contact@harmonie-electricite.com · www.harmonie-electricite.com',
+    W/2, pageH - 7, { align:'center' }
+  );
+  doc.setTextColor(120, 100, 50);
+  doc.setFontSize(6);
+  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Automatisme · Borne de recharge IRVE', W/2, pageH - 3, { align:'center' });
+
+  // ── TÉLÉCHARGEMENT ou retour base64 ──────────────────────
+  const filename = (isBon ? 'BI' : 'Devis') + '_' + docNum + '_' + client.replace(/\s+/g,'_') + '.pdf';
+
+  if (window._pdfReturnBase64) {
+    // Retourner en base64 pur pour envoi Gmail
+    return doc.output('datauristring').split(',')[1];
+  }
+
+  // Sur iOS/Safari, doc.save() ouvre dans le navigateur au lieu de télécharger
+  // On utilise un blob URL + lien de téléchargement forcé
+  const pdfBlob = doc.output('blob');
+  const blobUrl = URL.createObjectURL(pdfBlob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(function() {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  }, 1000);
+  toast('PDF téléchargé : ' + filename);
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
