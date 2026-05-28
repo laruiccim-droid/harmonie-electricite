@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correction liens PDF — Harmonie Électricité</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #0f0f0f; color: #f0f0f0; padding: 20px; min-height: 100vh; }
+h1 { font-size: 20px; font-weight: 800; color: #f5a623; margin-bottom: 6px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 24px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+.btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; font-family: sans-serif; margin-bottom: 8px; }
+.btn-primary { background: #f5a623; color: #000; }
+.btn-green   { background: #22c55e; color: #000; }
+.btn-grey    { background: #2a2a2a; color: #888; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.log { background: #111; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; max-height: 400px; overflow-y: auto; margin-top: 12px; }
+.log-line { padding: 3px 0; border-bottom: 1px solid #1a1a1a; }
+.ok   { color: #22c55e; }
+.err  { color: #ef4444; }
+.info { color: #f5a623; }
+.muted { color: #888; }
+.stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a2a; font-size: 14px; }
+.stat:last-child { border-bottom: none; }
+.badge { font-weight: 700; color: #f5a623; }
+input { width: 100%; padding: 10px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; color: #f0f0f0; font-size: 13px; margin-top: 6px; }
+label { font-size: 12px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<h1>🔗 Correction liens PDF</h1>
+<p class="sub">Corrige tous les liens GitHub/Netlify dans Google Calendar vers la nouvelle URL</p>
+
+<!-- Connexion Google -->
+<div class="card" id="auth-card">
+  <label>Connexion Google requise</label>
+  <p style="font-size:13px;color:#888;margin:8px 0;">Connecte-toi pour autoriser la mise à jour de ton agenda.</p>
+  <button class="btn btn-primary" onclick="connecterGoogle()">🔐 Connecter Google</button>
+</div>
+
+<!-- Paramètres -->
+<div class="card" id="params-card" style="display:none;">
+  <label>Période à corriger</label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+    <div>
+      <label>Du</label>
+      <input type="date" id="date-from" />
+    </div>
+    <div>
+      <label>Au</label>
+      <input type="date" id="date-to" />
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <label>Nouvelle URL de base</label>
+    <input type="text" id="new-base-url" value="https://laruiccim-droid.github.io/harmonie-electricite/bon.html" />
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="card" id="actions-card" style="display:none;">
+  <button class="btn btn-primary" id="btn-scan" onclick="scannerRDV()">🔍 Scanner les RDV</button>
+  <button class="btn btn-green" id="btn-fix" onclick="corrigerTout()" style="display:none;">✅ Corriger tous les liens</button>
+  <button class="btn btn-grey" onclick="window.close()">Fermer</button>
+
+  <!-- Statistiques -->
+  <div id="stats" style="display:none;margin-top:12px;">
+    <div class="stat"><span>RDV scannés</span><span class="badge" id="stat-total">0</span></div>
+    <div class="stat"><span>Liens à corriger</span><span class="badge" id="stat-tocorrect" style="color:#ef4444;">0</span></div>
+    <div class="stat"><span>Déjà corrects</span><span class="badge" id="stat-ok" style="color:#22c55e;">0</span></div>
+    <div class="stat"><span>Corrigés</span><span class="badge" id="stat-fixed" style="color:#22c55e;">0</span></div>
+  </div>
+
+  <!-- Journal -->
+  <div id="log" class="log" style="display:none;"></div>
+</div>
+
+<script>
+const GCAL_URL  = 'https://gcal-harmonie.harmonie-electricite.workers.dev';
+const SUPA_URL  = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY  = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+
+let gcalToken   = localStorage.getItem('gcal_access_token') || null;
+let gcalRefresh = localStorage.getItem('gcal_refresh_token') || null;
+let rdvACorreger = [];
+
+// ── Logs ──────────────────────────────────────────────────
+function log(msg, cls = '') {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  const line = document.createElement('div');
+  line.className = 'log-line ' + cls;
+  line.textContent = new Date().toLocaleTimeString('fr-FR') + ' — ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStat(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+// ── Connexion Google ──────────────────────────────────────
+function connecterGoogle() {
+  // Vérifier si token déjà présent
+  if (gcalToken || gcalRefresh) {
+    document.getElementById('auth-card').innerHTML =
+      '<div style="color:#22c55e;font-weight:700;">✅ Déjà connecté à Google</div>';
+    afficherInterface();
+    return;
+  }
+  const popup = window.open(GCAL_URL + '/auth', 'gcal-auth', 'width=500,height=600');
+  window.addEventListener('message', function handler(e) {
+    if (e.data?.type !== 'gcal_tokens') return;
+    window.removeEventListener('message', handler);
+    gcalToken   = e.data.access_token;
+    gcalRefresh = e.data.refresh_token;
+    localStorage.setItem('gcal_access_token', gcalToken);
+    if (gcalRefresh) localStorage.setItem('gcal_refresh_token', gcalRefresh);
+    document.getElementById('auth-card').innerHTML =
+      '<div style="color:#22c55e;font-weight:700;">✅ Connecté à Google</div>';
+    afficherInterface();
+  });
+}
+
+function afficherInterface() {
+  // Dates par défaut : 6 mois en arrière jusqu'à aujourd'hui
+  const today = new Date();
+  const sixMonthsAgo = new Date(today);
+  sixMonthsAgo.setMonth(today.getMonth() - 6);
+  document.getElementById('date-from').value = sixMonthsAgo.toISOString().split('T')[0];
+  document.getElementById('date-to').value   = today.toISOString().split('T')[0];
+  document.getElementById('params-card').style.display = 'block';
+  document.getElementById('actions-card').style.display = 'block';
+}
+
+// ── Refresh token ─────────────────────────────────────────
+async function refreshToken() {
+  if (!gcalRefresh) return false;
+  try {
+    const r = await fetch(GCAL_URL + '/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: gcalRefresh })
+    });
+    const data = await r.json();
+    if (data.access_token) {
+      gcalToken = data.access_token;
+      localStorage.setItem('gcal_access_token', gcalToken);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function gcalFetch(path, options = {}) {
+  let r = await fetch(GCAL_URL + path, {
+    ...options,
+    headers: { Authorization: 'Bearer ' + gcalToken, ...(options.headers || {}) }
+  });
+  if (r.status === 401) {
+    const ok = await refreshToken();
+    if (ok) {
+      r = await fetch(GCAL_URL + path, {
+        ...options,
+        headers: { Authorization: 'Bearer ' + gcalToken, ...(options.headers || {}) }
+      });
+    }
+  }
+  return r;
+}
+
+// ── Scanner les RDV ───────────────────────────────────────
+async function scannerRDV() {
+  const btn = document.getElementById('btn-scan');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scan en cours…';
+  rdvACorreger = [];
+
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  const newBase  = document.getElementById('new-base-url').value.trim();
+
+  document.getElementById('stats').style.display = 'block';
+  log('Scan du ' + dateFrom + ' au ' + dateTo, 'info');
+
+  try {
+    // Récupérer tous les events de la période
+    const tMin = new Date(dateFrom).toISOString();
+    const tMax = new Date(dateTo + 'T23:59:59').toISOString();
+
+    let allEvents = [];
+    let pageToken = '';
+    let page = 0;
+
+    do {
+      page++;
+      let url = `/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&maxResults=250&singleEvents=true&orderBy=startTime`;
+      if (pageToken) url += '&pageToken=' + pageToken;
+
+      const r = await gcalFetch(url);
+      if (!r.ok) { log('Erreur API Google: ' + r.status, 'err'); break; }
+      const data = await r.json();
+      allEvents = allEvents.concat(data.items || []);
+      pageToken = data.nextPageToken || '';
+      log(`Page ${page}: ${data.items?.length || 0} RDV`, 'muted');
+    } while (pageToken);
+
+    log(`Total: ${allEvents.length} RDV chargés`, 'info');
+    setStat('stat-total', allEvents.length);
+
+    // Identifier ceux avec anciens liens
+    const oldPatterns = [
+      'github.io/harmonie-electricite/bon.html',
+      'netlify.app/bon.html',
+      'netlify.app/.netlify/functions'
+    ];
+
+    let toCorrect = 0, alreadyOk = 0;
+    for (const e of allEvents) {
+      const desc = e.description || '';
+      const hasOldLink = oldPatterns.some(p => desc.includes(p));
+      const hasNewLink = desc.includes(newBase);
+
+      if (hasOldLink && !hasNewLink) {
+        rdvACorreger.push(e);
+        toCorrect++;
+        log(`📌 À corriger: ${e.summary || 'Sans titre'} (${e.start?.dateTime?.split('T')[0] || e.start?.date})`, 'err');
+      } else if (desc.includes('bon.html')) {
+        alreadyOk++;
+        log(`✅ Déjà correct: ${e.summary || 'Sans titre'}`, 'ok');
+      }
+    }
+
+    setStat('stat-tocorrect', toCorrect);
+    setStat('stat-ok', alreadyOk);
+
+    if (toCorrect > 0) {
+      document.getElementById('btn-fix').style.display = 'block';
+      log(`\n→ ${toCorrect} lien(s) à corriger. Clique sur "Corriger tous les liens".`, 'info');
+    } else {
+      log('✅ Tous les liens sont déjà corrects !', 'ok');
+    }
+
+  } catch(err) {
+    log('Erreur: ' + err.message, 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔍 Scanner à nouveau';
+}
+
+// ── Corriger tous les liens ───────────────────────────────
+async function corrigerTout() {
+  const btn = document.getElementById('btn-fix');
+  btn.disabled = true;
+  btn.textContent = '⏳ Correction en cours…';
+
+  const newBase = document.getElementById('new-base-url').value.trim();
+  const oldPatterns = [
+    /https:\/\/laruiccim-droid\.github\.io\/harmonie-electricite\/bon\.html([^\s\n<"]*)/g,
+    /https:\/\/[^/]*netlify\.app\/bon\.html([^\s\n<"]*)/g,
+  ];
+
+  let fixed = 0;
+  let errors = 0;
+
+  for (const e of rdvACorreger) {
+    try {
+      let desc = e.description || '';
+      let newDesc = desc;
+
+      // Remplacer tous les anciens liens par le nouveau
+      for (const pattern of oldPatterns) {
+        newDesc = newDesc.replace(pattern, (match, suffix) => {
+          // Conserver les paramètres ?doc=...&mode=...
+          return newBase + (suffix || '');
+        });
+      }
+
+      if (newDesc === desc) {
+        log(`⚠️ Pas de changement pour: ${e.summary}`, 'muted');
+        continue;
+      }
+
+      // Mettre à jour via API
+      const r = await gcalFetch('/events/' + e.id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newDesc })
+      });
+
+      if (r.ok) {
+        fixed++;
+        setStat('stat-fixed', fixed);
+        log(`✅ Corrigé: ${e.summary || 'Sans titre'}`, 'ok');
+      } else {
+        errors++;
+        log(`❌ Erreur ${r.status}: ${e.summary}`, 'err');
+      }
+
+      // Pause pour éviter rate limiting Google
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+    } catch(err) {
+      errors++;
+      log(`❌ Exception: ${e.summary} — ${err.message}`, 'err');
+    }
+  }
+
+  log(`\n🎉 Terminé ! ${fixed} corrigé(s), ${errors} erreur(s)`, 'info');
+  btn.textContent = `✅ ${fixed} lien(s) corrigé(s)`;
+
+  // Aussi mettre à jour les liens dans Supabase (bons/devis)
+  if (fixed > 0) {
+    await corrigerSupabase(newBase);
+  }
+}
+
+// ── Corriger aussi les liens dans Supabase ────────────────
+async function corrigerSupabase(newBase) {
+  log('\nVérification des liens dans Supabase…', 'info');
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) { log('Erreur Supabase', 'err'); return; }
+    const docs = await r.json();
+
+    let fixedSupa = 0;
+    for (const doc of docs) {
+      const p = doc.payload;
+      if (!p) continue;
+
+      // Vérifier si le payload contient des liens à corriger
+      const payloadStr = JSON.stringify(p);
+      if (!payloadStr.includes('netlify.app/bon.html') &&
+          !payloadStr.includes('github.io/harmonie-electricite/bon.html')) continue;
+
+      // Remplacer dans le payload
+      const newPayloadStr = payloadStr
+        .replace(/https:\/\/[^"]*netlify\.app\/bon\.html/g, newBase)
+        .replace(/https:\/\/laruiccim-droid\.github\.io\/harmonie-electricite\/bon\.html/g, newBase);
+
+      const newPayload = JSON.parse(newPayloadStr);
+
+      // Sauvegarder
+      const r2 = await fetch(SUPA_URL + '/rest/v1/devis', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({ id: doc.id, payload: newPayload })
+      });
+
+      if (r2.ok) { fixedSupa++; }
+    }
+
+    if (fixedSupa > 0) log(`✅ ${fixedSupa} doc(s) Supabase mis à jour`, 'ok');
+    else log('✅ Aucun lien à corriger dans Supabase', 'ok');
+
+  } catch(err) {
+    log('Erreur Supabase: ' + err.message, 'err');
+  }
+}
+
+// Init — vérifier si déjà connecté
+window.onload = function() {
+  if (gcalToken || gcalRefresh) {
+    document.getElementById('auth-card').innerHTML =
+      '<div style="color:#22c55e;font-weight:700;margin-bottom:8px;">✅ Déjà connecté à Google</div>'
+      + '<button class="btn btn-grey" onclick="gcalToken=null;gcalRefresh=null;localStorage.removeItem(\'gcal_access_token\');localStorage.removeItem(\'gcal_refresh_token\');location.reload();" style="width:auto;padding:6px 12px;font-size:12px;">Se déconnecter</button>';
+    afficherInterface();
+  }
+};
+</script>
+</body>
+</html>
