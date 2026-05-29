@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correction durée RDV — Harmonie Électricité</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #0f0f0f; color: #f0f0f0; padding: 16px; }
+h1 { font-size: 18px; font-weight: 800; color: #f5a623; margin-bottom: 4px; }
+.sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; font-family: sans-serif; margin-bottom: 8px; }
+.btn-primary { background: #f5a623; color: #000; }
+.btn-green   { background: #22c55e; color: #000; }
+.btn-grey    { background: #2a2a2a; color: #888; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+input[type="date"], input[type="number"] { width: 100%; padding: 10px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; color: #f0f0f0; font-size: 13px; margin-bottom: 12px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.log { background: #111; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; max-height: 350px; overflow-y: auto; margin-top: 12px; display: none; }
+.log-line { padding: 2px 0; border-bottom: 1px solid #1a1a1a; }
+.ok   { color: #22c55e; }
+.err  { color: #ef4444; }
+.info { color: #f5a623; }
+.muted { color: #666; }
+.stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a2a; font-size: 13px; }
+.stat:last-child { border-bottom: none; }
+.badge { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>⏱ Correction durée RDV</h1>
+<p class="sub">Applique une durée minimum de 1h aux RDV trop courts dans Google Calendar</p>
+
+<!-- Auth -->
+<div class="card" id="auth-card">
+  <label>Connexion Google</label>
+  <button class="btn btn-primary" onclick="connecter()">🔐 Connecter Google</button>
+</div>
+
+<!-- Paramètres -->
+<div class="card" id="params-card" style="display:none;">
+  <div class="grid2">
+    <div>
+      <label>Du</label>
+      <input type="date" id="date-from">
+    </div>
+    <div>
+      <label>Au</label>
+      <input type="date" id="date-to">
+    </div>
+  </div>
+  <label>Durée minimum (minutes)</label>
+  <input type="number" id="duree-min" value="60" min="30" max="120">
+  <p style="font-size:11px;color:#888;margin-top:-8px;margin-bottom:12px;">Les RDV plus courts seront étendus à cette durée</p>
+</div>
+
+<!-- Actions -->
+<div class="card" id="actions-card" style="display:none;">
+  <button class="btn btn-primary" id="btn-scan" onclick="scanner()">🔍 Scanner les RDV</button>
+  <button class="btn btn-green"   id="btn-fix"  onclick="corriger()" style="display:none;">⏱ Appliquer la durée minimum</button>
+
+  <div id="stats" style="display:none;margin-top:12px;">
+    <div class="stat"><span>RDV scannés</span><span class="badge" id="s-total">0</span></div>
+    <div class="stat"><span>RDV trop courts</span><span class="badge" id="s-courts" style="color:#ef4444;">0</span></div>
+    <div class="stat"><span>RDV OK</span><span class="badge" id="s-ok" style="color:#22c55e;">0</span></div>
+    <div class="stat"><span>Corrigés</span><span class="badge" id="s-fixed" style="color:#22c55e;">0</span></div>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+const GCAL_URL = 'https://gcal-harmonie.harmonie-electricite.workers.dev';
+let token = localStorage.getItem('gcal_access_token');
+let refreshToken = localStorage.getItem('gcal_refresh_token');
+let rdvACorreger = [];
+
+// ── Log ───────────────────────────────────────────────────
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  const line = document.createElement('div');
+  line.className = 'log-line ' + cls;
+  line.textContent = new Date().toLocaleTimeString('fr-FR') + ' — ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+function setStat(id, val) { document.getElementById(id).textContent = val; }
+
+// ── Auth ──────────────────────────────────────────────────
+function connecter() {
+  if (token || refreshToken) {
+    document.getElementById('auth-card').innerHTML = '<div style="color:#22c55e;font-weight:700;">✅ Déjà connecté à Google</div>';
+    afficherInterface();
+    return;
+  }
+  const popup = window.open(GCAL_URL + '/auth', 'gcal', 'width=500,height=600');
+  window.addEventListener('message', function handler(e) {
+    if (e.data?.type !== 'gcal_tokens') return;
+    window.removeEventListener('message', handler);
+    token = e.data.access_token;
+    refreshToken = e.data.refresh_token;
+    localStorage.setItem('gcal_access_token', token);
+    if (refreshToken) localStorage.setItem('gcal_refresh_token', refreshToken);
+    document.getElementById('auth-card').innerHTML = '<div style="color:#22c55e;font-weight:700;">✅ Connecté à Google</div>';
+    afficherInterface();
+  });
+}
+
+function afficherInterface() {
+  // Dates par défaut : 3 mois en arrière → aujourd'hui
+  const today = new Date();
+  const before = new Date(today);
+  before.setMonth(today.getMonth() - 3);
+  document.getElementById('date-from').value = before.toISOString().split('T')[0];
+  document.getElementById('date-to').value   = today.toISOString().split('T')[0];
+  document.getElementById('params-card').style.display = 'block';
+  document.getElementById('actions-card').style.display = 'block';
+}
+
+// ── Refresh token ─────────────────────────────────────────
+async function refreshAccessToken() {
+  if (!refreshToken) return false;
+  const r = await fetch(GCAL_URL + '/refresh', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken })
+  });
+  const d = await r.json();
+  if (d.access_token) {
+    token = d.access_token;
+    localStorage.setItem('gcal_access_token', token);
+    return true;
+  }
+  return false;
+}
+
+async function gcalFetch(path, options={}) {
+  let r = await fetch(GCAL_URL + path, {
+    ...options, headers: { Authorization: 'Bearer ' + token, ...(options.headers||{}) }
+  });
+  if (r.status === 401) {
+    const ok = await refreshAccessToken();
+    if (ok) r = await fetch(GCAL_URL + path, {
+      ...options, headers: { Authorization: 'Bearer ' + token, ...(options.headers||{}) }
+    });
+  }
+  return r;
+}
+
+// ── Scanner ───────────────────────────────────────────────
+async function scanner() {
+  const btn = document.getElementById('btn-scan');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scan en cours…';
+  rdvACorreger = [];
+  document.getElementById('stats').style.display = 'block';
+
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  const dureeMin = parseInt(document.getElementById('duree-min').value) || 60;
+
+  log('Scan du ' + dateFrom + ' au ' + dateTo + ' (durée min: ' + dureeMin + 'min)', 'info');
+
+  try {
+    let all = [];
+    let pageToken = '';
+    let page = 0;
+    do {
+      page++;
+      let url = '/events?timeMin=' + encodeURIComponent(new Date(dateFrom).toISOString())
+        + '&timeMax=' + encodeURIComponent(new Date(dateTo + 'T23:59:59').toISOString())
+        + '&maxResults=250&singleEvents=true&orderBy=startTime';
+      if (pageToken) url += '&pageToken=' + pageToken;
+      const r = await gcalFetch(url);
+      if (!r.ok) { log('Erreur API: ' + r.status, 'err'); break; }
+      const data = await r.json();
+      all = all.concat(data.items || []);
+      pageToken = data.nextPageToken || '';
+      log('Page ' + page + ': ' + (data.items?.length||0) + ' RDV', 'muted');
+    } while (pageToken);
+
+    log('Total: ' + all.length + ' RDV chargés', 'info');
+    setStat('s-total', all.length);
+
+    let courts = 0, ok = 0;
+    for (const e of all) {
+      if (!e.start?.dateTime || !e.end?.dateTime) continue;
+      const start = new Date(e.start.dateTime);
+      const end   = new Date(e.end.dateTime);
+      const duree = (end - start) / 60000;
+      if (duree < dureeMin) {
+        rdvACorreger.push(e);
+        courts++;
+        log('⚠️ ' + (e.summary||'Sans titre') + ' — ' + Math.round(duree) + 'min (' + start.toLocaleDateString('fr-FR') + ' ' + start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ')', 'err');
+      } else {
+        ok++;
+      }
+    }
+
+    setStat('s-courts', courts);
+    setStat('s-ok', ok);
+
+    if (courts > 0) {
+      document.getElementById('btn-fix').style.display = 'block';
+      log(courts + ' RDV à corriger. Clique sur "Appliquer la durée minimum".', 'info');
+    } else {
+      log('✅ Tous les RDV ont déjà une durée suffisante !', 'ok');
+    }
+
+  } catch(err) { log('Erreur: ' + err.message, 'err'); }
+
+  btn.disabled = false;
+  btn.textContent = '🔍 Scanner à nouveau';
+}
+
+// ── Corriger ──────────────────────────────────────────────
+async function corriger() {
+  const btn = document.getElementById('btn-fix');
+  btn.disabled = true;
+  btn.textContent = '⏳ Correction en cours…';
+
+  const dureeMin = parseInt(document.getElementById('duree-min').value) || 60;
+  let fixed = 0, errors = 0;
+
+  for (const e of rdvACorreger) {
+    try {
+      const start     = new Date(e.start.dateTime);
+      const endNouveau = new Date(start.getTime() + dureeMin * 60000);
+
+      const r = await gcalFetch('/events/' + e.id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          end: { dateTime: endNouveau.toISOString(), timeZone: 'Europe/Paris' }
+        })
+      });
+
+      if (r.ok) {
+        fixed++;
+        setStat('s-fixed', fixed);
+        log('✅ ' + (e.summary||'Sans titre') + ' → ' + start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' – ' + endNouveau.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}), 'ok');
+      } else {
+        errors++;
+        log('❌ Erreur ' + r.status + ': ' + (e.summary||'?'), 'err');
+      }
+
+      // Pause anti rate-limit
+      await new Promise(res => setTimeout(res, 150));
+
+    } catch(err) {
+      errors++;
+      log('❌ Exception: ' + err.message, 'err');
+    }
+  }
+
+  log('🎉 Terminé ! ' + fixed + ' corrigé(s), ' + errors + ' erreur(s)', 'info');
+  btn.textContent = '✅ ' + fixed + ' RDV corrigé(s)';
+}
+
+// Init
+window.onload = function() {
+  if (token || refreshToken) {
+    document.getElementById('auth-card').innerHTML = '<div style="color:#22c55e;font-weight:700;margin-bottom:8px;">✅ Déjà connecté</div>';
+    afficherInterface();
+  }
+};
+</script>
+</body>
+</html>
