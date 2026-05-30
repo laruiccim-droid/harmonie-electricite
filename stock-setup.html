@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuration Stock — Harmonie Électricité</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #0f0f0f; color: #f0f0f0; }
+
+/* Header */
+.header { background: #1a1a1a; border-bottom: 1px solid #2a2a2a; padding: 14px 16px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.header h1 { font-size: 16px; font-weight: 800; color: #f5a623; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+#badge-count { background: #f5a623; color: #000; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 800; display: none; }
+
+/* Barre de recherche + filtres */
+.toolbar { padding: 12px 16px; background: #111; border-bottom: 1px solid #2a2a2a; position: sticky; top: 57px; z-index: 99; }
+.search-row { display: flex; gap: 8px; margin-bottom: 8px; }
+#search { flex: 1; padding: 10px 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #f0f0f0; font-size: 14px; }
+#search:focus { outline: none; border-color: #f5a623; }
+.filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.filter-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid #2a2a2a; background: #1a1a1a; color: #888; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.filter-btn.active { background: #f5a623; color: #000; border-color: #f5a623; }
+
+/* Progress */
+#progress-bar { height: 3px; background: #2a2a2a; }
+#progress-fill { height: 3px; background: #f5a623; width: 0%; transition: width .3s; }
+
+/* Liste */
+#liste { padding: 8px 16px 80px; }
+.item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.item-header { display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; }
+.item-ref { font-family: monospace; font-size: 11px; color: #f5a623; background: rgba(245,166,35,0.1); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.item-nom { font-size: 13px; font-weight: 600; flex: 1; }
+.item-status { font-size: 18px; flex-shrink: 0; }
+.item-body { display: none; padding: 0 12px 12px; border-top: 1px solid #2a2a2a; }
+.item-body.open { display: block; }
+
+/* Formulaire inline */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: span 2; }
+label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+select, input[type="number"], input[type="text"] {
+  padding: 8px 10px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px;
+  color: #f0f0f0; font-size: 13px; font-family: sans-serif;
+}
+select:focus, input:focus { outline: none; border-color: #f5a623; }
+.emplacement-btns { display: flex; gap: 6px; }
+.emp-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #2a2a2a; background: #111; color: #888; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+.emp-btn.active { background: rgba(245,166,35,0.15); border-color: #f5a623; color: #f5a623; }
+.btn-save { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #22c55e; color: #000; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+.btn-save.saved { background: #2a2a2a; color: #22c55e; }
+.btn-skip { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #2a2a2a; background: transparent; color: #666; font-size: 12px; cursor: pointer; margin-top: 4px; }
+
+/* Bottom bar */
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2a2a2a; padding: 12px 16px; display: flex; gap: 8px; }
+.btn-export { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #f5a623; color: #000; font-size: 14px; font-weight: 800; cursor: pointer; }
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Toast */
+.toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: #22c55e; color: #000; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; z-index: 9999; display: none; }
+
+/* Loading */
+#loading { text-align: center; padding: 60px 20px; color: #888; }
+.spinner { font-size: 32px; animation: spin 1s linear infinite; display: inline-block; margin-bottom: 12px; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+  <script src="ebp-data.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1>📦 Config Stock</h1>
+  <div class="header-right" style="display:flex;gap:8px;align-items:center;">
+    <button id="btn-mode-selection" onclick="toggleModeSelection()" style="padding:5px 10px;border-radius:8px;border:1px solid #2a2a2a;background:#1a1a1a;color:#888;font-size:12px;font-weight:600;cursor:pointer;">☑ Sélection</button>
+    <span id="badge-count">0 configurés</span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="search-row">
+    <input type="text" id="search" placeholder="🔍 Rechercher une référence…" oninput="filtrer()">
+  </div>
+  <div class="filter-row" id="filter-row">
+    <button class="filter-btn active" onclick="setFiltre('all',this)">Tous</button>
+    <button class="filter-btn" onclick="setFiltre('todo',this)">À configurer</button>
+    <button class="filter-btn" onclick="setFiltre('done',this)">Configurés ✅</button>
+    <button class="filter-btn" onclick="setFiltre('skip',this)">Ignorés</button>
+  </div>
+  <div id="selection-bar" style="gap:8px;align-items:center;margin-top:6px;display:none;">
+    <button onclick="toutSelectionner()" style="padding:5px 10px;border-radius:8px;border:1px solid #2a2a2a;background:#1a1a1a;color:#f5a623;font-size:12px;font-weight:700;cursor:pointer;">☑ Tout</button>
+    <button onclick="toutDeselectionner()" style="padding:5px 10px;border-radius:8px;border:1px solid #2a2a2a;background:#1a1a1a;color:#888;font-size:12px;cursor:pointer;">☐ Aucun</button>
+    <span id="selection-count" style="font-size:12px;color:#888;flex:1;"></span>
+    <button onclick="ignorerSelection()" style="padding:5px 12px;border-radius:8px;border:none;background:#ef4444;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">⏭ Ignorer sélection</button>
+  </div>
+</div>
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<div id="liste">
+  <div id="loading">
+    <div class="spinner">⚡</div>
+    <div>Chargement du catalogue…</div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <button class="btn-export" id="btn-export" onclick="exporterCSV()" disabled>
+    📥 Exporter CSV stock
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+// EBP_DATA chargé depuis ebp-data.js
+
+// Index par nom normalisé pour matching quand ref ne correspond pas
+const EBP_BY_NOM = {};
+(function() {
+  function normalize(s) {
+    return (s||'').toLowerCase()
+      .replace(/[éèêë]/g,'e').replace(/[àâä]/g,'a').replace(/[îï]/g,'i')
+      .replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/[ç]/g,'c')
+      .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  Object.keys(EBP_DATA).forEach(function(ref) {
+    const nom = normalize(EBP_DATA[ref].nom_ebp || '');
+    if (nom.length > 5) EBP_BY_NOM[nom] = EBP_DATA[ref];
+    // Aussi indexer les 40 premiers caractères du nom
+    const short = nom.substring(0, 40).trim();
+    if (short.length > 5 && !EBP_BY_NOM[short]) EBP_BY_NOM[short] = EBP_DATA[ref];
+  });
+})();
+
+function getEBPData(ref, nom) {
+  // 1. Match par ref exacte
+  if (EBP_DATA[ref]) return EBP_DATA[ref];
+  // 2. Match par nom normalisé
+  function normalize(s) {
+    return (s||'').toLowerCase()
+      .replace(/[éèêë]/g,'e').replace(/[àâä]/g,'a').replace(/[îï]/g,'i')
+      .replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/[ç]/g,'c')
+      .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  const normNom = normalize(nom || '');
+  if (normNom && EBP_BY_NOM[normNom]) return EBP_BY_NOM[normNom];
+  // 3. Match partiel sur les 30 premiers caractères
+  const short = normNom.substring(0, 30).trim();
+  if (short && EBP_BY_NOM[short]) return EBP_BY_NOM[short];
+  return null;
+}
+
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+
+const FOURNISSEURS = [
+  '—',
+  'Integral Systeme',
+  'Francofa Eurodis',
+  'Sonepar',
+  'Rexel',
+  'Yesss Electrique',
+  'DSPP',
+  'Emporio Elletrico',
+  'Wurth',
+  'Berner',
+  'Castorama',
+  'ProBip',
+  'Autre'
+];
+
+let catalogue = [];
+let stockConfig = {}; // { ref: { fournisseur, stock_camion, stock_atelier, stock_min, emplacement, actif } }
+let filtreActif = 'all';
+let searchQ = '';
+let modeSelection = false;
+let selection = new Set();
+
+function toggleModeSelection() {
+  modeSelection = !modeSelection;
+  selection.clear();
+  const btn = document.getElementById('btn-mode-selection');
+  const bar = document.getElementById('selection-bar');
+  btn.style.background = modeSelection ? '#f5a623' : '#1a1a1a';
+  btn.style.color = modeSelection ? '#000' : '#888';
+  bar.style.display = modeSelection ? 'flex' : 'none';
+  afficherListe();
+}
+
+function toggleSelectItem(ref) {
+  if (selection.has(ref)) selection.delete(ref);
+  else selection.add(ref);
+  const chk = document.getElementById('chk-' + ref);
+  if (chk) {
+    chk.style.background = selection.has(ref) ? '#f5a623' : '#111';
+    chk.style.borderColor = selection.has(ref) ? '#f5a623' : '#2a2a2a';
+    chk.innerHTML = selection.has(ref) ? '<span style="color:#000;font-size:14px;">✓</span>' : '';
+  }
+  document.getElementById('selection-count').textContent = selection.size + ' sélectionné(s)';
+}
+
+function toutSelectionner() {
+  const items = document.querySelectorAll('.item');
+  items.forEach(function(el) {
+    const ref = el.id.replace('item-', '');
+    selection.add(ref);
+    const chk = document.getElementById('chk-' + ref);
+    if (chk) { chk.style.background='#f5a623'; chk.style.borderColor='#f5a623'; chk.innerHTML='<span style="color:#000;font-size:14px;">✓</span>'; }
+  });
+  document.getElementById('selection-count').textContent = selection.size + ' sélectionné(s)';
+}
+
+function toutDeselectionner() {
+  selection.clear();
+  document.querySelectorAll('.item-checkbox').forEach(function(chk) {
+    chk.style.background = '#111'; chk.style.borderColor = '#2a2a2a'; chk.innerHTML = '';
+  });
+  document.getElementById('selection-count').textContent = '0 sélectionné(s)';
+}
+
+function ignorerSelection() {
+  if (!selection.size) { toast('Aucun article sélectionné'); return; }
+  const count = selection.size;
+  selection.forEach(function(ref) { ignorer(ref); });
+  selection.clear();
+  document.getElementById('selection-count').textContent = '0 sélectionné(s)';
+  toast('⏭ ' + count + ' article(s) ignoré(s)');
+  afficherListe();
+}
+
+// ── Init ──────────────────────────────────────────────────
+window.onload = async function() {
+  // Charger config existante depuis localStorage
+  try {
+    const saved = localStorage.getItem('he_stock_config');
+    if (saved) stockConfig = JSON.parse(saved);
+  } catch(e) {}
+
+  await chargerCatalogue();
+};
+
+async function chargerCatalogue() {
+  document.getElementById('loading').innerHTML = `
+    <div class="spinner">⚡</div>
+    <div>Chargement du catalogue…</div>`;
+
+  try {
+    let all = [];
+    let offset = 0;
+    let page = 0;
+
+    while (true) {
+      page++;
+      if (page > 10) { console.warn('Trop de pages, arrêt'); break; } // sécurité max 5000 articles
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const r = await fetch(
+        `${SUPA_URL}/rest/v1/catalogue?select=id,payload&limit=500&offset=${offset}`,
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }, signal: controller.signal }
+      );
+      clearTimeout(timeout);
+
+      if (!r.ok) {
+        throw new Error('Erreur HTTP ' + r.status + ' sur la page ' + page);
+      }
+
+      const rows = await r.json();
+      if (!rows.length) break;
+
+      rows.forEach(function(row) {
+        if (row.payload) all.push(row.payload);
+        else if (row.ref) all.push(row); // format direct
+      });
+
+      document.getElementById('loading').querySelector('div:last-child').textContent =
+        'Chargement… ' + all.length + ' articles';
+
+      if (rows.length < 500) break;
+      offset += 500;
+    }
+
+    if (!all.length) {
+      throw new Error('Aucun article trouvé dans le catalogue Supabase');
+    }
+
+    // Filtrer : exclure MO, DEP, FORFAIT
+    catalogue = all.filter(function(a) {
+      return !['MO','MOD1','MOD2','DEP','DEPLA1','DEPLA2','DEPLA3','DEPLA4','DEPLA5','DEPLAOF','FORFAIT'].includes(a.ref);
+    });
+
+    document.getElementById('loading').style.display = 'none';
+    afficherListe();
+    majBadge();
+    document.getElementById('btn-export').disabled = false;
+
+  } catch(err) {
+    document.getElementById('loading').innerHTML =
+      '<div style="color:#ef4444;text-align:center;padding:20px;">'
+      + '<div style="font-size:24px;margin-bottom:8px;">❌</div>'
+      + '<div style="font-weight:700;margin-bottom:4px;">Erreur de chargement</div>'
+      + '<div style="font-size:12px;margin-bottom:16px;color:#888;">' + err.message + '</div>'
+      + '<button onclick="chargerCatalogue()" style="padding:10px 20px;background:#f5a623;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-size:14px;">🔄 Réessayer</button>'
+      + '</div>';
+  }
+}
+
+// ── Affichage ─────────────────────────────────────────────
+function afficherListe() {
+  const liste = document.getElementById('liste');
+  const q = searchQ.toLowerCase();
+
+  let items = catalogue.filter(function(a) {
+    // Filtre texte
+    if (q && !((a.ref||'').toLowerCase().includes(q) || (a.nom||'').toLowerCase().includes(q))) return false;
+    // Filtre état
+    const cfg = stockConfig[a.ref];
+    if (filtreActif === 'done' && (!cfg || !cfg.actif)) return false;
+    if (filtreActif === 'todo' && cfg && (cfg.actif || cfg.skip)) return false;
+    if (filtreActif === 'skip' && (!cfg || !cfg.skip)) return false;
+    return true;
+  });
+
+  // Progression
+  const total = catalogue.length;
+  const done  = Object.values(stockConfig).filter(c => c.actif).length;
+  document.getElementById('progress-fill').style.width = (done/total*100) + '%';
+
+  if (!items.length) {
+    liste.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Aucun résultat</div>';
+    return;
+  }
+
+  liste.innerHTML = items.map(function(a) {
+    const cfg = stockConfig[a.ref] || {};
+    // Pré-remplir prix achat depuis EBP si pas encore configuré
+    const ebp = getEBPData(a.ref, a.nom) || {};
+    if (!cfg.prix_achat && ebp.prix_achat) cfg.prix_achat = ebp.prix_achat;
+    const status = cfg.actif ? '✅' : cfg.skip ? '⏭' : '○';
+    const fournisseur = cfg.fournisseur && cfg.fournisseur !== '—' ? cfg.fournisseur : '';
+    const ebpInfo = getEBPData(a.ref, a.nom);
+    const paBadge = ebpInfo && ebpInfo.prix_achat
+      ? ` · <span style="color:#22c55e;">PA: ${ebpInfo.prix_achat}€</span> · <span style="color:#f5a623;">PV: ${ebpInfo.prix_vente}€</span>`
+      : ` · <span style="color:#555;">Prix non trouvé dans EBP</span>`;
+    const refFournBadge = `<span style="font-family:monospace;font-size:10px;color:#f5a623;background:rgba(245,166,35,0.1);padding:1px 5px;border-radius:4px;margin-right:4px;">${esc(a.ref)}</span>`;
+    const sub = fournisseur
+      ? `<span style="font-size:11px;color:#888;">${refFournBadge}${fournisseur} · 🚐${cfg.stock_camion||0} 🏭${cfg.stock_atelier||0} Min:${cfg.stock_min||0}${paBadge}</span>`
+      : `<span style="font-size:11px;">${refFournBadge}${paBadge}</span>`;
+
+    return `<div class="item" id="item-${esc(a.ref)}">
+      <div class="item-header" onclick="modeSelection ? toggleSelectItem('${esc(a.ref)}') : toggleItem('${esc(a.ref)}')">
+        <div class="item-checkbox" id="chk-${esc(a.ref)}" style="display:${modeSelection?'flex':'none'};width:22px;height:22px;border-radius:6px;border:2px solid #2a2a2a;background:#111;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
+        </div>
+        <span class="item-ref">${esc(a.ref)}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="item-nom">${esc(a.nom||'')}</div>
+          ${sub}
+        </div>
+        <span class="item-status">${status}</span>
+      </div>
+      <div class="item-body" id="body-${esc(a.ref)}">
+        ${renderForm(a)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderForm(a) {
+  const cfg = stockConfig[a.ref] || {};
+  // Pré-remplir depuis EBP si pas encore configuré
+  const ebp = getEBPData(a.ref, a.nom) || {};
+  const prixAchat = cfg.prix_achat !== undefined ? cfg.prix_achat : (ebp.prix_achat || '');
+  const prixVente  = cfg.prix_vente  !== undefined ? cfg.prix_vente  : (ebp.prix_vente  || '');
+  const fOptions = FOURNISSEURS.map(f =>
+    `<option value="${f}" ${cfg.fournisseur===f?'selected':''}>${f}</option>`
+  ).join('');
+
+  return `<div class="form-grid" style="margin-top:10px;">
+    <div class="form-group full">
+      <label>Fournisseur principal</label>
+      <select id="f-${esc(a.ref)}" onchange="updateField('${esc(a.ref)}','fournisseur',this.value)">
+        ${fOptions}
+      </select>
+    </div>
+    <div class="form-group full">
+      <label>Ref. article EBP <span style="color:#f5a623;font-weight:400;text-transform:none;">${esc(a.ref)}</span></label>
+    </div>
+    <div class="form-group">
+      <label>Ref. fournisseur</label>
+      <input type="text" id="rf-${esc(a.ref)}" value="${cfg.ref_fournisseur||''}"
+        placeholder="ex: REX-DJ20A"
+        onchange="updateField('${esc(a.ref)}','ref_fournisseur',this.value)">
+    </div>
+    <div class="form-group">
+      <label>Prix achat HT € <span style="color:#888;font-weight:400;text-transform:none;">(EBP)</span></label>
+      <input type="number" id="pa-${esc(a.ref)}" value="${prixAchat}"
+        placeholder="0.00" step="0.01" min="0"
+        onchange="updateField('${esc(a.ref)}','prix_achat',parseFloat(this.value)||0)">
+    </div>
+    <div class="form-group">
+      <label>Prix vente HT € <span style="color:#888;font-weight:400;text-transform:none;">(EBP)</span></label>
+      <input type="number" id="pv-${esc(a.ref)}" value="${prixVente}"
+        placeholder="0.00" step="0.01" min="0"
+        onchange="updateField('${esc(a.ref)}','prix_vente',parseFloat(this.value)||0)">
+    </div>
+    <div class="form-group">
+      <label>Marge</label>
+      <div id="marge-${esc(a.ref)}" style="padding:8px 10px;background:#111;border:1px solid #2a2a2a;border-radius:8px;font-size:13px;color:#888;">
+        ${prixAchat && prixVente ? '<span style=\'color:#22c55e;\'>' + Math.round((prixVente-prixAchat)/prixVente*100) + '%</span>' : '—'}
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Stock camion 🚐</label>
+      <input type="number" id="sc-${esc(a.ref)}" value="${cfg.stock_camion||0}"
+        min="0" onchange="updateField('${esc(a.ref)}','stock_camion',parseInt(this.value)||0)">
+    </div>
+    <div class="form-group">
+      <label>Stock atelier 🏭</label>
+      <input type="number" id="sa-${esc(a.ref)}" value="${cfg.stock_atelier||0}"
+        min="0" onchange="updateField('${esc(a.ref)}','stock_atelier',parseInt(this.value)||0)">
+    </div>
+    <div class="form-group">
+      <label>Stock minimum ⚠️</label>
+      <input type="number" id="sm-${esc(a.ref)}" value="${cfg.stock_min||0}"
+        min="0" onchange="updateField('${esc(a.ref)}','stock_min',parseInt(this.value)||0)">
+    </div>
+    <div class="form-group full">
+      <label>Emplacement principal</label>
+      <div class="emplacement-btns">
+        <button class="emp-btn ${(cfg.emplacement||'camion')==='camion'?'active':''}"
+          onclick="setEmplacement('${esc(a.ref)}','camion',this)">🚐 Camion</button>
+        <button class="emp-btn ${cfg.emplacement==='atelier'?'active':''}"
+          onclick="setEmplacement('${esc(a.ref)}','atelier',this)">🏭 Atelier</button>
+        <button class="emp-btn ${cfg.emplacement==='les_deux'?'active':''}"
+          onclick="setEmplacement('${esc(a.ref)}','les_deux',this)">Les deux</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-save ${cfg.actif?'saved':''}" onclick="sauvegarder('${esc(a.ref)}')">
+    ${cfg.actif?'✅ Enregistré — modifier':'💾 Enregistrer dans le stock'}
+  </button>
+  <button class="btn-skip" onclick="ignorer('${esc(a.ref)}')">
+    ⏭ Ignorer cet article (pas en stock)
+  </button>`;
+}
+
+function esc(s) { return (s||'').replace(/['"&<>]/g, c => ({'\'':'&#39;','"':'&quot;','&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+// ── Interactions ──────────────────────────────────────────
+function toggleItem(ref) {
+  const body = document.getElementById('body-' + ref);
+  if (!body) return;
+  body.classList.toggle('open');
+}
+
+function updateField(ref, field, value) {
+  if (!stockConfig[ref]) stockConfig[ref] = {};
+  stockConfig[ref][field] = value;
+  sauvegarderLocal();
+}
+
+function setEmplacement(ref, val, btn) {
+  if (!stockConfig[ref]) stockConfig[ref] = {};
+  stockConfig[ref].emplacement = val;
+  // Mettre à jour les boutons
+  btn.closest('.emplacement-btns').querySelectorAll('.emp-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  sauvegarderLocal();
+}
+
+function sauvegarder(ref) {
+  const art = catalogue.find(a => a.ref === ref);
+  if (!art) return;
+
+  if (!stockConfig[ref]) stockConfig[ref] = {};
+  // Récupérer le prix du champ (peut être pré-rempli depuis EBP)
+  const inputPA = document.getElementById('pa-' + ref);
+  if (inputPA && inputPA.value) {
+    stockConfig[ref].prix_achat = parseFloat(inputPA.value) || 0;
+  } else if (!stockConfig[ref].prix_achat) {
+    // Fallback EBP
+    const ebp = getEBPData(ref, (catalogue.find(a=>a.ref===ref)||{}).nom) || {};
+    if (ebp.prix_achat) stockConfig[ref].prix_achat = ebp.prix_achat;
+  }
+  // Récupérer le prix de vente du champ
+  const inputPV = document.getElementById('pv-' + ref);
+  if (inputPV && inputPV.value) {
+    stockConfig[ref].prix_vente = parseFloat(inputPV.value) || 0;
+  } else if (!stockConfig[ref].prix_vente) {
+    const ebp2 = getEBPData(ref, art.nom) || {};
+    if (ebp2.prix_vente) stockConfig[ref].prix_vente = ebp2.prix_vente;
+  }
+  stockConfig[ref].actif = true;
+  stockConfig[ref].skip  = false;
+  stockConfig[ref].nom   = art.nom;
+  stockConfig[ref].unite = art.unite || 'U';
+  stockConfig[ref].ref   = ref;
+
+  sauvegarderLocal();
+
+  // Mettre à jour le bouton
+  const btn = document.querySelector(`#item-${ref} .btn-save`);
+  if (btn) { btn.textContent = '✅ Enregistré — modifier'; btn.classList.add('saved'); }
+  const status = document.querySelector(`#item-${ref} .item-status`);
+  if (status) status.textContent = '✅';
+
+  majBadge();
+  toast('✅ ' + ref + ' enregistré !');
+}
+
+function ignorer(ref) {
+  if (!stockConfig[ref]) stockConfig[ref] = {};
+  stockConfig[ref].skip  = true;
+  stockConfig[ref].actif = false;
+  sauvegarderLocal();
+
+  const status = document.querySelector(`#item-${ref} .item-status`);
+  if (status) status.textContent = '⏭';
+  const body = document.getElementById('body-' + ref);
+  if (body) body.classList.remove('open');
+  toast('⏭ Ignoré');
+}
+
+function sauvegarderLocal() {
+  localStorage.setItem('he_stock_config', JSON.stringify(stockConfig));
+}
+
+function majBadge() {
+  const done = Object.values(stockConfig).filter(c => c.actif).length;
+  const badge = document.getElementById('badge-count');
+  badge.textContent = done + ' / ' + catalogue.length + ' configurés';
+  badge.style.display = 'inline-block';
+}
+
+function filtrer() {
+  searchQ = document.getElementById('search').value;
+  afficherListe();
+}
+
+function setFiltre(f, btn) {
+  filtreActif = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  afficherListe();
+}
+
+// ── Export CSV ────────────────────────────────────────────
+function exporterCSV() {
+  const actifs = Object.values(stockConfig).filter(c => c.actif);
+  if (!actifs.length) { toast('Aucun article configuré !'); return; }
+
+  const header = 'reference,designation,fournisseur,ref_fournisseur,prix_achat_ht,prix_vente_ht,marge_pct,unite,stock_camion,stock_atelier,stock_minimum,emplacement_principal,notes';
+  const rows = actifs.map(function(c) {
+    return [
+      c.ref || '',
+      (c.nom || '').replace(/,/g, ';'),
+      c.fournisseur || '',
+      c.ref_fournisseur || '',
+      c.prix_achat || 0,
+      c.prix_vente || 0,
+      c.prix_achat && c.prix_vente ? Math.round((c.prix_vente - c.prix_achat) / c.prix_vente * 100) : 0,
+      c.unite || 'U',
+      c.stock_camion || 0,
+      c.stock_atelier || 0,
+      c.stock_min || 0,
+      c.emplacement || 'camion',
+      ''
+    ].join(',');
+  });
+
+  const csv = header + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'stock_harmonie_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 CSV exporté ! (' + actifs.length + ' articles)');
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+</script>
+</body>
+</html>
