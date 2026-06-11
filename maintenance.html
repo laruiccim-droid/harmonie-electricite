@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Maintenance — Harmonie Électricité</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;
+  --text:#f0f0f0;--muted:#888;--accent:#f5a623;--green:#22c55e;
+  --red:#ef4444;--blue:#60a5fa;--orange:#f97316;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
+h1{font-size:20px;font-weight:800;color:var(--accent);}
+h2{font-size:15px;font-weight:700;margin:16px 0 8px;color:var(--text);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;}
+input,select,textarea{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+textarea{resize:vertical;min-height:70px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:8px;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-green{background:var(--green);color:#000;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+
+/* Liste contrats */
+.contrat-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.contrat-item:active{border-color:var(--accent);}
+.contrat-item .ci-num{font-size:10px;color:var(--muted);font-family:monospace;}
+.contrat-item .ci-client{font-weight:700;font-size:15px;}
+.contrat-item .ci-info{font-size:12px;color:var(--muted);margin-top:2px;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green);}
+.badge-orange{background:rgba(249,115,22,.15);color:var(--orange);}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red);}
+.badge-blue{background:rgba(96,165,250,.15);color:var(--blue);}
+
+/* Checklist */
+.check-section{margin-bottom:14px;}
+.check-title{font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.check-item:last-child{border-bottom:none;}
+.check-status{display:flex;gap:4px;flex-shrink:0;margin-top:2px;}
+.check-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-btn.active-ok{background:rgba(34,197,94,.2);border-color:var(--green);}
+.check-btn.active-ko{background:rgba(239,68,68,.2);border-color:var(--red);}
+.check-btn.active-na{background:rgba(136,136,136,.2);border-color:#666;}
+.check-label{flex:1;font-size:13px;line-height:1.4;}
+.check-obs{margin-top:4px;width:100%;padding:6px 8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit;resize:none;}
+
+/* Photos */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.photo-thumb{aspect-ratio:1;border-radius:8px;object-fit:cover;width:100%;border:1px solid var(--border);}
+.photo-add{aspect-ratio:1;border-radius:8px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px;color:var(--muted);font-size:11px;}
+
+/* Nav tabs internes */
+.mtab-bar{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);border-radius:12px;padding:4px;}
+.mtab{flex:1;padding:8px 4px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.mtab.active{background:var(--accent);color:#000;}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 16px 0;margin-bottom:12px;}
+.back-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+
+/* Scores */
+.score-bar{height:8px;border-radius:4px;background:var(--border);margin-top:6px;overflow:hidden;}
+.score-fill{height:100%;border-radius:4px;transition:width .4s;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-weight:700;font-size:13px;padding:10px 20px;border-radius:24px;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* Fab */
+.fab{position:fixed;bottom:20px;right:16px;width:52px;height:52px;border-radius:14px;background:var(--accent);border:none;cursor:pointer;z-index:100;box-shadow:0 4px 16px rgba(245,166,35,.4);display:flex;align-items:center;justify-content:center;font-size:26px;}
+
+/* Page */
+.page{display:none;padding:0 16px;}
+.page.active{display:block;}
+</style>
+</head>
+<body>
+
+<div id="page-list" class="page active">
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">← Retour</button>
+    <h1 style="flex:1;">🔧 Maintenance</h1>
+  </div>
+  <div style="padding:0 16px;">
+    <div class="mtab-bar">
+      <button class="mtab active" onclick="setListFilter('tous',this)">Tous</button>
+      <button class="mtab" onclick="setListFilter('actif',this)">Actifs</button>
+      <button class="mtab" onclick="setListFilter('visite',this)">À visiter</button>
+      <button class="mtab" onclick="setListFilter('expire',this)">Expirés</button>
+    </div>
+    <div id="contrats-list"></div>
+  </div>
+  <button class="fab" onclick="ouvrirNouveauContrat()" title="Nouveau contrat">+</button>
+</div>
+
+<!-- ═══════════════════════════════════════ FORMULAIRE CONTRAT ═══ -->
+<div id="page-contrat" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="showPage('list')">← Retour</button>
+    <h1 id="contrat-form-title" style="flex:1;">Nouveau contrat</h1>
+    <button id="btn-save-contrat" onclick="sauvegarderContrat()" style="background:var(--accent);border:none;border-radius:10px;padding:8px 14px;color:#000;font-weight:700;font-size:13px;cursor:pointer;">💾</button>
+  </div>
+  <div style="padding:0 16px;">
+
+    <!-- Client & contrat -->
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px;">👤 Client & Contrat</div>
+      <label>Numéro de contrat</label>
+      <input id="cf-numero" type="text" placeholder="CM2026-001" style="margin-bottom:10px;">
+      <label>Client *</label>
+      <input id="cf-client" type="text" placeholder="Rechercher un client…" oninput="filtrerClientsM(this.value)" style="margin-bottom:4px;">
+      <div id="cf-client-dd" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;max-height:160px;overflow-y:auto;"></div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px;">
+        <div>
+          <label>Téléphone</label>
+          <input id="cf-tel" type="tel" placeholder="06…">
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="cf-email" type="email" placeholder="client@…">
+        </div>
+      </div>
+      <label>Adresse d'intervention</label>
+      <input id="cf-adresse" type="text" placeholder="Adresse complète" style="margin-bottom:8px;">
+    </div>
+
+    <!-- Équipement -->
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px;">🔩 Équipement</div>
+      <label>Type d'équipement</label>
+      <select id="cf-type-eq" style="margin-bottom:8px;" onchange="majChecklistTemplate()">
+        <option value="portail_coulissant">Portail motorisé coulissant</option>
+        <option value="portail_battant">Portail motorisé battant</option>
+        <option value="porte_garage">Porte de garage motorisée</option>
+        <option value="barriere">Barrière levante</option>
+        <option value="interphone">Interphone / Visiophone</option>
+        <option value="alarme">Alarme intrusion</option>
+        <option value="videosurveillance">Vidéosurveillance</option>
+        <option value="autre">Autre</option>
+      </select>
+      <div class="grid2" style="gap:8px;margin-bottom:8px;">
+        <div><label>Marque</label><input id="cf-marque" placeholder="ex: NICE, CAME, FAAC…"></div>
+        <div><label>Modèle</label><input id="cf-modele" placeholder="ex: RD400"></div>
+      </div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px;">
+        <div><label>N° de série</label><input id="cf-serie" placeholder="XXXX-XXXX"></div>
+        <div><label>Année de pose</label><input id="cf-annee" type="number" placeholder="2022"></div>
+      </div>
+      <label>Observations équipement</label>
+      <textarea id="cf-obs-eq" placeholder="État général, particularités…" rows="2"></textarea>
+    </div>
+
+    <!-- Contrat -->
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px;">📋 Conditions du contrat</div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px;">
+        <div>
+          <label>Date de début</label>
+          <input id="cf-debut" type="date">
+        </div>
+        <div>
+          <label>Date de fin</label>
+          <input id="cf-fin" type="date">
+        </div>
+      </div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px;">
+        <div>
+          <label>Visites / an</label>
+          <select id="cf-visites">
+            <option value="1">1 visite/an</option>
+            <option value="2" selected>2 visites/an</option>
+            <option value="4">4 visites/an</option>
+          </select>
+        </div>
+        <div>
+          <label>Tarif annuel HT</label>
+          <input id="cf-tarif" type="number" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Prestations incluses</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+          <label style="text-transform:none;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;"><input type="checkbox" id="cf-inc-visite" checked> Visite préventive annuelle</label>
+          <label style="text-transform:none;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;"><input type="checkbox" id="cf-inc-lubrif" checked> Lubrification et réglages</label>
+          <label style="text-transform:none;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;"><input type="checkbox" id="cf-inc-depla"> Déplacement inclus</label>
+          <label style="text-transform:none;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;"><input type="checkbox" id="cf-inc-pieces"> Pièces de rechange incluses</label>
+          <label style="text-transform:none;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;"><input type="checkbox" id="cf-inc-tel"> Assistance téléphonique</label>
+        </div>
+      </div>
+      <label>Notes contrat</label>
+      <textarea id="cf-notes" placeholder="Conditions particulières, exclusions…" rows="2"></textarea>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ DÉTAIL CONTRAT ═══════ -->
+<div id="page-detail" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="showPage('list')">← Retour</button>
+    <div id="detail-title" style="flex:1;font-size:15px;font-weight:800;"></div>
+    <button onclick="editerContrat()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 12px;color:var(--text);font-size:12px;cursor:pointer;">✏️</button>
+  </div>
+  <div style="padding:0 16px;">
+    <div id="detail-content"></div>
+    <button class="btn btn-primary" onclick="nouvelleVisite()" style="margin-top:8px;">
+      🔧 Lancer une visite de maintenance
+    </button>
+    <button class="btn btn-secondary" onclick="exporterContratPDF()">
+      📄 Télécharger le contrat PDF
+    </button>
+    <button class="btn btn-outline" onclick="envoyerContratEmail()" id="btn-email-contrat">
+      ✉️ Envoyer le contrat par email
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ RAPPORT DE VISITE ════ -->
+<div id="page-visite" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="confirmerQuitterVisite()">← Quitter</button>
+    <div style="flex:1;">
+      <div style="font-size:12px;color:var(--muted);" id="visite-contrat-info"></div>
+      <div style="font-size:15px;font-weight:800;">Rapport de visite</div>
+    </div>
+    <div id="visite-score-badge" style="font-size:20px;font-weight:900;color:var(--green);"></div>
+  </div>
+
+  <div style="padding:0 16px;">
+    <!-- Infos visite -->
+    <div class="card">
+      <div class="grid2" style="gap:8px;">
+        <div>
+          <label>Date visite</label>
+          <input id="vf-date" type="date">
+        </div>
+        <div>
+          <label>N° visite</label>
+          <input id="vf-num" type="text" placeholder="V1/2 ou V2/2" readonly>
+        </div>
+      </div>
+      <div class="grid3" style="gap:8px;margin-top:8px;">
+        <div>
+          <label>Arrivée</label>
+          <input id="vf-heure-debut" type="time" oninput="calcDureeMaint()">
+        </div>
+        <div>
+          <label>Départ</label>
+          <input id="vf-heure-fin" type="time" oninput="calcDureeMaint()">
+        </div>
+        <div>
+          <label>Durée</label>
+          <input id="vf-duree" type="text" placeholder="0h00" readonly>
+        </div>
+      </div>
+      <div class="grid2" style="gap:8px;margin-top:8px;">
+        <div>
+          <label>Technicien</label>
+          <input id="vf-tech" type="text" value="Mathieu LARUICCI">
+        </div>
+        <div>
+          <label>Compteur cycles</label>
+          <input id="vf-cycles" type="number" placeholder="ex: 15420">
+        </div>
+      </div>
+      <!-- Afficher les heures sur le rapport -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <input type="checkbox" id="vf-show-heures" checked style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+        <label for="vf-show-heures" style="text-transform:none;font-size:13px;color:var(--text);cursor:pointer;font-weight:400;">
+          Afficher les heures d'intervention sur le rapport PDF
+        </label>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card" id="visite-checklist-container">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px;">
+        ✅ Checklist d'intervention
+        <span id="checklist-progress" style="float:right;color:var(--accent);"></span>
+      </div>
+      <div id="visite-checklist"></div>
+    </div>
+
+    <!-- Observations générales (zone libre) -->
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px;">📝 Zone libre</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Notes libres, travaux effectués, remarques...</div>
+      <textarea id="vf-obs" placeholder="Écrivez ici tout ce que vous souhaitez noter librement…" rows="5"
+        style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical;min-height:100px;"></textarea>
+    </div>
+
+    <!-- Photos avec commentaires -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;">📷 Photos</div>
+        <button onclick="ajouterPhotoLibre()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--accent);background:rgba(245,166,35,0.08);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;">+ Ajouter</button>
+      </div>
+      <div id="vf-photos-list"></div>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(event)">
+    </div>
+
+    <!-- Anomalies -->
+    <div class="card" id="anomalies-card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:10px;">⚠️ Anomalies & Recommandations</div>
+      <div id="anomalies-list"></div>
+      <button onclick="ajouterAnomalie()" class="btn btn-outline" style="margin-top:8px;">
+        + Ajouter une anomalie
+      </button>
+    </div>
+
+    <!-- Signatures -->
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:12px;">✍️ Signatures</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <!-- Signature client -->
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;">Client</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:6px;" id="sig-client-name"></div>
+          <canvas id="sig-canvas" width="300" height="100"
+            style="border:1px solid var(--border);border-radius:8px;background:#111;touch-action:none;width:100%;display:block;"></canvas>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button onclick="clearSig('sig-canvas','sig-ok')" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">🗑</button>
+            <div id="sig-ok" style="font-size:11px;color:var(--green);display:none;align-items:center;gap:3px;">✅ Signé</div>
+          </div>
+        </div>
+        <!-- Signature technicien -->
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;">Technicien</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:6px;" id="sig-tech-name">Mathieu LARUICCI</div>
+          <canvas id="sig-canvas-tech" width="300" height="100"
+            style="border:1px solid var(--border);border-radius:8px;background:#111;touch-action:none;width:100%;display:block;"></canvas>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button onclick="clearSig('sig-canvas-tech','sig-tech-ok')" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">🗑</button>
+            <div id="sig-tech-ok" style="font-size:11px;color:var(--green);display:none;align-items:center;gap:3px;">✅ Signé</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons finaux -->
+    <button class="btn btn-green" onclick="cloturerVisite()">✅ Clôturer et générer le rapport</button>
+    <button class="btn btn-secondary" onclick="sauvegarderBrouillon()">💾 Sauvegarder en brouillon</button>
+    <div style="height:20px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ HISTORIQUE VISITE ════ -->
+<div id="page-rapport" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="showPage('detail')">← Retour</button>
+    <div style="flex:1;font-size:15px;font-weight:800;">Rapport de visite</div>
+    <button onclick="exporterRapportPDF()" style="background:var(--accent);border:none;border-radius:10px;padding:6px 12px;color:#000;font-weight:700;font-size:12px;cursor:pointer;">📄 PDF</button>
+  </div>
+  <div style="padding:0 16px;" id="rapport-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════
+const SUPA_URL  = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY  = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+const SB_H      = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' };
+const GCAL_URL  = 'https://gcal-harmonie.harmonie-electricite.workers.dev';
+const MAINT_KEY = 'he_maintenance_v1';
+
+// ═══════════════════════════════════════════════════════════
+//  CHECKLISTS PAR TYPE D'ÉQUIPEMENT
+// ═══════════════════════════════════════════════════════════
+const CHECKLISTS = {
+  portail_coulissant: [
+    { section: '🔌 Électrique & Motorisation', items: [
+      'Vérification alimentation électrique (230V, terre)',
+      'Contrôle du motoréducteur (bruit, température, vibrations)',
+      'Vérification de la batterie de secours',
+      'Contrôle du boîtier de commande (carte électronique, fusibles)',
+      'Test de la fonction de déverrouillage manuel',
+      'Vérification du câblage et des connexions',
+    ]},
+    { section: '⚙️ Mécanique & Structure', items: [
+      'Contrôle de la crémaillère (usure, fixation)',
+      'Lubrification de la crémaillère et du pignon',
+      'Vérification et réglage des galets de roulement',
+      'Contrôle du rail de guidage (alignement, déformation)',
+      'Lubrification des galets et du rail',
+      'Vérification des butées mécaniques de fin de course',
+      'Contrôle de l\'état général du vantail (déformation, rouille)',
+      'Vérification des fixations du vantail et du moteur',
+    ]},
+    { section: '🛡 Sécurité (NF EN 12453)', items: [
+      'Test des détecteurs de présence (cellules photoélectriques)',
+      'Test du dispositif anti-écrasement / anti-cisaillement',
+      'Vérification des fins de course électroniques (ouverture et fermeture)',
+      'Test de la force d\'ouverture et de fermeture',
+      'Test du voyant de signalisation (clignotant)',
+      'Vérification de la signalétique de sécurité',
+      'Contrôle de la résistance à l\'arrachement',
+    ]},
+    { section: '📡 Commandes & Accès', items: [
+      'Test des télécommandes (portée, synchronisation)',
+      'Test du clavier à code (si présent)',
+      'Test du badge / lecteur (si présent)',
+      'Test de l\'interphone / visiophone (si présent)',
+      'Test de l\'ouverture depuis la sonnette / bouton poussoir',
+      'Test depuis le cloud / application mobile (si présent)',
+    ]},
+    { section: '🏁 Contrôle final', items: [
+      'Cycles complets d\'ouverture / fermeture (x5)',
+      'Réglage de la vitesse si nécessaire',
+      'Réglage des temps d\'ouverture automatique',
+      'Mise à jour du firmware (si disponible)',
+      'Nettoyage général du motoréducteur et boîtier',
+    ]},
+  ],
+  portail_battant: [
+    { section: '🔌 Électrique & Motorisation', items: [
+      'Vérification alimentation électrique (230V, terre)',
+      'Contrôle des vérins / motoréducteurs (bruit, jeu)',
+      'Vérification de la batterie de secours',
+      'Contrôle du boîtier de commande',
+      'Test de la fonction de déverrouillage manuel',
+    ]},
+    { section: '⚙️ Mécanique', items: [
+      'Lubrification des charnières et pivots',
+      'Vérification de l\'alignement des vantaux',
+      'Contrôle des gonds et fixations',
+      'Vérification de la serrure électrique',
+      'Contrôle des butées mécaniques',
+    ]},
+    { section: '🛡 Sécurité', items: [
+      'Test des cellules photoélectriques',
+      'Test du dispositif anti-écrasement',
+      'Vérification des fins de course',
+      'Test du clignotant',
+    ]},
+    { section: '📡 Commandes', items: [
+      'Test des télécommandes',
+      'Test du clavier / badge',
+      'Cycles complets (x5)',
+    ]},
+  ],
+  porte_garage: [
+    { section: '🔌 Électrique', items: [
+      'Contrôle alimentation et motoréducteur',
+      'Vérification batterie de secours',
+      'Contrôle boîtier électronique',
+    ]},
+    { section: '⚙️ Mécanique', items: [
+      'Lubrification rails et galets',
+      'Vérification ressorts de torsion / traction',
+      'Contrôle du câble de levage',
+      'Vérification de l\'équilibrage',
+    ]},
+    { section: '🛡 Sécurité', items: [
+      'Test cellule anti-écrasement',
+      'Test fin de course bas et haut',
+      'Test force d\'arrachement',
+    ]},
+    { section: '📡 Commandes', items: [
+      'Test télécommandes et code',
+      'Cycles complets (x5)',
+    ]},
+  ],
+  alarme: [
+    { section: '🔌 Centrale & Alimentation', items: [
+      'Test de la batterie centrale (autonomie)',
+      'Contrôle des alimentations secteur',
+      'Vérification des fusibles et alimentation périphériques',
+    ]},
+    { section: '📡 Détecteurs', items: [
+      'Test de chaque détecteur de mouvement (PIR)',
+      'Test des détecteurs d\'ouverture (portes/fenêtres)',
+      'Test des détecteurs de chocs',
+      'Vérification de la portée et sensibilité',
+    ]},
+    { section: '🔔 Sirènes & Transmission', items: [
+      'Test de la sirène intérieure',
+      'Test de la sirène extérieure (flash)',
+      'Test de la transmission vers télésurveillance',
+      'Test de la numérotation téléphonique',
+    ]},
+    { section: '💻 Centrale', items: [
+      'Mise à jour du code utilisateur',
+      'Vérification du journal des événements',
+      'Test de mise en / hors service',
+    ]},
+  ],
+  videosurveillance: [
+    { section: '📷 Caméras', items: [
+      'Contrôle de l\'image (qualité, résolution)',
+      'Vérification de l\'orientation et du champ de vision',
+      'Nettoyage des optiques',
+      'Test vision nocturne (infrarouge)',
+      'Contrôle des fixations et boîtiers',
+    ]},
+    { section: '💾 Enregistrement', items: [
+      'Vérification de l\'enregistrement continu',
+      'Test de la détection de mouvement',
+      'Contrôle de la durée de rétention des images',
+      'Vérification de l\'état du disque dur',
+    ]},
+    { section: '🌐 Réseau & Accès', items: [
+      'Test d\'accès à distance (application mobile)',
+      'Contrôle de la bande passante réseau',
+      'Vérification des accès utilisateurs',
+    ]},
+  ],
+};
+
+// Checklist par défaut si type non trouvé
+CHECKLISTS['interphone'] = [
+  { section: '🔔 Interphone / Visiophone', items: [
+    'Test appel depuis l\'extérieur',
+    'Test déverrouillage de la gâche électrique',
+    'Contrôle de l\'image (visiophone)',
+    'Vérification du son (micro / haut-parleur)',
+    'Contrôle des alimentations',
+    'Vérification des connexions',
+  ]},
+];
+CHECKLISTS['barriere'] = CHECKLISTS['portail_coulissant'];
+CHECKLISTS['autre'] = [{ section: '🔧 Contrôle général', items: [
+  'Contrôle visuel général',
+  'Vérification du fonctionnement',
+  'Test de sécurité',
+  'Lubrification et nettoyage',
+]}];
+
+// ═══════════════════════════════════════════════════════════
+//  ÉTAT
+// ═══════════════════════════════════════════════════════════
+let CONTRATS      = [];
+let CLIENTS_M     = [];
+let currentContrat = null;
+let currentVisite  = null;
+let visitPhotos    = [];
+let sigDrawing     = false;
+let sigCtx         = null;
+let listFilter     = 'tous';
+let currentPhotoType = '';
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+async function init() {
+  await chargerContrats();
+  await chargerClients();
+
+  // Vérifier si on arrive depuis l'agenda avec un timer
+  const maintVisite = sessionStorage.getItem('he_maint_visite');
+  if (maintVisite) {
+    try {
+      const mv = JSON.parse(maintVisite);
+      sessionStorage.removeItem('he_maint_visite');
+      if (mv.autoOpen && mv.contratId) {
+        const contrat = CONTRATS.find(function(c){ return c.id === mv.contratId; });
+        if (contrat) {
+          // Pré-remplir les heures depuis le timer
+          window._timerDataMaint = mv;
+          ouvrirDetail(contrat.id);
+          setTimeout(function(){
+            nouvelleVisite();
+            setTimeout(function(){
+              if (mv.heureDebut) document.getElementById('vf-heure-debut').value = mv.heureDebut;
+              if (mv.heureFin)   document.getElementById('vf-heure-fin').value   = mv.heureFin;
+              if (mv.dureeStr)   document.getElementById('vf-duree').value        = mv.dureeStr;
+            }, 100);
+          }, 200);
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
+  renderContratsList();
+  initSig();
+}
+
+async function chargerContrats() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/notes?id=eq.' + MAINT_KEY + '&select=payload', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      if (rows && rows.length && rows[0].payload && rows[0].payload.contrats) {
+        CONTRATS = rows[0].payload.contrats;
+      }
+    }
+  } catch(e) {}
+  // Fallback local
+  if (!CONTRATS.length) {
+    try { CONTRATS = JSON.parse(localStorage.getItem(MAINT_KEY) || '[]'); } catch(e) { CONTRATS = []; }
+  }
+}
+
+async function sauvegarderContrats() {
+  localStorage.setItem(MAINT_KEY, JSON.stringify(CONTRATS));
+  try {
+    // Sauvegarder aussi dans la table devis pour intégration Docs + historique client
+    for (const c of CONTRATS) {
+      const doc = {
+        id:       c.id,
+        type:     'maintenance',
+        numero:   c.numero,
+        client:   c.client,
+        tel:      c.tel,
+        email:    c.email,
+        adresse:  c.adresse,
+        motif:    typeLabel(c.type_eq) + ' · ' + (c.marque||'') + ' ' + (c.modele||''),
+        statut:   c.statut || 'actif',
+        date:     c.debut,
+        totalHT:  c.tarif || 0,
+        totalTVA: (c.tarif||0) * 0.20,
+        totalTTC: (c.tarif||0) * 1.20,
+        tvaRate:  20,
+        // Données complètes du contrat
+        contratData: c,
+        updatedAt: Date.now(),
+        createdAt: c.createdAt || Date.now()
+      };
+      await fetch(SUPA_URL + '/rest/v1/devis', {
+        method: 'POST', headers: SB_H,
+        body: JSON.stringify({ id: c.id, payload: doc })
+      });
+    }
+    // Sauvegarder aussi dans notes pour les listes de contrats
+    await fetch(SUPA_URL + '/rest/v1/notes', {
+      method: 'POST', headers: SB_H,
+      body: JSON.stringify({ id: MAINT_KEY, payload: { contrats: CONTRATS, updatedAt: Date.now() } })
+    });
+  } catch(e) { console.warn('sauvegarderContrats:', e); }
+}
+
+async function chargerClients() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/clients?select=id,payload', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      CLIENTS_M = rows.map(function(r){ return Object.assign({ id: r.id }, r.payload || r); });
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function setListFilter(f, btn) {
+  listFilter = f;
+  document.querySelectorAll('.mtab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderContratsList();
+}
+
+function calcDureeMaint() {
+  const d = document.getElementById('vf-heure-debut').value;
+  const f = document.getElementById('vf-heure-fin').value;
+  if (!d || !f) return;
+  const [dh, dm] = d.split(':').map(Number);
+  const [fh, fm] = f.split(':').map(Number);
+  let diff = (fh * 60 + fm) - (dh * 60 + dm);
+  if (diff < 0) diff += 24 * 60;
+  const h = Math.floor(diff / 60), m = diff % 60;
+  document.getElementById('vf-duree').value = (h ? h + 'h' : '') + String(m).padStart(2, '0') + 'min';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LISTE DES CONTRATS
+// ═══════════════════════════════════════════════════════════
+function renderContratsList() {
+  const el = document.getElementById('contrats-list');
+  const today = new Date();
+
+  let list = CONTRATS.filter(function(c) {
+    if (listFilter === 'actif')  return c.statut === 'actif';
+    if (listFilter === 'expire') return c.statut === 'expire' || (c.fin && new Date(c.fin) < today);
+    if (listFilter === 'visite') {
+      if (!c.prochaine_visite) return false;
+      const pv = new Date(c.prochaine_visite);
+      const diff = (pv - today) / (1000 * 86400);
+      return diff <= 30;
+    }
+    return true;
+  });
+
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted);">'
+      + (CONTRATS.length ? '✅ Aucun contrat dans ce filtre' : '📋 Aucun contrat de maintenance<br><br>Appuie sur + pour créer le premier')
+      + '</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(function(c) {
+    const fin   = c.fin ? new Date(c.fin) : null;
+    const pv    = c.prochaine_visite ? new Date(c.prochaine_visite) : null;
+    const diff  = pv ? Math.ceil((pv - today) / (1000 * 86400)) : null;
+    const expire = fin && fin < today;
+
+    let badge = '';
+    if (expire) badge = '<span class="badge badge-red">Expiré</span>';
+    else if (diff !== null && diff <= 0)  badge = '<span class="badge badge-red">Visite en retard</span>';
+    else if (diff !== null && diff <= 14) badge = '<span class="badge badge-orange">Visite dans ' + diff + ' j</span>';
+    else if (diff !== null && diff <= 30) badge = '<span class="badge badge-blue">Visite dans ' + diff + ' j</span>';
+    else badge = '<span class="badge badge-green">Actif</span>';
+
+    const lastVisite = c.visites && c.visites.length ? c.visites[c.visites.length-1] : null;
+
+    return '<div class="contrat-item" data-id="' + esc(c.id) + '">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      + '<div class="ci-num">' + esc(c.numero||'') + '</div>' + badge + '</div>'
+      + '<div class="ci-client">' + esc(c.client||'') + '</div>'
+      + '<div class="ci-info">' + esc(typeLabel(c.type_eq)) + ' · ' + esc(c.marque||'') + ' ' + esc(c.modele||'')
+      + (lastVisite ? ' · Dernière visite : ' + esc(lastVisite.date||'') : '')
+      + (pv && !expire ? ' · Prochaine : ' + pv.toLocaleDateString('fr-FR') : '')
+      + '</div></div>';
+  }).join('');
+
+  // Events
+  el.querySelectorAll('.contrat-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      const id = item.getAttribute('data-id');
+      ouvrirDetail(id);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CRÉER / ÉDITER CONTRAT
+// ═══════════════════════════════════════════════════════════
+function ouvrirNouveauContrat() {
+  currentContrat = null;
+  document.getElementById('contrat-form-title').textContent = 'Nouveau contrat';
+
+  // Reset champs
+  const num = genNumero();
+  document.getElementById('cf-numero').value = num;
+  ['cf-client','cf-tel','cf-email','cf-adresse','cf-marque','cf-modele','cf-serie','cf-obs-eq','cf-notes'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('cf-annee').value = new Date().getFullYear();
+  document.getElementById('cf-tarif').value = '';
+  document.getElementById('cf-visites').value = '2';
+  document.getElementById('cf-type-eq').value = 'portail_coulissant';
+
+  // Dates : début = aujourd'hui, fin = +1 an
+  const d = new Date();
+  document.getElementById('cf-debut').value = d.toISOString().split('T')[0];
+  d.setFullYear(d.getFullYear() + 1);
+  document.getElementById('cf-fin').value = d.toISOString().split('T')[0];
+
+  showPage('contrat');
+}
+
+function editerContrat() {
+  if (!currentContrat) return;
+  const c = currentContrat;
+  document.getElementById('contrat-form-title').textContent = 'Modifier le contrat';
+  document.getElementById('cf-numero').value   = c.numero||'';
+  document.getElementById('cf-client').value   = c.client||'';
+  document.getElementById('cf-tel').value      = c.tel||'';
+  document.getElementById('cf-email').value    = c.email||'';
+  document.getElementById('cf-adresse').value  = c.adresse||'';
+  document.getElementById('cf-type-eq').value  = c.type_eq||'portail_coulissant';
+  document.getElementById('cf-marque').value   = c.marque||'';
+  document.getElementById('cf-modele').value   = c.modele||'';
+  document.getElementById('cf-serie').value    = c.serie||'';
+  document.getElementById('cf-annee').value    = c.annee||'';
+  document.getElementById('cf-obs-eq').value   = c.obs_eq||'';
+  document.getElementById('cf-debut').value    = c.debut||'';
+  document.getElementById('cf-fin').value      = c.fin||'';
+  document.getElementById('cf-visites').value  = String(c.nb_visites||2);
+  document.getElementById('cf-tarif').value    = c.tarif||'';
+  document.getElementById('cf-notes').value    = c.notes||'';
+  document.getElementById('cf-inc-visite').checked = !!(c.inclus && c.inclus.visite);
+  document.getElementById('cf-inc-lubrif').checked = !!(c.inclus && c.inclus.lubrif);
+  document.getElementById('cf-inc-depla').checked  = !!(c.inclus && c.inclus.depla);
+  document.getElementById('cf-inc-pieces').checked = !!(c.inclus && c.inclus.pieces);
+  document.getElementById('cf-inc-tel').checked    = !!(c.inclus && c.inclus.tel);
+  showPage('contrat');
+}
+
+async function sauvegarderContrat() {
+  const client  = document.getElementById('cf-client').value.trim();
+  const numero  = document.getElementById('cf-numero').value.trim();
+  if (!client)  { toast('Le nom du client est requis'); return; }
+  if (!numero)  { toast('Le numéro de contrat est requis'); return; }
+
+  const contrat = {
+    id:          currentContrat ? currentContrat.id : 'CM_' + Date.now(),
+    numero,
+    client,
+    tel:         document.getElementById('cf-tel').value.trim(),
+    email:       document.getElementById('cf-email').value.trim(),
+    adresse:     document.getElementById('cf-adresse').value.trim(),
+    type_eq:     document.getElementById('cf-type-eq').value,
+    marque:      document.getElementById('cf-marque').value.trim(),
+    modele:      document.getElementById('cf-modele').value.trim(),
+    serie:       document.getElementById('cf-serie').value.trim(),
+    annee:       document.getElementById('cf-annee').value,
+    obs_eq:      document.getElementById('cf-obs-eq').value.trim(),
+    debut:       document.getElementById('cf-debut').value,
+    fin:         document.getElementById('cf-fin').value,
+    nb_visites:  parseInt(document.getElementById('cf-visites').value),
+    tarif:       parseFloat(document.getElementById('cf-tarif').value) || 0,
+    notes:       document.getElementById('cf-notes').value.trim(),
+    statut:      'actif',
+    inclus: {
+      visite: document.getElementById('cf-inc-visite').checked,
+      lubrif: document.getElementById('cf-inc-lubrif').checked,
+      depla:  document.getElementById('cf-inc-depla').checked,
+      pieces: document.getElementById('cf-inc-pieces').checked,
+      tel:    document.getElementById('cf-inc-tel').checked,
+    },
+    visites:     currentContrat ? (currentContrat.visites || []) : [],
+    createdAt:   currentContrat ? currentContrat.createdAt : Date.now(),
+    updatedAt:   Date.now(),
+  };
+
+  // Calculer prochaine visite
+  contrat.prochaine_visite = calcProchaineVisite(contrat);
+
+  if (currentContrat) {
+    const idx = CONTRATS.findIndex(function(c){ return c.id === currentContrat.id; });
+    if (idx !== -1) CONTRATS[idx] = contrat;
+  } else {
+    CONTRATS.push(contrat);
+  }
+
+  await sauvegarderContrats();
+  currentContrat = contrat;
+  toast('✅ Contrat sauvegardé !');
+
+  // Proposer d'envoyer par email
+  if (contrat.email) {
+    setTimeout(function() {
+      if (confirm('Envoyer le contrat par email à ' + contrat.email + ' ?')) {
+        envoyerContratEmail(contrat);
+      }
+    }, 500);
+  }
+
+  ouvrirDetail(contrat.id);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DÉTAIL CONTRAT
+// ═══════════════════════════════════════════════════════════
+function ouvrirDetail(id) {
+  currentContrat = CONTRATS.find(function(c){ return c.id === id; });
+  if (!currentContrat) return;
+  const c = currentContrat;
+
+  document.getElementById('detail-title').textContent = c.client;
+
+  const today = new Date();
+  const pv = c.prochaine_visite ? new Date(c.prochaine_visite) : null;
+  const diff = pv ? Math.ceil((pv - today) / (1000 * 86400)) : null;
+  const score = calcScore(c);
+
+  let html = '';
+
+  // Infos contrat
+  html += '<div class="card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+    + '<div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;">📋 Contrat</div>'
+    + '<div style="font-size:12px;color:var(--muted);">' + esc(c.numero) + '</div></div>'
+    + '<div style="font-size:13px;margin-bottom:4px;">📍 ' + esc(c.adresse||'') + '</div>'
+    + '<div style="font-size:13px;margin-bottom:4px;">📞 ' + esc(c.tel||'') + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">Du ' + formatDate(c.debut) + ' au ' + formatDate(c.fin) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">' + c.nb_visites + ' visite(s)/an — ' + (c.tarif ? c.tarif.toFixed(2) + ' € HT/an' : 'Tarif non défini') + '</div>'
+    + '</div>';
+
+  // Équipement
+  html += '<div class="card">'
+    + '<div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px;">🔩 Équipement</div>'
+    + '<div style="font-size:14px;font-weight:700;">' + typeLabel(c.type_eq) + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">' + esc(c.marque||'') + ' ' + esc(c.modele||'') + (c.serie ? ' · N°' + c.serie : '') + (c.annee ? ' · ' + c.annee : '') + '</div>'
+    + (c.obs_eq ? '<div style="font-size:12px;color:var(--muted);margin-top:4px;">' + esc(c.obs_eq) + '</div>' : '')
+    + '</div>';
+
+  // Prochaine visite + score
+  if (pv) {
+    const couleur = diff <= 0 ? 'var(--red)' : diff <= 14 ? 'var(--orange)' : 'var(--green)';
+    html += '<div class="card" style="border-color:' + couleur + '20;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+      + '<div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;">📅 Prochaine visite</div>'
+      + '<div style="font-size:16px;font-weight:800;color:' + couleur + ';">' + pv.toLocaleDateString('fr-FR') + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);">' + (diff <= 0 ? 'En retard de ' + Math.abs(diff) + ' jour(s)' : 'Dans ' + diff + ' jour(s)') + '</div></div>'
+      + '<div style="text-align:center;">'
+      + '<div style="font-size:28px;font-weight:900;color:' + (score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--orange)' : 'var(--red)') + ';">' + score + '%</div>'
+      + '<div style="font-size:10px;color:var(--muted);">Score dernier rapport</div></div>'
+      + '</div></div>';
+  }
+
+  // Historique visites
+  const visites = c.visites || [];
+  if (visites.length) {
+    html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">📋 Historique des visites</div>';
+    visites.slice().reverse().forEach(function(v, i) {
+      const vScore = calcScoreVisite(v);
+      const hasAnomalies = v.anomalies && v.anomalies.length;
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" data-visite-idx="' + (visites.length - 1 - i) + '">'
+        + '<div><div style="font-size:13px;font-weight:700;">' + esc(v.num_visite||'Visite') + ' — ' + esc(v.date||'') + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);">' + (v.statut === 'cloture' ? '✅ Clôturée' : '✏️ Brouillon') + (hasAnomalies ? ' · ⚠️ ' + v.anomalies.length + ' anomalie(s)' : '') + '</div></div>'
+        + '<div style="font-size:18px;font-weight:800;color:' + (vScore >= 80 ? 'var(--green)' : vScore >= 60 ? 'var(--orange)' : 'var(--red)') + ';">' + vScore + '%</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('detail-content').innerHTML = html;
+
+  // Events historique
+  document.querySelectorAll('[data-visite-idx]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      const idx = parseInt(el.getAttribute('data-visite-idx'));
+      ouvrirRapport(idx);
+    });
+  });
+
+  showPage('detail');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VISITE DE MAINTENANCE
+// ═══════════════════════════════════════════════════════════
+function nouvelleVisite() {
+  if (!currentContrat) return;
+  const c = currentContrat;
+  const visiteNum = (c.visites || []).length + 1;
+  const nbV = c.nb_visites || 2;
+
+  currentVisite = {
+    id:          'V_' + Date.now(),
+    num_visite:  'V' + visiteNum + '/' + nbV,
+    date:        new Date().toLocaleDateString('fr-FR'),
+    technicien:  'Mathieu LARUICCI',
+    cycles:      '',
+    checklist:   {},
+    obs:         '',
+    anomalies:   [],
+    photos:      [],
+    signature:   null,
+    statut:      'brouillon',
+    createdAt:   Date.now()
+  };
+  visitPhotos = [];
+  setTimeout(function(){ renderPhotoList(); }, 100);
+
+  // Infos
+  document.getElementById('visite-contrat-info').textContent = c.client + ' · ' + c.numero;
+  document.getElementById('vf-date').value   = new Date().toISOString().split('T')[0];
+  document.getElementById('vf-num').value    = currentVisite.num_visite;
+  document.getElementById('vf-tech').value   = 'Mathieu LARUICCI';
+  document.getElementById('vf-cycles').value = '';
+  document.getElementById('vf-obs').value    = '';
+  document.getElementById('sig-client-name').textContent = c.client;
+  document.getElementById('sig-tech-name').textContent   = 'Mathieu LARUICCI';
+  clearSig('sig-canvas','sig-ok');
+  clearSig('sig-canvas-tech','sig-tech-ok');
+  document.getElementById('visite-score-badge').textContent = '';
+  document.getElementById('anomalies-list').innerHTML = '';
+
+  renderChecklist(c.type_eq || 'portail_coulissant');
+
+  // Reset photos
+  const grid = document.getElementById('vf-photos-grid');
+  grid.innerHTML = `
+    <div class="photo-add" onclick="ajouterPhoto('avant')"><span style="font-size:22px;">📷</span><span>Avant</span></div>
+    <div class="photo-add" onclick="ajouterPhoto('apres')"><span style="font-size:22px;">📷</span><span>Après</span></div>
+    <div class="photo-add" onclick="ajouterPhoto('detail')"><span style="font-size:22px;">🔍</span><span>Détail</span></div>`;
+
+  showPage('visite');
+}
+
+function renderChecklist(typeEq) {
+  const sections = CHECKLISTS[typeEq] || CHECKLISTS['autre'];
+  const el = document.getElementById('visite-checklist');
+  el.innerHTML = '';
+
+  sections.forEach(function(section, si) {
+    const div = document.createElement('div');
+    div.className = 'check-section';
+    div.innerHTML = '<div class="check-title">' + section.section + '</div>';
+
+    section.items.forEach(function(item, ii) {
+      const key = si + '_' + ii;
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'check-item';
+      itemDiv.innerHTML = `
+        <div class="check-status">
+          <button class="check-btn" data-key="${key}" data-val="ok" onclick="setCheck('${key}','ok',this)" title="OK">✅</button>
+          <button class="check-btn" data-key="${key}" data-val="ko" onclick="setCheck('${key}','ko',this)" title="Anomalie">❌</button>
+          <button class="check-btn" data-key="${key}" data-val="na" onclick="setCheck('${key}','na',this)" title="N/A">—</button>
+        </div>
+        <div style="flex:1;">
+          <div class="check-label">${item}</div>
+          <textarea class="check-obs" rows="1" placeholder="Observation…" data-key="${key}"
+            oninput="currentVisite.checklist['${key}'] = Object.assign(currentVisite.checklist['${key}']||{},{label:'${item.replace(/'/g,"\\'").slice(0,50)}',obs:this.value}); majScore();"
+            style="display:none;"></textarea>
+        </div>`;
+      div.appendChild(itemDiv);
+    });
+
+    el.appendChild(div);
+  });
+
+  majScore();
+}
+
+function setCheck(key, val, btn) {
+  if (!currentVisite) return;
+  if (!currentVisite.checklist[key]) currentVisite.checklist[key] = {};
+
+  // Trouver le label de l'item
+  const obs = document.querySelector('textarea[data-key="' + key + '"]');
+  const label = obs ? obs.closest('.check-item').querySelector('.check-label').textContent : '';
+  currentVisite.checklist[key].label = label;
+  currentVisite.checklist[key].val   = val;
+
+  // Mettre à jour les boutons
+  const btns = document.querySelectorAll('.check-btn[data-key="' + key + '"]');
+  btns.forEach(function(b) {
+    b.classList.remove('active-ok','active-ko','active-na');
+  });
+  btn.classList.add('active-' + val);
+
+  // Afficher le champ observation si anomalie
+  if (obs) obs.style.display = val === 'ko' ? 'block' : 'none';
+
+  // Ajouter anomalie automatique si KO
+  if (val === 'ko') {
+    if (!currentVisite.anomalies.find(function(a){ return a.key === key; })) {
+      currentVisite.anomalies.push({ key, label, urgence: 'moyen', action: '', devis: false });
+      renderAnomalies();
+    }
+  } else {
+    currentVisite.anomalies = currentVisite.anomalies.filter(function(a){ return a.key !== key; });
+    renderAnomalies();
+  }
+
+  majScore();
+}
+
+function majScore() {
+  if (!currentVisite) return;
+  const score = calcScoreVisite(currentVisite);
+  const total = Object.keys(currentVisite.checklist).length;
+  const ok    = Object.values(currentVisite.checklist).filter(function(v){ return v.val === 'ok' || v.val === 'na'; }).length;
+  document.getElementById('checklist-progress').textContent = ok + '/' + total;
+  document.getElementById('visite-score-badge').textContent = score + '%';
+  document.getElementById('visite-score-badge').style.color = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--orange)' : 'var(--red)';
+}
+
+function renderAnomalies() {
+  const el = document.getElementById('anomalies-list');
+  if (!currentVisite.anomalies.length) { el.innerHTML = '<div style="font-size:13px;color:var(--muted);">Aucune anomalie</div>'; return; }
+
+  el.innerHTML = currentVisite.anomalies.map(function(a, i) {
+    return '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px;margin-bottom:8px;">'
+      + '<div style="font-size:13px;font-weight:700;margin-bottom:6px;">⚠️ ' + esc(a.label) + '</div>'
+      + '<div style="display:flex;gap:6px;margin-bottom:6px;">'
+      + '<select onchange="currentVisite.anomalies[' + i + '].urgence=this.value" style="flex:1;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">'
+      + '<option value="faible"' + (a.urgence==='faible'?' selected':'') + '>🟡 Faible</option>'
+      + '<option value="moyen"' + (a.urgence==='moyen'?' selected':'') + '>🟠 Moyen</option>'
+      + '<option value="urgent"' + (a.urgence==='urgent'?' selected':'') + '>🔴 Urgent</option>'
+      + '</select>'
+      + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text);text-transform:none;"><input type="checkbox" ' + (a.devis?'checked':'') + ' onchange="currentVisite.anomalies[' + i + '].devis=this.checked"> Créer devis</label>'
+      + '</div>'
+      + '<input type="text" value="' + esc(a.action||'') + '" placeholder="Action recommandée…" oninput="currentVisite.anomalies[' + i + '].action=this.value" style="width:100%;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">'
+      + '<button onclick="currentVisite.anomalies.splice(' + i + ',1);renderAnomalies();majScore();" style="margin-top:6px;background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;">🗑 Supprimer</button>'
+      + '</div>';
+  }).join('');
+}
+
+function ajouterAnomalie() {
+  currentVisite.anomalies.push({ key: 'manual_' + Date.now(), label: '', urgence: 'moyen', action: '', devis: false });
+  renderAnomalies();
+  // Permettre de saisir le label
+  const inputs = document.querySelectorAll('#anomalies-list .anomalie-label');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PHOTOS AVEC COMMENTAIRES
+// ═══════════════════════════════════════════════════════════
+function ajouterPhotoLibre() {
+  document.getElementById('photo-input').click();
+}
+
+// Gardé pour compatibilité avec l'ancien code
+function ajouterPhoto(type) {
+  currentPhotoType = type;
+  document.getElementById('photo-input').click();
+}
+
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    visitPhotos.push({
+      id:      'p_' + Date.now(),
+      data:    ev.target.result,
+      name:    file.name,
+      type:    currentPhotoType || 'photo',
+      comment: ''
+    });
+    renderPhotoList();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+  currentPhotoType = '';
+}
+
+function renderPhotoList() {
+  const el = document.getElementById('vf-photos-list');
+  if (!el) return;
+
+  if (!visitPhotos.length) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">Aucune photo · Appuie sur + Ajouter</div>';
+    return;
+  }
+
+  el.innerHTML = visitPhotos.map(function(p, i) {
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px;">'
+      // Miniature + type + supprimer
+      + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+      + '<img src="' + p.data + '" style="width:80px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid var(--border);" onclick="agrandirPhoto(' + i + ')">'
+      + '<div style="flex:1;min-width:0;">'
+      // Sélecteur de type
+      + '<select onchange="visitPhotos[' + i + '].type=this.value" style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;margin-bottom:6px;">'
+      + '<option value="avant"'    + (p.type==='avant'   ?'  selected':'') + '>📷 Avant</option>'
+      + '<option value="apres"'    + (p.type==='apres'   ?'  selected':'') + '>📷 Après</option>'
+      + '<option value="defaut"'   + (p.type==='defaut'  ?'  selected':'') + '>⚠️ Défaut / Anomalie</option>'
+      + '<option value="detail"'   + (p.type==='detail'  ?'  selected':'') + '>🔍 Détail</option>'
+      + '<option value="general"'  + (p.type==='general' ?'  selected':'') + '>🏠 Vue générale</option>'
+      + '<option value="photo"'    + (p.type==='photo'   ?'  selected':'') + '>📷 Photo</option>'
+      + '</select>'
+      // Commentaire
+      + '<textarea placeholder="Commentaire sur cette photo…" rows="2"'
+      + ' oninput="visitPhotos[' + i + '].comment=this.value"'
+      + ' style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:none;font-family:inherit;">'
+      + (p.comment||'') + '</textarea>'
+      + '</div>'
+      // Bouton supprimer
+      + '<button onclick="supprimerPhoto(' + i + ')" style="background:rgba(239,68,68,.15);border:none;border-radius:6px;padding:4px 8px;color:var(--red);cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function agrandirPhoto(i) {
+  const p = visitPhotos[i];
+  if (!p) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick = function() { overlay.remove(); };
+  overlay.innerHTML = '<div style="max-width:100%;max-height:90vh;text-align:center;">'
+    + '<img src="' + p.data + '" style="max-width:100%;max-height:80vh;border-radius:10px;">'
+    + (p.comment ? '<div style="color:#fff;font-size:13px;margin-top:10px;background:rgba(0,0,0,.5);padding:8px 12px;border-radius:8px;">' + p.comment + '</div>' : '')
+    + '</div>';
+  document.body.appendChild(overlay);
+}
+
+function supprimerPhoto(i) {
+  visitPhotos.splice(i, 1);
+  renderPhotoList();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SIGNATURE
+// ═══════════════════════════════════════════════════════════
+function initSig() {
+  ['sig-canvas', 'sig-canvas-tech'].forEach(function(id) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas._ctx = ctx;
+    let drawing = false;
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+        y: (e.clientY - rect.top)  * (canvas.height / rect.height)
+      };
+    }
+    const okId = id === 'sig-canvas' ? 'sig-ok' : 'sig-tech-ok';
+    canvas.addEventListener('mousedown',  function(e){ drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+    canvas.addEventListener('mousemove',  function(e){ if(!drawing) return; const p=getPos(e); ctx.lineWidth=2; ctx.strokeStyle='#f5a623'; ctx.lineTo(p.x,p.y); ctx.stroke(); });
+    canvas.addEventListener('mouseup',    function(){ drawing=false; ctx.closePath(); document.getElementById(okId).style.display='flex'; });
+    canvas.addEventListener('touchstart', function(e){ e.preventDefault(); drawing=true; const p=getPos(e.touches[0]); ctx.beginPath(); ctx.moveTo(p.x,p.y); }, {passive:false});
+    canvas.addEventListener('touchmove',  function(e){ e.preventDefault(); if(!drawing) return; const p=getPos(e.touches[0]); ctx.lineWidth=2; ctx.strokeStyle='#f5a623'; ctx.lineTo(p.x,p.y); ctx.stroke(); }, {passive:false});
+    canvas.addEventListener('touchend',   function(){ drawing=false; ctx.closePath(); document.getElementById(okId).style.display='flex'; });
+  });
+}
+
+function clearSig(canvasId, okId) {
+  canvasId = canvasId || 'sig-canvas';
+  okId     = okId     || 'sig-ok';
+  const canvas = document.getElementById(canvasId);
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  const ok = document.getElementById(okId);
+  if (ok) ok.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLÔTURE VISITE
+// ═══════════════════════════════════════════════════════════
+async function cloturerVisite() {
+  if (!currentContrat || !currentVisite) return;
+
+  // Récupérer données formulaire
+  currentVisite.date       = new Date(document.getElementById('vf-date').value).toLocaleDateString('fr-FR');
+  currentVisite.date_iso   = document.getElementById('vf-date').value;
+  currentVisite.heureDebut = document.getElementById('vf-heure-debut').value;
+  currentVisite.heureFin   = document.getElementById('vf-heure-fin').value;
+  currentVisite.duree      = document.getElementById('vf-duree').value;
+  currentVisite.showHeures = document.getElementById('vf-show-heures').checked;
+  currentVisite.technicien = document.getElementById('vf-tech').value;
+  currentVisite.cycles     = document.getElementById('vf-cycles').value;
+  currentVisite.obs        = document.getElementById('vf-obs').value;
+  currentVisite.photos     = visitPhotos;
+  currentVisite.signature      = document.getElementById('sig-canvas').toDataURL();
+  currentVisite.signatureTech  = document.getElementById('sig-canvas-tech').toDataURL();
+  currentVisite.statut    = 'cloture';
+  currentVisite.score     = calcScoreVisite(currentVisite);
+
+  // Sauvegarder dans le contrat
+  if (!currentContrat.visites) currentContrat.visites = [];
+  const existing = currentContrat.visites.findIndex(function(v){ return v.id === currentVisite.id; });
+  if (existing !== -1) currentContrat.visites[existing] = currentVisite;
+  else currentContrat.visites.push(currentVisite);
+
+  // Mettre à jour prochaine visite
+  currentContrat.prochaine_visite = calcProchaineVisite(currentContrat);
+
+  // Sauvegarder contrat
+  const idx = CONTRATS.findIndex(function(c){ return c.id === currentContrat.id; });
+  if (idx !== -1) CONTRATS[idx] = currentContrat;
+  await sauvegarderContrats();
+
+  // Créer devis si anomalies avec devis=true
+  const devisACreer = (currentVisite.anomalies || []).filter(function(a){ return a.devis; });
+  if (devisACreer.length) {
+    toast('✅ Rapport clôturé · ' + devisACreer.length + ' devis à créer');
+  } else {
+    toast('✅ Rapport de visite clôturé !');
+  }
+
+  showPage('detail');
+  ouvrirDetail(currentContrat.id);
+}
+
+async function sauvegarderBrouillon() {
+  if (!currentContrat || !currentVisite) return;
+  currentVisite.date     = new Date(document.getElementById('vf-date').value).toLocaleDateString('fr-FR');
+  currentVisite.obs      = document.getElementById('vf-obs').value;
+  currentVisite.photos   = visitPhotos;
+  currentVisite.statut   = 'brouillon';
+
+  if (!currentContrat.visites) currentContrat.visites = [];
+  const existing = currentContrat.visites.findIndex(function(v){ return v.id === currentVisite.id; });
+  if (existing !== -1) currentContrat.visites[existing] = currentVisite;
+  else currentContrat.visites.push(currentVisite);
+
+  const idx = CONTRATS.findIndex(function(c){ return c.id === currentContrat.id; });
+  if (idx !== -1) CONTRATS[idx] = currentContrat;
+  await sauvegarderContrats();
+  toast('💾 Brouillon sauvegardé');
+}
+
+function confirmerQuitterVisite() {
+  if (currentVisite && Object.keys(currentVisite.checklist).length > 0) {
+    if (!confirm('Quitter la visite ? Les données non sauvegardées seront perdues.')) return;
+  }
+  showPage('detail');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RAPPORT
+// ═══════════════════════════════════════════════════════════
+function ouvrirRapport(visiteIdx) {
+  if (!currentContrat) return;
+  const v = currentContrat.visites[visiteIdx];
+  if (!v) return;
+  currentVisite = v;
+
+  const c = currentContrat;
+  const score = calcScoreVisite(v);
+  const couleur = score >= 80 ? '#22c55e' : score >= 60 ? '#f97316' : '#ef4444';
+
+  let html = '';
+
+  // En-tête
+  html += '<div class="card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+    + '<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;">Rapport de visite</div>'
+    + '<div style="font-size:18px;font-weight:800;">' + esc(v.num_visite||'') + ' — ' + esc(v.date||'') + '</div>'
+    + (v.showHeures && v.heureDebut ? '<div style="font-size:13px;color:var(--accent);">⏱ ' + v.heureDebut + ' → ' + (v.heureFin||'') + (v.duree ? ' (' + v.duree + ')' : '') + '</div>' : '')
+    + '<div style="font-size:13px;color:var(--muted);">' + esc(c.client) + ' · ' + esc(c.adresse||'') + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);">Technicien : ' + esc(v.technicien||'') + (v.cycles ? ' · Compteur : ' + v.cycles + ' cycles' : '') + '</div>'
+    + '</div>'
+    + '<div style="text-align:center;"><div style="font-size:32px;font-weight:900;color:' + couleur + ';">' + score + '%</div><div style="font-size:10px;color:var(--muted);">Score</div></div>'
+    + '</div></div>';
+
+  // Score bar
+  html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px;">Score de conformité</div>'
+    + '<div class="score-bar"><div class="score-fill" style="width:' + score + '%;background:' + couleur + ';"></div></div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-top:4px;">' + score + '% des points contrôlés sont conformes</div></div>';
+
+  // Checklist par section
+  const sections = CHECKLISTS[c.type_eq] || CHECKLISTS['autre'];
+  sections.forEach(function(section, si) {
+    html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">' + section.section + '</div>';
+    section.items.forEach(function(item, ii) {
+      const key = si + '_' + ii;
+      const check = v.checklist[key];
+      const val = check ? check.val : null;
+      const icone = val === 'ok' ? '✅' : val === 'ko' ? '❌' : val === 'na' ? '—' : '⬜';
+      const color = val === 'ok' ? 'var(--green)' : val === 'ko' ? 'var(--red)' : 'var(--muted)';
+      html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">'
+        + '<span style="font-size:14px;flex-shrink:0;">' + icone + '</span>'
+        + '<div style="flex:1;"><div style="font-size:13px;color:' + color + ';">' + esc(item) + '</div>'
+        + (check && check.obs ? '<div style="font-size:11px;color:var(--muted);font-style:italic;">→ ' + esc(check.obs) + '</div>' : '')
+        + '</div></div>';
+    });
+    html += '</div>';
+  });
+
+  // Anomalies
+  if (v.anomalies && v.anomalies.length) {
+    html += '<div class="card" style="border-color:rgba(239,68,68,.3);">'
+      + '<div style="font-size:11px;color:var(--red);font-weight:700;text-transform:uppercase;margin-bottom:8px;">⚠️ Anomalies détectées</div>';
+    v.anomalies.forEach(function(a) {
+      const uc = a.urgence === 'urgent' ? 'var(--red)' : a.urgence === 'moyen' ? 'var(--orange)' : 'var(--accent)';
+      html += '<div style="padding:8px;background:rgba(239,68,68,.06);border-radius:8px;margin-bottom:6px;">'
+        + '<div style="font-size:13px;font-weight:700;">' + esc(a.label||'') + '</div>'
+        + '<div style="font-size:12px;color:' + uc + ';">Urgence : ' + esc(a.urgence) + (a.devis ? ' · 📄 Devis à créer' : '') + '</div>'
+        + (a.action ? '<div style="font-size:12px;color:var(--muted);">→ ' + esc(a.action) + '</div>' : '')
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Observations
+  if (v.obs) {
+    html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px;">Observations</div>'
+      + '<div style="font-size:13px;white-space:pre-wrap;">' + esc(v.obs) + '</div></div>';
+  }
+
+  // Photos avec commentaires
+  if (v.photos && v.photos.length) {
+    html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">📷 Photos (' + v.photos.length + ')</div>';
+    v.photos.forEach(function(p) {
+      const typeLabels = { avant:'Avant', apres:'Après', defaut:'⚠️ Défaut', detail:'Détail', general:'Vue générale', photo:'Photo' };
+      html += '<div style="margin-bottom:10px;">'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+        + '<img src="' + p.data + '" style="width:80px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid var(--border);">'
+        + '<div><div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:3px;">' + (typeLabels[p.type]||p.type||'Photo') + '</div>'
+        + (p.comment ? '<div style="font-size:12px;color:var(--muted);font-style:italic;">' + esc(p.comment) + '</div>' : '<div style="font-size:12px;color:var(--border);">Aucun commentaire</div>')
+        + '</div></div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Signatures
+  if (v.signature || v.signatureTech) {
+    html += '<div class="card"><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">✍️ Signatures</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+    if (v.signature) {
+      html += '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Client</div>'
+        + '<img src="' + v.signature + '" style="width:100%;border:1px solid var(--border);border-radius:8px;">'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:3px;">' + esc(c.client) + '</div></div>';
+    }
+    if (v.signatureTech) {
+      html += '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Technicien</div>'
+        + '<img src="' + v.signatureTech + '" style="width:100%;border:1px solid var(--border);border-radius:8px;">'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:3px;">' + esc(v.technicien||'') + '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById('rapport-content').innerHTML = html;
+  showPage('rapport');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PDF CONTRAT
+// ═══════════════════════════════════════════════════════════
+async function exporterContratPDF(c) {
+  if (!c) c = currentContrat;
+  if (!c) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 14, DARK = [30,30,30], ORANGE = [245,166,35], GREY = [120,120,120];
+
+  // En-tête
+  doc.setFillColor(...ORANGE);
+  doc.rect(0, 0, W, 18, 'F');
+  doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(0,0,0);
+  doc.text('HARMONIE ÉLECTRICITÉ', M, 12);
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('225 Chemin des Bochets — 73170 Yenne  ·  06 31 13 47 01  ·  contact@harmonie-electricite.com', W-M, 12, {align:'right'});
+
+  let y = 26;
+  doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK);
+  doc.text('CONTRAT DE MAINTENANCE', M, y); y += 8;
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+  doc.text('N° ' + c.numero + '  ·  ' + typeLabel(c.type_eq), M, y); y += 10;
+
+  // Encadrés client / contrat
+  const bw = (W - 2*M - 6) / 2;
+
+  // Client
+  doc.setFillColor(248,248,248); doc.rect(M, y, bw, 36, 'F');
+  doc.setDrawColor(220,220,220); doc.rect(M, y, bw, 36, 'S');
+  doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+  doc.text('CLIENT', M+3, y+6);
+  doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK);
+  doc.text((c.client||'').slice(0,35), M+3, y+13);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+  if (c.adresse) doc.text(c.adresse.slice(0,40), M+3, y+19);
+  if (c.tel)     doc.text('Tél : ' + c.tel, M+3, y+25);
+  if (c.email)   doc.text(c.email.slice(0,40), M+3, y+31);
+
+  // Contrat
+  const bx2 = M + bw + 6;
+  doc.setFillColor(248,248,248); doc.rect(bx2, y, bw, 36, 'F');
+  doc.setDrawColor(220,220,220); doc.rect(bx2, y, bw, 36, 'S');
+  doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+  doc.text('DÉTAILS DU CONTRAT', bx2+3, y+6);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...DARK);
+  doc.text('Du : ' + formatDate(c.debut) + '  au : ' + formatDate(c.fin), bx2+3, y+13);
+  doc.text('Visites : ' + c.nb_visites + ' visite(s) par an', bx2+3, y+19);
+  doc.text('Tarif annuel HT : ' + (c.tarif||0).toFixed(2) + ' €', bx2+3, y+25);
+  doc.text('TVA 20% : ' + ((c.tarif||0)*0.20).toFixed(2) + ' €  ·  TTC : ' + ((c.tarif||0)*1.20).toFixed(2) + ' €', bx2+3, y+31);
+  y += 42;
+
+  // Équipement
+  doc.setFillColor(245,166,35,15);
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.5);
+  doc.rect(M, y, W-2*M, 22, 'FD');
+  doc.setLineWidth(0.2);
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+  doc.text('ÉQUIPEMENT CONCERNÉ', M+3, y+6);
+  doc.setFont('helvetica','normal'); doc.setTextColor(...DARK);
+  doc.text(typeLabel(c.type_eq) + '  ·  ' + (c.marque||'') + ' ' + (c.modele||'') + (c.serie?' · N° '+c.serie:'') + (c.annee?' · Posé en '+c.annee:''), M+3, y+13);
+  if (c.obs_eq) doc.text(c.obs_eq.slice(0,80), M+3, y+19);
+  y += 28;
+
+  // Prestations incluses
+  doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK);
+  doc.text('PRESTATIONS INCLUSES', M, y); y += 6;
+  const prestations = [
+    c.inclus?.visite  && '✓ Visite de maintenance préventive (' + c.nb_visites + '/an)',
+    c.inclus?.lubrif  && '✓ Lubrification, réglages et nettoyage',
+    c.inclus?.depla   && '✓ Déplacements inclus',
+    c.inclus?.pieces  && '✓ Pièces de rechange incluses',
+    c.inclus?.tel     && '✓ Assistance téléphonique',
+  ].filter(Boolean);
+  prestations.forEach(function(p) {
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+    doc.text(p, M+3, y); y += 5;
+  });
+  y += 4;
+
+  // Checklist des points contrôlés
+  doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK);
+  doc.text('POINTS DE CONTRÔLE (checklist incluse)', M, y); y += 6;
+  const sections = CHECKLISTS[c.type_eq] || CHECKLISTS['autre'];
+  sections.forEach(function(section) {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+    doc.text(section.section, M+3, y); y += 4;
+    section.items.forEach(function(item) {
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+      doc.text('□  ' + item, M+5, y); y += 4;
+    });
+    y += 2;
+  });
+
+  // Signatures
+  if (y > 230) { doc.addPage(); y = 20; }
+  y += 6;
+  doc.setDrawColor(200,200,200);
+  doc.line(M, y+20, M+75, y+20);
+  doc.line(W-M-75, y+20, W-M, y+20);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+  doc.text('Signature du client', M, y+25);
+  doc.text(c.client||'', M, y+30);
+  doc.text('Signature Harmonie Électricité', W-M-75, y+25);
+  doc.text('Mathieu LARUICCI', W-M-75, y+30);
+
+  // Pied
+  const pages = doc.internal.getNumberOfPages();
+  for (let i=1;i<=pages;i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(...GREY);
+    doc.text('Harmonie Électricité · 225 Chemin des Bochets, 73170 Yenne · SIRET : XXX XXX XXX XXXXX · Page '+i+'/'+pages, W/2, 292, {align:'center'});
+  }
+
+  const fname = 'Contrat_' + c.numero + '_' + (c.client||'').replace(/\s+/g,'_') + '.pdf';
+  doc.save(fname);
+  toast('📄 Contrat PDF généré !');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ENVOI EMAIL CONTRAT
+// ═══════════════════════════════════════════════════════════
+const SEND_EMAIL_URL = 'https://send-email-harmonie.harmonie-electricite.workers.dev';
+
+async function envoyerContratEmail(c) {
+  if (!c) c = currentContrat;
+  if (!c || !c.email) { toast('Aucun email renseigné pour ce client'); return; }
+
+  toast('📧 Envoi en cours…');
+
+  const inclus = [];
+  if (c.inclus?.visite)  inclus.push('Visite de maintenance préventive (' + c.nb_visites + '/an)');
+  if (c.inclus?.lubrif)  inclus.push('Lubrification, réglages et nettoyage');
+  if (c.inclus?.depla)   inclus.push('Déplacements inclus');
+  if (c.inclus?.pieces)  inclus.push('Pièces de rechange incluses');
+  if (c.inclus?.tel)     inclus.push('Assistance téléphonique');
+
+  const appUrl = 'https://laruiccim-droid.github.io/harmonie-electricite/maintenance.html';
+
+  const html = `
+<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff;color:#222;">
+  <div style="background:#f5a623;padding:16px 20px;border-radius:10px 10px 0 0;text-align:center;">
+    <div style="font-size:20px;font-weight:900;color:#000;">⚡ Harmonie Électricité</div>
+    <div style="font-size:12px;color:#333;margin-top:4px;">225 Chemin des Bochets · 73170 Yenne · 06 31 13 47 01</div>
+  </div>
+  <div style="background:#fafafa;padding:20px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
+    <p>Bonjour,</p>
+    <p>Veuillez trouver ci-dessous les détails de votre contrat de maintenance.</p>
+    <div style="background:#fff;border:2px solid #f5a623;border-radius:10px;padding:16px;margin:16px 0;">
+      <div style="font-weight:700;font-size:16px;margin-bottom:6px;">Contrat N° ${c.numero}</div>
+      <div style="font-size:13px;color:#666;">Équipement : ${typeLabel(c.type_eq)} — ${c.marque||''} ${c.modele||''}</div>
+      <div style="font-size:13px;color:#666;">Période : du ${formatDate(c.debut)} au ${formatDate(c.fin)}</div>
+      <div style="font-size:13px;color:#666;">Visites : ${c.nb_visites} visite(s) par an</div>
+      <div style="font-size:15px;font-weight:800;color:#f5a623;margin-top:8px;">Tarif : ${(c.tarif||0).toFixed(2)} € HT / an (${((c.tarif||0)*1.20).toFixed(2)} € TTC)</div>
+    </div>
+    <div style="margin:12px 0;">
+      <div style="font-weight:700;margin-bottom:6px;">Prestations incluses :</div>
+      ${inclus.map(function(p){ return '<div style="font-size:13px;padding:3px 0;">✓ ' + p + '</div>'; }).join('')}
+    </div>
+    ${c.notes ? '<div style="background:#fff8e6;border-left:3px solid #f5a623;padding:10px;margin:12px 0;font-size:13px;">' + c.notes + '</div>' : ''}
+    <p style="font-size:12px;color:#999;margin-top:16px;">Pour toute question : contact@harmonie-electricite.com · 06 31 13 47 01</p>
+  </div>
+</div>`;
+
+  try {
+    const r = await fetch(SEND_EMAIL_URL + '/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to:      c.email,
+        subject: 'Contrat de maintenance N° ' + c.numero + ' — Harmonie Électricité',
+        html
+      })
+    });
+    if (r.ok) { toast('✅ Contrat envoyé à ' + c.email); }
+    else      { toast('❌ Erreur envoi email'); }
+  } catch(e) { toast('❌ Erreur réseau'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXPORT PDF RAPPORT (déplacé ici pour accès à exporterContratPDF)
+// ═══════════════════════════════════════════════════════════
+async function exporterRapportPDF() {
+  if (!currentContrat || !currentVisite) return;
+  toast('Génération PDF…');
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 14, DARK = [30, 30, 30], ORANGE = [245, 166, 35], GREY = [100, 100, 100];
+  let y = 20;
+
+  // En-tête
+  doc.setFillColor(...ORANGE);
+  doc.rect(0, 0, W, 16, 'F');
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 0, 0);
+  doc.text('HARMONIE ÉLECTRICITÉ', M, 11);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('06 31 13 47 01 · contact@harmonie-electricite.com', 200, 11, { align: 'right' });
+
+  y = 24;
+  doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+  doc.text('RAPPORT DE MAINTENANCE', M, y); y += 7;
+
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY);
+  doc.text(currentVisite.num_visite + ' — ' + currentVisite.date + ' — ' + currentContrat.client, M, y); y += 10;
+
+  // Infos
+  doc.setFillColor(245, 245, 245);
+  doc.rect(M, y, W - 2*M, 24, 'F');
+  doc.setFontSize(8); doc.setTextColor(...DARK);
+  doc.text('Client : ' + currentContrat.client, M+3, y+6);
+  doc.text('Adresse : ' + (currentContrat.adresse||''), M+3, y+11);
+  doc.text('Équipement : ' + typeLabel(currentContrat.type_eq) + ' ' + (currentContrat.marque||'') + ' ' + (currentContrat.modele||''), M+3, y+16);
+  doc.text('Technicien : ' + currentVisite.technicien + (currentVisite.cycles ? ' · Compteur : ' + currentVisite.cycles + ' cycles' : ''), M+3, y+21);
+  const score = calcScoreVisite(currentVisite);
+  doc.setFontSize(24); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(score >= 80 ? 34 : score >= 60 ? 249 : 239, score >= 80 ? 197 : score >= 60 ? 115 : 68, score >= 80 ? 94 : score >= 60 ? 22 : 68);
+  doc.text(score + '%', W - M - 3, y + 15, { align: 'right' });
+  y += 28;
+
+  // Checklist
+  const sections = CHECKLISTS[currentContrat.type_eq] || CHECKLISTS['autre'];
+  sections.forEach(function(section, si) {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ORANGE);
+    doc.text(section.section.toUpperCase(), M, y); y += 5;
+
+    section.items.forEach(function(item, ii) {
+      if (y > 270) { doc.addPage(); y = 20; }
+      const key = si + '_' + ii;
+      const check = currentVisite.checklist[key];
+      const val = check ? check.val : null;
+      const icone = val === 'ok' ? '✓' : val === 'ko' ? '✗' : val === 'na' ? 'N/A' : '□';
+      const r = val === 'ok' ? 34 : val === 'ko' ? 239 : 136;
+      const g = val === 'ok' ? 197 : val === 'ko' ? 68 : 136;
+      const b = val === 'ok' ? 94 : val === 'ko' ? 68 : 136;
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(r, g, b); doc.setFontSize(8);
+      doc.text(icone, M, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK);
+      const lines = doc.splitTextToSize(item, W - 2*M - 12);
+      doc.text(lines, M + 8, y);
+      if (check && check.obs) {
+        y += lines.length * 4;
+        doc.setTextColor(...GREY); doc.setFontSize(7);
+        doc.text('→ ' + check.obs, M + 8, y);
+        doc.setFontSize(8);
+      }
+      y += lines.length * 4 + 1;
+    });
+    y += 3;
+  });
+
+  // Anomalies
+  if (currentVisite.anomalies && currentVisite.anomalies.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ORANGE);
+    doc.text('ANOMALIES DÉTECTÉES', M, y); y += 6;
+    currentVisite.anomalies.forEach(function(a) {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(239, 68, 68); doc.setFontSize(8);
+      doc.text('⚠ ' + (a.label||''), M, y); y += 4;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY);
+      doc.text('Urgence : ' + (a.urgence||'') + (a.action ? ' · ' + a.action : ''), M + 4, y); y += 6;
+    });
+  }
+
+  // Signatures côte à côte
+  if (y > 230) { doc.addPage(); y = 20; }
+  y += 6;
+  const sigW = (W - 2*M - 10) / 2;
+  // Ligne client
+  doc.setDrawColor(200,200,200);
+  doc.line(M, y+20, M+sigW, y+20);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+  doc.text('Signature du client', M, y+25);
+  doc.text(c.client||'', M, y+30);
+  // Ligne technicien
+  const sx2 = M + sigW + 10;
+  doc.line(sx2, y+20, sx2+sigW, y+20);
+  doc.text('Signature du technicien', sx2, y+25);
+  doc.text(currentVisite.technicien||'Mathieu LARUICCI', sx2, y+30);
+  // Images signatures
+  try {
+    if (currentVisite.signature)     doc.addImage(currentVisite.signature,    'PNG', M,   y, sigW, 18);
+    if (currentVisite.signatureTech) doc.addImage(currentVisite.signatureTech,'PNG', sx2, y, sigW, 18);
+  } catch(e) {}
+  y += 36;
+
+  // Observations
+  if (currentVisite.obs) {
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+    doc.text('Observations :', M, y); y += 4;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY);
+    const obsLines = doc.splitTextToSize(currentVisite.obs, W - 2*M);
+    doc.text(obsLines, M, y); y += obsLines.length * 4 + 4;
+  }
+
+  // Pied de page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(...GREY);
+    doc.text('Harmonie Électricité · 225 Chemin des Bochets, 73170 Yenne · Page ' + i + '/' + pageCount, W/2, 292, { align: 'center' });
+  }
+
+  const fname = 'Maintenance_' + currentContrat.numero + '_' + (currentVisite.num_visite||'V').replace('/','_') + '_' + currentContrat.client.replace(/\s+/g,'_') + '.pdf';
+  doc.save(fname);
+  toast('📄 PDF généré !');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RECHERCHE CLIENTS
+// ═══════════════════════════════════════════════════════════
+function filtrerClientsM(q) {
+  const dd = document.getElementById('cf-client-dd');
+  if (!q || q.length < 2) { dd.style.display = 'none'; return; }
+  const filtered = CLIENTS_M.filter(function(c){
+    return ((c.name||c.nom||'')).toLowerCase().includes(q.toLowerCase());
+  }).slice(0, 10);
+  if (!filtered.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = filtered.map(function(c){
+    const name = c.name || c.nom || '';
+    const addr = c.address || c.adresse || '';
+    return '<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;" data-name="'+esc(name)+'" data-tel="'+esc(c.phone||c.tel||'')+'" data-email="'+esc(c.email||'')+'" data-addr="'+esc(addr)+'">'
+      + '<div style="font-weight:600;">' + esc(name) + '</div>'
+      + (addr ? '<div style="font-size:11px;color:var(--muted);">' + esc(addr) + '</div>' : '')
+      + '</div>';
+  }).join('');
+  dd.querySelectorAll('div[data-name]').forEach(function(el) {
+    el.onclick = function() {
+      document.getElementById('cf-client').value  = el.dataset.name;
+      document.getElementById('cf-tel').value     = el.dataset.tel;
+      document.getElementById('cf-email').value   = el.dataset.email;
+      document.getElementById('cf-adresse').value = el.dataset.addr;
+      dd.style.display = 'none';
+    };
+  });
+  dd.style.display = 'block';
+}
+
+// Fermer dd client si clic ailleurs
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('cf-client-dd');
+  if (dd && e.target !== document.getElementById('cf-client')) dd.style.display = 'none';
+});
+
+// ═══════════════════════════════════════════════════════════
+//  UTILITAIRES
+// ═══════════════════════════════════════════════════════════
+function calcScoreVisite(v) {
+  const items = Object.values(v.checklist || {});
+  if (!items.length) return 0;
+  const ok = items.filter(function(i){ return i.val === 'ok' || i.val === 'na'; }).length;
+  return Math.round((ok / items.length) * 100);
+}
+
+function calcScore(c) {
+  const visites = c.visites || [];
+  if (!visites.length) return 0;
+  return calcScoreVisite(visites[visites.length - 1]);
+}
+
+function calcProchaineVisite(c) {
+  const visites = (c.visites || []).filter(function(v){ return v.statut === 'cloture'; });
+  const nb = c.nb_visites || 2;
+  const moisEntre = Math.round(12 / nb);
+
+  if (visites.length === 0) {
+    // Première visite : 6 mois après le début
+    const debut = c.debut ? new Date(c.debut) : new Date();
+    debut.setMonth(debut.getMonth() + 6);
+    return debut.toISOString().split('T')[0];
+  }
+
+  const last = visites[visites.length - 1];
+  const lastDate = last.date_iso ? new Date(last.date_iso) : new Date();
+  lastDate.setMonth(lastDate.getMonth() + moisEntre);
+  return lastDate.toISOString().split('T')[0];
+}
+
+function genNumero() {
+  const y = new Date().getFullYear();
+  const n = (CONTRATS.filter(function(c){ return c.numero && c.numero.startsWith('CM' + y); }).length + 1);
+  return 'CM' + y + '-' + String(n).padStart(3, '0');
+}
+
+function typeLabel(t) {
+  const labels = {
+    portail_coulissant: 'Portail motorisé coulissant',
+    portail_battant: 'Portail motorisé battant',
+    porte_garage: 'Porte de garage motorisée',
+    barriere: 'Barrière levante',
+    interphone: 'Interphone / Visiophone',
+    alarme: 'Alarme intrusion',
+    videosurveillance: 'Vidéosurveillance',
+    autre: 'Équipement autre',
+  };
+  return labels[t] || (t||'');
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('fr-FR'); } catch(e) { return d; }
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DÉMARRAGE
+// ═══════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
