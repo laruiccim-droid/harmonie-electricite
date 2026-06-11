@@ -1118,15 +1118,18 @@ const SB_HEADERS = {
 
 // Fetch all rows → returns array of objects stored in col "payload"
 async function sbGet(table) {
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(function(){ ctrl.abort(); }, 15000);
   try {
     const r = await fetch(`${SUPA_URL}/rest/v1/${table}?select=id,payload`, {
-      headers: SB_HEADERS
+      headers: SB_HEADERS, signal: ctrl.signal
     });
     if (!r.ok) return null;
     const rows = await r.json();
     if (!Array.isArray(rows)) return null;
     return rows.map(r => ({ id: r.id, ...r.payload }));
   } catch { return null; }
+  finally { clearTimeout(timeoutId); }
 }
 
 // Upsert one item — store the whole object as payload, keyed by item.id
@@ -1219,10 +1222,16 @@ async function initSync() {
         console.log('[Offline] Clients from IndexedDB:', remoteClients.length);
       }
     } else {
-      const r = await fetch(SUPA_URL + '/rest/v1/clients?select=id,payload&limit=1000', { headers: SB_HEADERS });
-      if (r.ok) {
-        const rows = await r.json();
-        remoteClients = rows.map(function(row){ return Object.assign({id: row.id}, row.payload); });
+      const ctrl = new AbortController();
+      const timeoutId = setTimeout(function(){ ctrl.abort(); }, 15000);
+      try {
+        const r = await fetch(SUPA_URL + '/rest/v1/clients?select=id,payload&limit=1000', { headers: SB_HEADERS, signal: ctrl.signal });
+        if (r.ok) {
+          const rows = await r.json();
+          remoteClients = rows.map(function(row){ return Object.assign({id: row.id}, row.payload); });
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
   } catch(e) {}
@@ -1230,16 +1239,22 @@ async function initSync() {
   const anyOk = remoteNotes !== null || remoteCheck !== null || remoteClients !== null;
   if (!anyOk) { setSyncState('red'); return; }
 
-  if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
-  if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
-  if (remoteClients) CLIENTS   = remoteClients; // Remplacer entièrement par les données Supabase
+  try {
+    if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
+    if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
+    if (remoteClients) CLIENTS   = remoteClients; // Remplacer entièrement par les données Supabase
 
-  saveLocal();
-  renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
-  setSyncState('green');
+    try { saveLocal(); } catch(e) { console.warn('[Sync] saveLocal a échoué:', e); }
+    renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
+    setSyncState('green');
+  } catch(e) {
+    console.error('[Sync] Erreur lors de la mise à jour après synchronisation:', e);
+    setSyncState('red');
+    return;
+  }
 
   // Synchroniser les documents créés hors-ligne
-  syncOfflineDocsQueue();
+  try { syncOfflineDocsQueue(); } catch(e) { console.warn('[Sync] syncOfflineDocsQueue a échoué:', e); }
 }
 
 async function syncOfflineDocsQueue() {
