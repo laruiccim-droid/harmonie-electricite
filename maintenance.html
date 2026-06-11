@@ -1206,17 +1206,33 @@ function handlePhoto(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(ev) {
-    visitPhotos.push({
-      id:      'p_' + Date.now(),
-      data:    ev.target.result,
-      name:    file.name,
-      type:    currentPhotoType || 'photo',
-      comment: window._pendingPhotoLabel || ''
-    });
-    window._pendingPhotoLabel = '';
-    renderPhotoList();
-    // Confirmation discrète
-    toast('📷 Photo ajoutée' + (currentPhotoType === 'defaut' ? ' — anomalie' : ''));
+    // Redimensionner/compresser la photo pour limiter la taille stockée (localStorage)
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 1280;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        const ratio = Math.min(MAX / w, MAX / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const data = canvas.toDataURL('image/jpeg', 0.7);
+
+      visitPhotos.push({
+        id:      'p_' + Date.now(),
+        data:    data,
+        name:    file.name,
+        type:    currentPhotoType || 'photo',
+        comment: window._pendingPhotoLabel || ''
+      });
+      window._pendingPhotoLabel = '';
+      renderPhotoList();
+      toast('📷 Photo ajoutée' + (currentPhotoType === 'defaut' ? ' — anomalie' : ''));
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -1797,7 +1813,7 @@ async function exporterRapportPDF() {
   doc.line(M, y+20, M+sigW, y+20);
   doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
   doc.text('Signature du client', M, y+25);
-  doc.text(c.client||'', M, y+30);
+  doc.text(currentContrat.client||'', M, y+30);
   // Ligne technicien
   const sx2 = M + sigW + 10;
   doc.line(sx2, y+20, sx2+sigW, y+20);
