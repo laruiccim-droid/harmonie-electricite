@@ -1827,6 +1827,7 @@ function renderInterventions() {
       <div class="client-top">
         <div class="client-name">${escHtml(i.client_nom || 'Client')} <span style="font-size:11px;color:var(--muted);">· ${escHtml(i.id)}</span></div>
       </div>
+      ${i.residence_nom ? `<div class="client-type">🏢 ${escHtml(i.residence_nom)}</div>` : ''}
       ${i.adresse ? `<div class="client-type">📍 ${escHtml(i.adresse)}</div>` : ''}
       ${i.description ? `<div class="client-note">${escHtml(i.description)}</div>` : ''}
       ${i.date_planifiee ? `<div class="client-type">📅 Planifiée le ${escHtml(i.date_planifiee)}</div>` : ''}
@@ -1849,10 +1850,19 @@ function renderInterventions() {
 function creerIntervention() {
   const overlay = document.createElement('div');
   overlay.className = 'gcal-modal'; overlay.id = 'intervention-modal';
+  const clientOptions = CLIENTS.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','fr'); })
+    .map(function(c){ return `<option value="${c.id}">${escHtml(c.name)}</option>`; }).join('');
   overlay.innerHTML = `<div class="gcal-sheet">
     <h3>Nouvelle demande d'intervention</h3>
-    <label>Client *</label>
+    <label>Client</label>
+    <select id="int-client-id" onchange="intUpdateResidenceOptions()" style="width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px;">
+      <option value="">— Saisie libre —</option>
+      ${clientOptions}
+    </select>
+    <label>Nom du client *</label>
     <input type="text" id="int-client" placeholder="Nom du client">
+    <label id="int-residence-label" style="display:none;">Copropriété / site</label>
+    <select id="int-residence-id" style="display:none;width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px;"></select>
     <label>Adresse</label>
     <input type="text" id="int-adresse" placeholder="Adresse du chantier">
     <label>Description</label>
@@ -1865,16 +1875,58 @@ function creerIntervention() {
   document.body.appendChild(overlay);
 }
 
+function intUpdateResidenceOptions() {
+  const sel = document.getElementById('int-client-id');
+  const clientId = sel.value;
+  const c = CLIENTS.find(function(x){ return x.id === clientId; });
+  const resSel = document.getElementById('int-residence-id');
+  const resLabel = document.getElementById('int-residence-label');
+  const clientInput = document.getElementById('int-client');
+  const adresseInput = document.getElementById('int-adresse');
+
+  if (c) {
+    clientInput.value = c.name || '';
+    if (c.address) adresseInput.value = c.address;
+  }
+
+  const residences = (c && c.residences) || [];
+  if (residences.length) {
+    resSel.innerHTML = '<option value="">— Aucune (adresse du client) —</option>'
+      + residences.map(function(r){ return `<option value="${r.id}">${escHtml(r.nom)}${r.adresse ? ' — '+escHtml(r.adresse) : ''}</option>`; }).join('');
+    resSel.style.display = '';
+    resLabel.style.display = '';
+  } else {
+    resSel.innerHTML = '';
+    resSel.style.display = 'none';
+    resLabel.style.display = 'none';
+  }
+}
+
 function enregistrerIntervention() {
   const client = document.getElementById('int-client').value.trim();
   if (!client) { showToast('Le nom du client est obligatoire'); return; }
-  const adresse = document.getElementById('int-adresse').value.trim();
+  const clientId = document.getElementById('int-client-id').value || null;
+  const residenceId = document.getElementById('int-residence-id').value || null;
+  let adresse = document.getElementById('int-adresse').value.trim();
   const description = document.getElementById('int-desc').value.trim();
   const now = Date.now();
 
+  let residenceNom = null;
+  if (clientId && residenceId) {
+    const c = CLIENTS.find(function(x){ return x.id === clientId; });
+    const r = c && c.residences && c.residences.find(function(x){ return x.id === residenceId; });
+    if (r) {
+      residenceNom = r.nom;
+      if (r.adresse) adresse = r.adresse;
+    }
+  }
+
   INTERVENTIONS.push({
     id: interventionNextId(),
+    client_id: clientId,
     client_nom: client,
+    residence_id: residenceId,
+    residence_nom: residenceNom,
     adresse,
     description,
     type: 'intervention',
