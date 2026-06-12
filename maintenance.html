@@ -1908,7 +1908,8 @@ async function exporterRapportPDF() {
   }
 
   // ── PHOTOS ────────────────────────────────────────────────
-  if (visitPhotos && visitPhotos.length > 0) {
+  const reportPhotos = (currentVisite.photos && currentVisite.photos.length) ? currentVisite.photos : visitPhotos;
+  if (reportPhotos && reportPhotos.length > 0) {
     if (y > 200) { doc.addPage(); y = 20; }
     doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ORANGE);
     doc.text('PHOTOS', M, y + 4);
@@ -1918,8 +1919,8 @@ async function exporterRapportPDF() {
     const photoMargin = 6;
     let px = M;
 
-    for (var pi = 0; pi < visitPhotos.length; pi++) {
-      var photo = visitPhotos[pi];
+    for (var pi = 0; pi < reportPhotos.length; pi++) {
+      var photo = reportPhotos[pi];
       if (!photo.data) continue;
       try {
         var tmpImg = new Image();
