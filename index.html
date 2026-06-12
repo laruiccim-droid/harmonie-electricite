@@ -1826,7 +1826,9 @@ function renderInterventions() {
     return `<div class="client-item" style="border-left:3px solid ${statutInfo.color};">
       <div class="client-top">
         <div class="client-name">${escHtml(i.client_nom || 'Client')} <span style="font-size:11px;color:var(--muted);">· ${escHtml(i.id)}</span></div>
+        ${i.urgent ? `<span style="background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">🚨 Urgent</span>` : ''}
       </div>
+      ${!i.client_id && i.from_email ? `<div class="client-type">✉️ Client non identifié — ${escHtml(i.from_email)}</div>` : ''}
       ${i.residence_nom ? `<div class="client-type">🏢 ${escHtml(i.residence_nom)}</div>` : ''}
       ${i.adresse ? `<div class="client-type">📍 ${escHtml(i.adresse)}</div>` : ''}
       ${i.description ? `<div class="client-note">${escHtml(i.description)}</div>` : ''}
