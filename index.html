@@ -832,6 +832,15 @@
 
   <!-- TAB: DOCS (Bons + Devis) -->
   <div class="tab" id="tab-docs">
+    <!-- Suivi des interventions -->
+    <div class="card" style="margin-bottom:12px;">
+      <div class="section-header" style="margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0;">📍 Suivi interventions</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:7px 10px;" onclick="creerIntervention()">+ Nouvelle demande</button>
+      </div>
+      <div id="interventionsList"></div>
+    </div>
+
     <div class="section-header">
       <div class="section-title">Documents</div>
       <div style="display:flex;gap:6px;">
@@ -997,7 +1006,10 @@
     Clients
   </button>
   <button class="nav-btn" id="nav-docs" onclick="switchTab('docs')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <div class="nav-icon-wrap">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <div class="nav-badge" id="interventionsBadge" style="display:none">0</div>
+    </div>
     Docs
   </button>
   <button class="nav-btn" id="nav-biblio" onclick="switchTab('biblio')">
@@ -1100,6 +1112,7 @@ const CLAUDE_KEY_URL = 'https://api.anthropic.com/v1/messages';
 let NOTES = [];
 let CHECKLIST = [];
 let CLIENTS = [];
+let INTERVENTIONS = [];
 
 let recognition = null;
 let isRecording = false;
@@ -1191,24 +1204,26 @@ function saveLocal() {
   localStorage.setItem('he_notes', JSON.stringify(NOTES));
   localStorage.setItem('he_checklist', JSON.stringify(CHECKLIST));
   localStorage.setItem('he_clients', JSON.stringify(CLIENTS));
+  localStorage.setItem('he_interventions', JSON.stringify(INTERVENTIONS));
 }
 
 function loadLocal() {
   try { NOTES = JSON.parse(localStorage.getItem('he_notes')) || []; } catch { NOTES = []; }
   try { CHECKLIST = JSON.parse(localStorage.getItem('he_checklist')) || []; } catch { CHECKLIST = []; }
   try { CLIENTS = JSON.parse(localStorage.getItem('he_clients')) || []; } catch { CLIENTS = []; }
+  try { INTERVENTIONS = JSON.parse(localStorage.getItem('he_interventions')) || []; } catch { INTERVENTIONS = []; }
 }
 
 // On startup: load local immediately, then sync from Supabase
 async function initSync() {
   loadLocal();
-  renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
+  renderNotes(); renderChecklist(); renderClients(); updateClientBadge(); renderInterventions();
 
   setSyncState('syncing');
 
-  // Charger notes et checklist normalement
-  const [remoteNotes, remoteCheck] = await Promise.all([
-    sbGet('notes'), sbGet('checklist')
+  // Charger notes, checklist et interventions normalement
+  const [remoteNotes, remoteCheck, remoteInterventions] = await Promise.all([
+    sbGet('notes'), sbGet('checklist'), sbGet('interventions')
   ]);
 
   // Charger clients depuis Supabase directement (format EBP avec payload)
@@ -1236,16 +1251,17 @@ async function initSync() {
     }
   } catch(e) {}
 
-  const anyOk = remoteNotes !== null || remoteCheck !== null || remoteClients !== null;
+  const anyOk = remoteNotes !== null || remoteCheck !== null || remoteClients !== null || remoteInterventions !== null;
   if (!anyOk) { setSyncState('red'); return; }
 
   try {
     if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
     if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
     if (remoteClients) CLIENTS   = remoteClients; // Remplacer entièrement par les données Supabase
+    if (remoteInterventions) INTERVENTIONS = mergeArrays(INTERVENTIONS, remoteInterventions);
 
     try { saveLocal(); } catch(e) { console.warn('[Sync] saveLocal a échoué:', e); }
-    renderNotes(); renderChecklist(); renderClients(); updateClientBadge();
+    renderNotes(); renderChecklist(); renderClients(); updateClientBadge(); renderInterventions();
     setSyncState('green');
   } catch(e) {
     console.error('[Sync] Erreur lors de la mise à jour après synchronisation:', e);
@@ -1299,9 +1315,10 @@ function schedulePush() {
 
 async function pushAll() {
   const results = await Promise.all([
-    sbReplaceAll('notes',     NOTES),
-    sbReplaceAll('checklist', CHECKLIST),
-    sbReplaceAll('clients',   CLIENTS)
+    sbReplaceAll('notes',         NOTES),
+    sbReplaceAll('checklist',     CHECKLIST),
+    sbReplaceAll('clients',       CLIENTS),
+    sbReplaceAll('interventions', INTERVENTIONS)
   ]);
   setSyncState(results.every(Boolean) ? 'green' : 'red');
 }
@@ -1744,6 +1761,169 @@ function updateClientBadge() {
   const badge = document.getElementById('clientBadge');
   badge.style.display = pending ? 'flex' : 'none';
   badge.textContent = pending;
+}
+
+// ============================================================
+//  SUIVI INTERVENTIONS
+// ============================================================
+const INTERVENTION_STATUTS = {
+  attente_planification: { label: '🟠 En attente de planification', color: '#f97316' },
+  planifiee:             { label: '📅 Planifiée',                   color: '#60a5fa' },
+  en_cours:              { label: '🔧 En cours',                     color: '#f5a623' },
+  terminee:              { label: '✅ Terminée',                     color: '#22c55e' },
+  rapport_envoye:        { label: '📤 Rapport envoyé',                color: '#a78bfa' },
+  facturee:              { label: '💶 Facturée',                      color: '#22c55e' },
+  annulee:               { label: '❌ Annulée',                       color: '#888' }
+};
+
+function interventionNextId() {
+  const year = new Date().getFullYear();
+  const stored = JSON.parse(localStorage.getItem('he_doc_nums') || '{}');
+  const key = 'INT' + year;
+  const existing = INTERVENTIONS.filter(function(i){ return i.id && i.id.startsWith('INT' + year); });
+  const maxLocal = stored[key] || 0;
+  const maxList  = existing.length ? Math.max(...existing.map(function(i){ return parseInt(i.id.slice(7)) || 0; })) : 0;
+  const next = Math.max(maxLocal, maxList) + 1;
+  stored[key] = next;
+  localStorage.setItem('he_doc_nums', JSON.stringify(stored));
+  return 'INT' + year + '-' + String(next).padStart(3, '0');
+}
+
+function updateInterventionsBadge() {
+  const pending = INTERVENTIONS.filter(function(i){
+    return i.statut === 'attente_planification' || (i.notif_assistante && !i.notif_assistante.lue);
+  }).length;
+  const badge = document.getElementById('interventionsBadge');
+  if (!badge) return;
+  badge.style.display = pending ? 'flex' : 'none';
+  badge.textContent = pending;
+}
+
+function renderInterventions() {
+  const el = document.getElementById('interventionsList');
+  if (!el) return;
+
+  const actives = INTERVENTIONS
+    .filter(function(i){ return i.statut !== 'facturee' && i.statut !== 'annulee'; })
+    .sort(function(a,b){ return (b.updatedAt||0) - (a.updatedAt||0); });
+
+  if (!actives.length) {
+    el.innerHTML = '<div class="empty-state">Aucune intervention en cours<br>Clique sur + Nouvelle demande</div>';
+    updateInterventionsBadge();
+    return;
+  }
+
+  el.innerHTML = actives.map(function(i){
+    const statutInfo = INTERVENTION_STATUTS[i.statut] || INTERVENTION_STATUTS.attente_planification;
+    const options = Object.keys(INTERVENTION_STATUTS).map(function(k){
+      return `<option value="${k}" ${k===i.statut?'selected':''}>${INTERVENTION_STATUTS[k].label}</option>`;
+    }).join('');
+    const notif = (i.notif_assistante && !i.notif_assistante.lue && (i.notif_assistante.devis || i.notif_assistante.facture))
+      ? `<div style="font-size:11px;color:var(--accent);font-weight:700;margin-top:4px;">🔔 À traiter : ${[i.notif_assistante.devis?'devis':null,i.notif_assistante.facture?'facture':null].filter(Boolean).join(' + ')}
+           <button class="btn btn-secondary" style="font-size:10px;padding:3px 8px;margin-left:6px;" onclick="marquerNotifLue('${i.id}')">OK</button>
+         </div>`
+      : '';
+    return `<div class="client-item" style="border-left:3px solid ${statutInfo.color};">
+      <div class="client-top">
+        <div class="client-name">${escHtml(i.client_nom || 'Client')} <span style="font-size:11px;color:var(--muted);">· ${escHtml(i.id)}</span></div>
+      </div>
+      ${i.adresse ? `<div class="client-type">📍 ${escHtml(i.adresse)}</div>` : ''}
+      ${i.description ? `<div class="client-note">${escHtml(i.description)}</div>` : ''}
+      ${i.date_planifiee ? `<div class="client-type">📅 Planifiée le ${escHtml(i.date_planifiee)}</div>` : ''}
+      <div style="margin-top:8px;">
+        <select onchange="changerStatutIntervention('${i.id}', this.value)" style="width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+          ${options}
+        </select>
+      </div>
+      ${i.statut==='planifiee' ? `
+      <div style="margin-top:8px;">
+        <input type="date" value="${i.date_planifiee||''}" onchange="setInterventionDate('${i.id}', this.value)" style="width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+      </div>` : ''}
+      ${notif}
+    </div>`;
+  }).join('');
+
+  updateInterventionsBadge();
+}
+
+function creerIntervention() {
+  const overlay = document.createElement('div');
+  overlay.className = 'gcal-modal'; overlay.id = 'intervention-modal';
+  overlay.innerHTML = `<div class="gcal-sheet">
+    <h3>Nouvelle demande d'intervention</h3>
+    <label>Client *</label>
+    <input type="text" id="int-client" placeholder="Nom du client">
+    <label>Adresse</label>
+    <input type="text" id="int-adresse" placeholder="Adresse du chantier">
+    <label>Description</label>
+    <textarea id="int-desc" placeholder="Détail de la demande…" style="height:70px;width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;resize:none;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-secondary btn-full" onclick="document.getElementById('intervention-modal').remove()">Annuler</button>
+      <button class="btn btn-primary btn-full" onclick="enregistrerIntervention()">💾 Créer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function enregistrerIntervention() {
+  const client = document.getElementById('int-client').value.trim();
+  if (!client) { showToast('Le nom du client est obligatoire'); return; }
+  const adresse = document.getElementById('int-adresse').value.trim();
+  const description = document.getElementById('int-desc').value.trim();
+  const now = Date.now();
+
+  INTERVENTIONS.push({
+    id: interventionNextId(),
+    client_nom: client,
+    adresse,
+    description,
+    type: 'intervention',
+    statut: 'attente_planification',
+    date_demande: new Date().toISOString().split('T')[0],
+    date_planifiee: null,
+    notif_assistante: { devis: false, facture: false, lue: true },
+    createdAt: now,
+    updatedAt: now
+  });
+
+  document.getElementById('intervention-modal')?.remove();
+  renderInterventions();
+  schedulePush();
+  showToast('✅ Demande créée');
+}
+
+function changerStatutIntervention(id, statut) {
+  const i = INTERVENTIONS.find(function(x){ return x.id === id; });
+  if (!i) return;
+  i.statut = statut;
+  i.updatedAt = Date.now();
+
+  if (statut === 'en_cours' && !i.date_debut) i.date_debut = new Date().toISOString();
+  if (statut === 'terminee') {
+    i.date_fin = new Date().toISOString();
+    i.notif_assistante = { devis: true, facture: true, lue: false };
+    showToast('✅ Intervention terminée — pense au devis/facture');
+  }
+
+  renderInterventions();
+  schedulePush();
+}
+
+function setInterventionDate(id, date) {
+  const i = INTERVENTIONS.find(function(x){ return x.id === id; });
+  if (!i) return;
+  i.date_planifiee = date;
+  i.updatedAt = Date.now();
+  schedulePush();
+}
+
+function marquerNotifLue(id) {
+  const i = INTERVENTIONS.find(function(x){ return x.id === id; });
+  if (!i || !i.notif_assistante) return;
+  i.notif_assistante.lue = true;
+  i.updatedAt = Date.now();
+  renderInterventions();
+  schedulePush();
 }
 
 // ============================================================
