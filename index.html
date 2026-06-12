@@ -1171,16 +1171,23 @@ async function sbDelete(table, id) {
 // Push entire local array: upsert all + delete rows not in local
 async function sbReplaceAll(table, items) {
   try {
-    if (items.length) {
+    // Items sans id casseraient le POST en lot (PGRST102 "All object keys must match")
+    // et empêcheraient TOUTE synchro de la table. On les ignore (avec un id de secours).
+    const valid = items.filter(item => {
+      if (item && item.id) return true;
+      console.warn('[Sync] Item sans id ignoré dans', table, item);
+      return false;
+    });
+    if (valid.length) {
       const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
         method: 'POST',
         headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(items.map(item => ({ id: item.id, payload: item })))
+        body: JSON.stringify(valid.map(item => ({ id: item.id, payload: item })))
       });
       if (!r.ok && r.status !== 201) return false;
     }
     // Remove remote rows whose id is no longer in local
-    const localIds = items.map(i => i.id);
+    const localIds = valid.map(i => i.id);
     const remote = await sbGet(table);
     if (remote) {
       const toDelete = remote.filter(r => !localIds.includes(r.id));
