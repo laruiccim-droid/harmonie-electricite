@@ -5660,6 +5660,16 @@ if ('serviceWorker' in navigator) {
     const swPath = window.location.hostname.includes('github.io')
       ? '/harmonie-electricite/sw.js'
       : '/sw.js';
+    // Recharger automatiquement quand une nouvelle version du Service Worker
+    // prend le contrôle, pour éviter de tourner sur du code JS obsolète
+    // (sinon il faut fermer/rouvrir l'app 2 fois pour récupérer une mise à jour).
+    let swRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (swRefreshing) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
+
     navigator.serviceWorker.register(swPath).then(function(reg) {
       console.log('SW registered:', reg.scope);
       navigator.serviceWorker.addEventListener('message', function(e) {
