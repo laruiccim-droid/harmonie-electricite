@@ -5253,6 +5253,45 @@ async function openFicheClient(id) {
   if (c.address) h += `<div style="font-size:14px;">📍 ${escHtml(c.address)}</div>`;
   h += '</div>';
 
+  // Espace client (accès au site)
+  const espace = c.espaceClient || {actif:false, email:'', code:''};
+  h += `<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;">🔐 Espace client</div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+        <input type="checkbox" ${espace.actif?'checked':''} onchange="toggleEspaceClient('${c.id}', this.checked)">
+        Actif
+      </label>
+    </div>`;
+  if (espace.actif) {
+    h += `<div style="font-size:13px;margin-bottom:4px;">Email : <b>${escHtml(espace.email||c.email||'—')}</b></div>
+    <div style="font-size:13px;margin-bottom:8px;">Code d'accès : <b style="font-family:'DM Mono',monospace;letter-spacing:2px;">${escHtml(espace.code||'—')}</b></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" style="flex:1;font-size:12px;padding:8px;" onclick="regenererCodeClient('${c.id}')">🔄 Régénérer</button>
+      <button class="btn btn-secondary" style="flex:1;font-size:12px;padding:8px;" onclick="copierIdentifiantsClient('${c.id}')">📋 Copier</button>
+    </div>`;
+  } else {
+    h += `<div style="font-size:13px;color:var(--muted);">Active l'accès pour générer les identifiants de connexion à l'espace client en ligne.</div>`;
+  }
+  h += '</div>';
+
+  // Copropriétés / sites liés (utile pour les syndics)
+  const residences = c.residences || [];
+  h += `<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">🏢 Copropriétés / sites liés (${residences.length})</div>`;
+  if (!residences.length) {
+    h += `<div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Aucun site lié. Pour un syndic gérant plusieurs copropriétés, ajoute chaque résidence ici.</div>`;
+  } else {
+    residences.forEach(r => {
+      h += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div><div style="font-size:13px;font-weight:600;">${escHtml(r.nom)}</div><div style="font-size:12px;color:var(--muted);">${escHtml(r.adresse||'')}</div></div>
+        <button onclick="supprimerResidence('${c.id}','${r.id}')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">🗑</button>
+      </div>`;
+    });
+  }
+  h += `<button class="btn btn-secondary" style="margin-top:10px;width:100%;font-size:12px;padding:8px;" onclick="ajouterResidence('${c.id}')">+ Ajouter une copropriété / un site</button>`;
+  h += '</div>';
+
   // Actions rapides — toujours affichées, grisées si info manquante
   const phoneClean = c.phone ? c.phone.replace(/[\s.\-]/g,'') : '';
   // Priorité adresse chantier pour Waze
@@ -5339,6 +5378,77 @@ async function openFicheClient(id) {
 
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
+}
+
+// ── Espace client : génération identifiants + copropriétés liées ──
+function genererCodeAcces() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i=0;i<4;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  code += '-';
+  for (let i=0;i<4;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function reopenFicheClient(clientId) {
+  const m = document.getElementById('client-fiche-modal');
+  if (m) m.remove();
+  openFicheClient(clientId);
+}
+
+function toggleEspaceClient(clientId, actif) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c) return;
+  if (!c.espaceClient) c.espaceClient = { actif: false, email: c.email||'', code: '' };
+  c.espaceClient.actif = actif;
+  if (actif && !c.espaceClient.code) {
+    c.espaceClient.email = c.espaceClient.email || c.email || '';
+    c.espaceClient.code = genererCodeAcces();
+  }
+  schedulePush();
+  reopenFicheClient(clientId);
+  showToast(actif ? 'Espace client activé ✓' : 'Espace client désactivé');
+}
+
+function regenererCodeClient(clientId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c || !c.espaceClient) return;
+  if (!window.confirm("Régénérer le code ? L'ancien code ne fonctionnera plus.")) return;
+  c.espaceClient.code = genererCodeAcces();
+  schedulePush();
+  reopenFicheClient(clientId);
+  showToast('Nouveau code généré ✓');
+}
+
+function copierIdentifiantsClient(clientId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c || !c.espaceClient) return;
+  const text = `Connexion à votre espace client Harmonie Électricité :\nhttps://harmonie-electricite.fr/espace-client\nEmail : ${c.espaceClient.email || c.email || ''}\nCode d'accès : ${c.espaceClient.code}`;
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+  showToast('Identifiants copiés ✓');
+}
+
+function ajouterResidence(clientId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c) return;
+  const nom = window.prompt('Nom de la copropriété / du site :');
+  if (!nom || !nom.trim()) return;
+  const adresse = window.prompt('Adresse :') || '';
+  if (!c.residences) c.residences = [];
+  c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), nom: nom.trim(), adresse: adresse.trim() });
+  schedulePush();
+  reopenFicheClient(clientId);
+  showToast('Copropriété ajoutée ✓');
+}
+
+function supprimerResidence(clientId, resId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c || !c.residences) return;
+  if (!window.confirm('Supprimer cette copropriété ?')) return;
+  c.residences = c.residences.filter(r => r.id !== resId);
+  schedulePush();
+  reopenFicheClient(clientId);
+  showToast('Supprimée');
 }
 
 // Hook switchTab pour docs
