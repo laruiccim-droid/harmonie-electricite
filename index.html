@@ -1323,6 +1323,23 @@ async function pushAll() {
   setSyncState(results.every(Boolean) ? 'green' : 'red');
 }
 
+// Flush immédiat (sans attendre le debounce) quand l'app passe en arrière-plan
+// ou se ferme, pour éviter de perdre des modifications non synchronisées.
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden' && syncTimer) {
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    pushAll();
+  }
+});
+window.addEventListener('pagehide', function() {
+  if (syncTimer) {
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    pushAll();
+  }
+});
+
 // ============================================================
 //  TABS
 // ============================================================
@@ -5343,7 +5360,12 @@ async function openFicheClient(id) {
       </div>`;
     });
   }
-  h += `<button class="btn btn-secondary" style="margin-top:10px;width:100%;font-size:12px;padding:8px;" onclick="ajouterResidence('${c.id}')">+ Ajouter une copropriété / un site</button>`;
+  h += `<div style="position:relative;margin-top:10px;">
+    <input type="text" id="residence-search-${c.id}" placeholder="🔍 Rechercher un client à lier (nom, code...)"
+      style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;box-sizing:border-box;"
+      oninput="filtrerResidenceSearch('${c.id}', this.value)" autocomplete="off">
+    <div id="residence-search-results-${c.id}" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+  </div>`;
   h += '</div>';
 
   // Actions rapides — toujours affichées, grisées si info manquante
@@ -5482,17 +5504,38 @@ function copierIdentifiantsClient(clientId) {
   showToast('Identifiants copiés ✓');
 }
 
-function ajouterResidence(clientId) {
+function filtrerResidenceSearch(clientId, query) {
+  const resultsEl = document.getElementById('residence-search-results-' + clientId);
+  if (!resultsEl) return;
+  const q = (query || '').trim().toLowerCase();
+  if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
   const c = CLIENTS.find(x => x.id === clientId);
-  if (!c) return;
-  const nom = window.prompt('Nom de la copropriété / du site :');
-  if (!nom || !nom.trim()) return;
-  const adresse = window.prompt('Adresse :') || '';
+  const linkedIds = ((c && c.residences) || []).map(r => r.linkedClientId);
+  const matches = CLIENTS.filter(x => x.id !== clientId && !linkedIds.includes(x.id)
+    && ((x.name||'').toLowerCase().includes(q) || (x.code||'').toLowerCase().includes(q))
+  ).slice(0, 8);
+  if (!matches.length) {
+    resultsEl.innerHTML = `<div style="padding:10px;font-size:13px;color:var(--muted);">Aucun client trouvé.</div>`;
+    resultsEl.style.display = 'block';
+    return;
+  }
+  resultsEl.innerHTML = matches.map(x => `<div onclick="lierResidence('${clientId}','${x.id}')" style="padding:10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);">
+    <div style="font-weight:600;">${escHtml(x.name)}</div>
+    <div style="font-size:12px;color:var(--muted);">${escHtml(x.address||'')}</div>
+  </div>`).join('');
+  resultsEl.style.display = 'block';
+}
+
+function lierResidence(clientId, linkedClientId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  const linked = CLIENTS.find(x => x.id === linkedClientId);
+  if (!c || !linked) return;
   if (!c.residences) c.residences = [];
-  c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), nom: nom.trim(), adresse: adresse.trim() });
+  if (c.residences.some(r => r.linkedClientId === linkedClientId)) { showToast('Déjà lié'); return; }
+  c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), linkedClientId: linked.id, nom: linked.name, adresse: linked.address || '' });
   schedulePush();
   reopenFicheClient(clientId);
-  showToast('Copropriété ajoutée ✓');
+  showToast('Site lié ✓');
 }
 
 function supprimerResidence(clientId, resId) {
