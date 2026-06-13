@@ -1,6 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>
+// ── Forçage de mise à jour ──────────────────────────────────
+// Si la version de build a changé depuis le dernier chargement, on
+// désinstalle l'ancien Service Worker + vide tous les caches AVANT que
+// la page ne s'exécute, pour garantir que la dernière version du code
+// tourne dès ce démarrage (sans avoir à fermer/rouvrir l'app plusieurs fois).
+(function() {
+  var APP_BUILD = 'v9';
+  try {
+    var last = localStorage.getItem('he_app_build');
+    if (last !== APP_BUILD) {
+      localStorage.setItem('he_app_build', APP_BUILD);
+      if (last !== null && 'serviceWorker' in navigator && 'caches' in window) {
+        Promise.all([
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            return Promise.all(regs.map(function(r) { return r.unregister(); }));
+          }),
+          caches.keys().then(function(keys) {
+            return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+          })
+        ]).then(function() {
+          window.location.reload();
+        }).catch(function() {
+          window.location.reload();
+        });
+      }
+    }
+  } catch (e) {}
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5386,7 +5416,12 @@ async function openFicheClient(id) {
     <input type="text" id="residence-search-${c.id}" placeholder="🔍 Rechercher un client à lier (nom, code...)"
       style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;box-sizing:border-box;"
       oninput="filtrerResidenceSearch('${c.id}', this.value)" autocomplete="off">
-    <div id="residence-search-results-${c.id}" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+    <div id="residence-search-results-${c.id}" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      <div style="display:flex;justify-content:flex-end;padding:4px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);">
+        <button onclick="fermerResidenceSearch('${c.id}')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+      </div>
+      <div id="residence-search-results-list-${c.id}"></div>
+    </div>
   </div>`;
   h += '</div>';
 
@@ -5540,24 +5575,32 @@ function copierIdentifiantsClient(clientId) {
 
 function filtrerResidenceSearch(clientId, query) {
   const resultsEl = document.getElementById('residence-search-results-' + clientId);
-  if (!resultsEl) return;
+  const listEl = document.getElementById('residence-search-results-list-' + clientId);
+  if (!resultsEl || !listEl) return;
   const q = (query || '').trim().toLowerCase();
-  if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+  if (!q) { resultsEl.style.display = 'none'; listEl.innerHTML = ''; return; }
   const c = CLIENTS.find(x => x.id === clientId);
   const linkedIds = ((c && c.residences) || []).map(r => r.linkedClientId);
   const matches = CLIENTS.filter(x => x.id !== clientId && !linkedIds.includes(x.id)
     && ((x.name||'').toLowerCase().includes(q) || (x.code||'').toLowerCase().includes(q))
   ).slice(0, 8);
   if (!matches.length) {
-    resultsEl.innerHTML = `<div style="padding:10px;font-size:13px;color:var(--muted);">Aucun client trouvé.</div>`;
+    listEl.innerHTML = `<div style="padding:10px;font-size:13px;color:var(--muted);">Aucun client trouvé.</div>`;
     resultsEl.style.display = 'block';
     return;
   }
-  resultsEl.innerHTML = matches.map(x => `<div onclick="lierResidence('${clientId}','${x.id}')" style="padding:10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);">
+  listEl.innerHTML = matches.map(x => `<div onclick="lierResidence('${clientId}','${x.id}')" style="padding:10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);">
     <div style="font-weight:600;">${escHtml(x.name)}</div>
     <div style="font-size:12px;color:var(--muted);">${escHtml(x.address||'')}</div>
   </div>`).join('');
   resultsEl.style.display = 'block';
+}
+
+function fermerResidenceSearch(clientId) {
+  const resultsEl = document.getElementById('residence-search-results-' + clientId);
+  const inputEl = document.getElementById('residence-search-' + clientId);
+  if (resultsEl) resultsEl.style.display = 'none';
+  if (inputEl) inputEl.value = '';
 }
 
 function lierResidence(clientId, linkedClientId) {
@@ -5567,6 +5610,7 @@ function lierResidence(clientId, linkedClientId) {
   if (!c.residences) c.residences = [];
   if (c.residences.some(r => r.linkedClientId === linkedClientId)) { showToast('Déjà lié'); return; }
   c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), linkedClientId: linked.id, nom: linked.name, adresse: linked.address || '' });
+  fermerResidenceSearch(clientId);
   pushClientNow(c, clientId);
   showToast('Site lié ✓ — "' + linked.name + '" pourra consulter son historique depuis l\'espace client de ce compte');
 }
