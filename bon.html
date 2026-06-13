@@ -744,6 +744,17 @@ window.addEventListener('load', async function() {
     });
     PHOTOS = docToRender.photos || [];
 
+    // ── Mode PDF direct : ?pdf=detail (ou semi/sansprix) ──
+    // Ouvre directement le PDF dans le lecteur du navigateur, sans afficher
+    // l'écran de choix (utilisé par l'espace client).
+    const urlPdfMode = urlParams.get('pdf');
+    if (urlPdfMode && docToRender.statut !== 'en_cours') {
+      PDF_MODE = (urlPdfMode === 'semi' || urlPdfMode === 'sansprix') ? urlPdfMode : 'detail';
+      window._pdfOpenInViewer = true;
+      genererPDF(docToRender);
+      return;
+    }
+
     // Boutons PDF
     const actions = document.getElementById('doc-actions');
     actions.style.display = 'flex';
@@ -2927,10 +2938,18 @@ async function _genererPDFInner(docData) {
     return doc.output('datauristring').split(',')[1];
   }
 
-  // Sur iOS/Safari, doc.save() ouvre dans le navigateur au lieu de télécharger
-  // On utilise un blob URL + lien de téléchargement forcé
   const pdfBlob = doc.output('blob');
   const blobUrl = URL.createObjectURL(pdfBlob);
+
+  // Mode "voir/télécharger" depuis l'espace client : ouvrir le PDF dans le
+  // lecteur du navigateur (qui propose lui-même le téléchargement).
+  if (window._pdfOpenInViewer) {
+    window.location.replace(blobUrl);
+    return;
+  }
+
+  // Sur iOS/Safari, doc.save() ouvre dans le navigateur au lieu de télécharger
+  // On utilise un blob URL + lien de téléchargement forcé
   const link = document.createElement('a');
   link.href = blobUrl;
   link.download = filename;
