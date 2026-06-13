@@ -1938,6 +1938,7 @@ function renderInterventions() {
       ${!i.client_id && i.from_email ? `<div class="client-type">✉️ Client non identifié — ${escHtml(i.from_email)}</div>` : ''}
       ${i.residence_nom ? `<div class="client-type">🏢 ${escHtml(i.residence_nom)}</div>` : ''}
       ${i.adresse ? `<div class="client-type">📍 ${escHtml(i.adresse)}</div>` : ''}
+      ${i.reference ? `<div class="client-type">🏷 Réf. : ${escHtml(i.reference)}</div>` : ''}
       ${i.description ? `<div class="client-note">${escHtml(i.description)}</div>` : ''}
       ${i.date_planifiee ? `<div class="client-type">📅 Planifiée le ${escHtml(i.date_planifiee)}</div>` : ''}
       <div style="margin-top:8px;">
@@ -1974,6 +1975,8 @@ function creerIntervention() {
     <select id="int-residence-id" style="display:none;width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px;"></select>
     <label>Adresse</label>
     <input type="text" id="int-adresse" placeholder="Adresse du chantier">
+    <label>N° d'OS / référence chantier <span style="font-size:10px;color:var(--muted);font-weight:400;">(transmise par le syndic, si applicable)</span></label>
+    <input type="text" id="int-reference" placeholder="Ex. OS-2026-0123" style="width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px;">
     <label>Description</label>
     <textarea id="int-desc" placeholder="Détail de la demande…" style="height:70px;width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;resize:none;"></textarea>
     <div style="display:flex;gap:8px;margin-top:14px;">
@@ -2017,6 +2020,7 @@ function enregistrerIntervention() {
   const clientId = document.getElementById('int-client-id').value || null;
   const residenceId = document.getElementById('int-residence-id').value || null;
   let adresse = document.getElementById('int-adresse').value.trim();
+  const reference = document.getElementById('int-reference').value.trim();
   const description = document.getElementById('int-desc').value.trim();
   const now = Date.now();
 
@@ -2037,6 +2041,7 @@ function enregistrerIntervention() {
     residence_id: residenceId,
     residence_nom: residenceNom,
     adresse,
+    reference,
     description,
     type: 'intervention',
     statut: 'attente_planification',
