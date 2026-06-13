@@ -162,6 +162,8 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
   </div>
   <label>Motif / description du problème</label>
   <textarea id="f-motif" rows="3" placeholder="Ex. Le portail ne s'ouvre plus..."></textarea>
+  <label>N° d'OS / référence chantier <span style="font-size:10px;color:var(--muted);font-weight:400;">(transmise par le syndic, si applicable)</span></label>
+  <input type="text" id="f-reference" placeholder="Ex. OS-2026-0123">
 </div>
 
 <!-- DATES & HORAIRES -->
@@ -963,6 +965,7 @@ window.addEventListener('load', async function() {
     document.getElementById('f-tel').value      = data.clientTel || '';
     document.getElementById('f-email').value    = data.clientEmail || '';
     document.getElementById('f-motif').value    = data.description || data.motif || '';
+    document.getElementById('f-reference').value = data.reference || '';
     if (document.getElementById('f-rapport') && data.rapport) {
       document.getElementById('f-rapport').value = data.rapport;
     }
@@ -1131,6 +1134,7 @@ function restaurerAutoSave() {
     if (saved.tel)       document.getElementById('f-tel').value       = saved.tel;
     if (saved.email)     document.getElementById('f-email').value     = saved.email;
     if (saved.motif)     document.getElementById('f-motif').value     = saved.motif;
+    if (saved.reference) document.getElementById('f-reference').value = saved.reference;
     if (saved.rapport)   document.getElementById('f-rapport').value   = saved.rapport;
     if (saved.date)      document.getElementById('f-date').value      = saved.date;
     if (saved.heureDebut) document.getElementById('f-heure-debut').value = saved.heureDebut;
@@ -1606,6 +1610,7 @@ async function mettreEnPause() {
       tel: document.getElementById('f-tel').value.trim(),
       email: document.getElementById('f-email').value.trim(),
       motif: document.getElementById('f-motif').value.trim(),
+      reference: document.getElementById('f-reference').value.trim(),
       rapport: session.rapport,
       lignes: LIGNES.slice(),
       sessions: [session], // ← stocker session 1 dans sessions[]
@@ -1724,6 +1729,7 @@ async function validerDoc() {
         tel:                document.getElementById('f-tel').value,
         email:              document.getElementById('f-email').value,
         motif:              document.getElementById('f-motif').value,
+        reference:          document.getElementById('f-reference').value.trim(),
         rapport:            document.getElementById('f-rapport').value,
         date:               document.getElementById('f-date').value,
         heureDebut:         document.getElementById('f-heure-debut').value,
@@ -1774,6 +1780,7 @@ async function validerDoc() {
 
     doc = Object.assign(bonBase, {
       statut:            'valide',
+      reference:         document.getElementById('f-reference').value.trim() || bonBase.reference,
       lignes:            lignesFusionnees,
       totalHT:           htTotal,
       totalTVA:          tvaTotal,
@@ -1805,6 +1812,7 @@ async function validerDoc() {
       tel: document.getElementById('f-tel').value,
       email: document.getElementById('f-email').value,
       motif: document.getElementById('f-motif').value,
+      reference: document.getElementById('f-reference').value.trim(),
       rapport: document.getElementById('f-rapport').value,
       lignes: LIGNES,
       tvaRate: tvaRate,
@@ -2113,6 +2121,7 @@ function docDepuisFormulaire() {
     tel: document.getElementById('f-tel').value.trim(),
     email: document.getElementById('f-email').value.trim(),
     motif: document.getElementById('f-motif').value.trim(),
+    reference: document.getElementById('f-reference').value.trim(),
     rapport: document.getElementById('f-rapport').value.trim(),
     lignes: LIGNES,
     tvaRate: tvaRate,
