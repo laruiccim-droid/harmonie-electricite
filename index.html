@@ -8,7 +8,7 @@
 // la page ne s'exécute, pour garantir que la dernière version du code
 // tourne dès ce démarrage (sans avoir à fermer/rouvrir l'app plusieurs fois).
 (function() {
-  var APP_BUILD = 'v11';
+  var APP_BUILD = 'v12';
   window.APP_BUILD = APP_BUILD;
   try {
     var last = localStorage.getItem('he_app_build');
@@ -1017,6 +1017,7 @@
           Développé avec Claude (Anthropic)<br>
           Hébergé sur GitHub Pages + Cloudflare Workers
         </div>
+        <button onclick="forceAppUpdate()" class="btn btn-secondary btn-full" style="margin-top:12px;">🔄 Forcer la mise à jour de l'application</button>
       </div>
     </div>
   </div>
@@ -5785,6 +5786,30 @@ if ('serviceWorker' in navigator) {
     }).catch(function(err) {
       console.log('SW error (non bloquant):', err);
     });
+  });
+}
+
+// Bouton "Forcer la mise à jour" : désinstalle le Service Worker, vide tous
+// les caches et recharge — pour récupérer la dernière version en un seul
+// clic, sans attendre le cycle normal de mise à jour (qui peut prendre
+// plusieurs redémarrages). Les données client (localStorage) sont conservées.
+function forceAppUpdate() {
+  showToast('🔄 Mise à jour en cours...');
+  var tasks = [];
+  if ('serviceWorker' in navigator) {
+    tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs) {
+      return Promise.all(regs.map(function(r) { return r.unregister(); }));
+    }));
+  }
+  if ('caches' in window) {
+    tasks.push(caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+    }));
+  }
+  Promise.all(tasks).then(function() {
+    window.location.reload(true);
+  }).catch(function() {
+    window.location.reload(true);
   });
 }
 
