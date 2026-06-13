@@ -8,7 +8,7 @@
 // la page ne s'exécute, pour garantir que la dernière version du code
 // tourne dès ce démarrage (sans avoir à fermer/rouvrir l'app plusieurs fois).
 (function() {
-  var APP_BUILD = 'v9';
+  var APP_BUILD = 'v10';
   try {
     var last = localStorage.getItem('he_app_build');
     if (last !== APP_BUILD) {
@@ -1309,12 +1309,24 @@ async function initSync() {
   try {
     if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
     if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
-    if (remoteClients) CLIENTS   = remoteClients; // Remplacer entièrement par les données Supabase
+    let localHadNewerClients = false;
+    if (remoteClients) {
+      const merged = mergeClients(CLIENTS, remoteClients);
+      localHadNewerClients = merged.changed;
+      CLIENTS = merged.result;
+    }
     if (remoteInterventions) INTERVENTIONS = mergeArrays(INTERVENTIONS, remoteInterventions);
 
     try { saveLocal(); } catch(e) { console.warn('[Sync] saveLocal a échoué:', e); }
     renderNotes(); renderChecklist(); renderClients(); updateClientBadge(); renderInterventions();
     setSyncState('green');
+
+    // Si des modifications locales (ex: site lié, espace client) n'avaient pas
+    // encore été remontées sur Supabase, on relance une synchro pour les pousser.
+    if (localHadNewerClients) {
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(pushAll, 500);
+    }
   } catch(e) {
     console.error('[Sync] Erreur lors de la mise à jour après synchronisation:', e);
     setSyncState('red');
@@ -1355,6 +1367,25 @@ function mergeArrays(local, remote) {
   for (const item of local)  map[item.id] = item;
   for (const item of remote) map[item.id] = item;
   return Object.values(map).sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+}
+
+// Merge clients : remote gagne sauf si la version locale a un updatedAt plus
+// récent (ex: site lié ou espace client modifié localement mais pas encore
+// remonté sur Supabase, par exemple si l'app a été fermée avant la fin du push).
+function mergeClients(local, remote) {
+  const localMap = {};
+  for (const item of local) localMap[item.id] = item;
+  let changed = false;
+  const result = remote.map(function(r) {
+    const l = localMap[r.id];
+    if (l && (l.updatedAt || 0) > (r.updatedAt || 0)) { changed = true; return l; }
+    return r;
+  });
+  const remoteIds = new Set(remote.map(function(r){ return r.id; }));
+  for (const item of local) {
+    if (!remoteIds.has(item.id)) { result.push(item); changed = true; }
+  }
+  return { result: result, changed: changed };
 }
 
 // Debounced push to Supabase after any change
@@ -5532,6 +5563,7 @@ function reopenFicheClient(clientId) {
 // Sauvegarde locale + ré-affichage immédiat + remontée immédiate sur Supabase
 // pour ce client (sans attendre le debounce global de pushAll).
 function pushClientNow(c, clientId) {
+  c.updatedAt = Date.now();
   saveLocal();
   reopenFicheClient(clientId);
   setSyncState('syncing');
