@@ -1168,6 +1168,21 @@ async function sbDelete(table, id) {
   } catch { return false; }
 }
 
+// Upsert immédiat d'un seul item (sans attendre le debounce de pushAll) —
+// utilisé pour les champs critiques (espace client, sites liés) qui doivent
+// remonter sur Supabase tout de suite, indépendamment de toute la table.
+async function sbUpsertOne(table, item) {
+  if (!item || !item.id) return false;
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([{ id: item.id, payload: item }])
+    });
+    return r.ok || r.status === 201;
+  } catch { return false; }
+}
+
 // Push entire local array: upsert all + delete rows not in local
 async function sbReplaceAll(table, items) {
   try {
@@ -5479,17 +5494,30 @@ function reopenFicheClient(clientId) {
   openFicheClient(clientId);
 }
 
+// Sauvegarde locale + ré-affichage immédiat + remontée immédiate sur Supabase
+// pour ce client (sans attendre le debounce global de pushAll).
+function pushClientNow(c, clientId) {
+  saveLocal();
+  reopenFicheClient(clientId);
+  setSyncState('syncing');
+  sbUpsertOne('clients', c).then(function(ok) {
+    setSyncState(ok ? 'green' : 'red');
+    if (!ok) showToast('⚠️ Synchro Supabase échouée — réessaie');
+  });
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushAll, 1500);
+}
+
 function toggleEspaceClient(clientId, actif) {
   const c = CLIENTS.find(x => x.id === clientId);
   if (!c) return;
   if (!c.espaceClient) c.espaceClient = { actif: false, email: c.email||'', code: '' };
   c.espaceClient.actif = actif;
   if (actif && !c.espaceClient.code) {
-    c.espaceClient.email = c.espaceClient.email || c.email || '';
+    c.espaceClient.email = (c.espaceClient.email || c.email || '').trim().toLowerCase();
     c.espaceClient.code = genererCodeAcces();
   }
-  schedulePush();
-  reopenFicheClient(clientId);
+  pushClientNow(c, clientId);
   showToast(actif ? 'Espace client activé ✓' : 'Espace client désactivé');
 }
 
@@ -5498,15 +5526,14 @@ function regenererCodeClient(clientId) {
   if (!c || !c.espaceClient) return;
   if (!window.confirm("Régénérer le code ? L'ancien code ne fonctionnera plus.")) return;
   c.espaceClient.code = genererCodeAcces();
-  schedulePush();
-  reopenFicheClient(clientId);
+  pushClientNow(c, clientId);
   showToast('Nouveau code généré ✓');
 }
 
 function copierIdentifiantsClient(clientId) {
   const c = CLIENTS.find(x => x.id === clientId);
   if (!c || !c.espaceClient) return;
-  const text = `Connexion à votre espace client Harmonie Électricité :\nhttps://harmonie-electricite.fr/espace-client\nEmail : ${c.espaceClient.email || c.email || ''}\nCode d'accès : ${c.espaceClient.code}`;
+  const text = `Connexion à votre espace client Harmonie Électricité :\nhttps://www.harmonie-electricite.com/#espace-client\nEmail : ${c.espaceClient.email || c.email || ''}\nCode d'accès : ${c.espaceClient.code}`;
   if (navigator.clipboard) navigator.clipboard.writeText(text);
   showToast('Identifiants copiés ✓');
 }
@@ -5540,9 +5567,8 @@ function lierResidence(clientId, linkedClientId) {
   if (!c.residences) c.residences = [];
   if (c.residences.some(r => r.linkedClientId === linkedClientId)) { showToast('Déjà lié'); return; }
   c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), linkedClientId: linked.id, nom: linked.name, adresse: linked.address || '' });
-  schedulePush();
-  reopenFicheClient(clientId);
-  showToast('Site lié ✓');
+  pushClientNow(c, clientId);
+  showToast('Site lié ✓ — "' + linked.name + '" pourra consulter son historique depuis l\'espace client de ce compte');
 }
 
 function supprimerResidence(clientId, resId) {
@@ -5550,8 +5576,7 @@ function supprimerResidence(clientId, resId) {
   if (!c || !c.residences) return;
   if (!window.confirm('Supprimer cette copropriété ?')) return;
   c.residences = c.residences.filter(r => r.id !== resId);
-  schedulePush();
-  reopenFicheClient(clientId);
+  pushClientNow(c, clientId);
   showToast('Supprimée');
 }
 
