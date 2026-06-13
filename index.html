@@ -8,7 +8,7 @@
 // la page ne s'exécute, pour garantir que la dernière version du code
 // tourne dès ce démarrage (sans avoir à fermer/rouvrir l'app plusieurs fois).
 (function() {
-  var APP_BUILD = 'v12';
+  var APP_BUILD = 'v13';
   window.APP_BUILD = APP_BUILD;
   try {
     var last = localStorage.getItem('he_app_build');
@@ -5434,17 +5434,8 @@ async function openFicheClient(id) {
   // Copropriétés / sites liés (utile pour les syndics)
   const residences = c.residences || [];
   h += `<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;">
-    <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">🏢 Copropriétés / sites liés (${residences.length})</div>`;
-  if (!residences.length) {
-    h += `<div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Aucun site lié. Pour un syndic gérant plusieurs copropriétés, ajoute chaque résidence ici.</div>`;
-  } else {
-    residences.forEach(r => {
-      h += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div><div style="font-size:13px;font-weight:600;">${escHtml(r.nom)}</div><div style="font-size:12px;color:var(--muted);">${escHtml(r.adresse||'')}</div></div>
-        <button onclick="supprimerResidence('${c.id}','${r.id}')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">🗑</button>
-      </div>`;
-    });
-  }
+    <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">🏢 Copropriétés / sites liés (<span id="residence-count-${c.id}">${residences.length}</span>)</div>
+    <div id="residence-items-${c.id}">${residencesItemsHTML(c, residences)}</div>`;
   h += `<div style="position:relative;margin-top:10px;">
     <input type="text" id="residence-search-${c.id}" placeholder="🔍 Rechercher un client à lier (nom, code...)"
       style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;box-sizing:border-box;"
@@ -5562,6 +5553,32 @@ function reopenFicheClient(clientId) {
   openFicheClient(clientId);
 }
 
+// HTML des sites liés (utilisé au rendu initial de la fiche ET pour la
+// mise à jour instantanée après ajout/suppression, sans reconstruire toute
+// la fiche).
+function residencesItemsHTML(c, residences) {
+  residences = residences || c.residences || [];
+  if (!residences.length) {
+    return `<div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Aucun site lié. Pour un syndic gérant plusieurs copropriétés, ajoute chaque résidence ici.</div>`;
+  }
+  return residences.map(r => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div><div style="font-size:13px;font-weight:600;">${escHtml(r.nom)}</div><div style="font-size:12px;color:var(--muted);">${escHtml(r.adresse||'')}</div></div>
+    <button onclick="supprimerResidence('${c.id}','${r.id}')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">🗑</button>
+  </div>`).join('');
+}
+
+// Met à jour instantanément la section "Copropriétés / sites liés" de la
+// fiche actuellement ouverte, sans attendre la resynchro Supabase.
+function refreshResidencesUI(clientId) {
+  const c = CLIENTS.find(x => x.id === clientId);
+  if (!c) return;
+  const residences = c.residences || [];
+  const itemsEl = document.getElementById('residence-items-' + clientId);
+  const countEl = document.getElementById('residence-count-' + clientId);
+  if (itemsEl) itemsEl.innerHTML = residencesItemsHTML(c, residences);
+  if (countEl) countEl.textContent = residences.length;
+}
+
 // Sauvegarde locale + ré-affichage immédiat + remontée immédiate sur Supabase
 // pour ce client (sans attendre le debounce global de pushAll).
 function pushClientNow(c, clientId) {
@@ -5645,6 +5662,7 @@ function lierResidence(clientId, linkedClientId) {
   if (c.residences.some(r => r.linkedClientId === linkedClientId)) { showToast('Déjà lié'); return; }
   c.residences.push({ id: 'R_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), linkedClientId: linked.id, nom: linked.name, adresse: linked.address || '' });
   fermerResidenceSearch(clientId);
+  refreshResidencesUI(clientId);
   pushClientNow(c, clientId);
   showToast('Site lié ✓ — "' + linked.name + '" pourra consulter son historique depuis l\'espace client de ce compte');
 }
@@ -5654,6 +5672,7 @@ function supprimerResidence(clientId, resId) {
   if (!c || !c.residences) return;
   if (!window.confirm('Supprimer cette copropriété ?')) return;
   c.residences = c.residences.filter(r => r.id !== resId);
+  refreshResidencesUI(clientId);
   pushClientNow(c, clientId);
   showToast('Supprimée');
 }

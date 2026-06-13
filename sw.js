@@ -2,7 +2,7 @@
 //  SERVICE WORKER — Harmonie Électricité v5
 //  Offline-first complet
 // ============================================================
-const CACHE_NAME = 'harmonie-v12';
+const CACHE_NAME = 'harmonie-v13';
 const BASE = self.registration.scope;
 
 const PRECACHE = [
