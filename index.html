@@ -8,7 +8,8 @@
 // la page ne s'exécute, pour garantir que la dernière version du code
 // tourne dès ce démarrage (sans avoir à fermer/rouvrir l'app plusieurs fois).
 (function() {
-  var APP_BUILD = 'v10';
+  var APP_BUILD = 'v11';
+  window.APP_BUILD = APP_BUILD;
   try {
     var last = localStorage.getItem('he_app_build');
     if (last !== APP_BUILD) {
@@ -1010,7 +1011,7 @@
       <!-- Infos app -->
       <div class="card">
         <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">ℹ️ Application</div>
-        <div style="font-size:13px;color:var(--muted);">Harmonie Électricité v2.0</div>
+        <div style="font-size:13px;color:var(--muted);">Harmonie Électricité <span id="app-version-label"></span></div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">Mathieu LARUICCI · 73170 Yenne</div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">
           Développé avec Claude (Anthropic)<br>
@@ -6742,6 +6743,10 @@ async function heInitAuth() {
   //    Si aucun user en local → afficher setup admin (premier lancement)
   await heShowLogin();
 }
+
+// Affiche le numéro de version de build dans l'onglet Plus/Paramètres
+var appVersionLabelEl = document.getElementById('app-version-label');
+if (appVersionLabelEl) appVersionLabelEl.textContent = window.APP_BUILD || '';
 
 // Démarrage : auth d'abord, puis sync
 heInitAuth().then(function() {
