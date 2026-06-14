@@ -4368,6 +4368,8 @@ function devisShowEditor() {
       <button onclick="document.getElementById('devis-modal').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
     </div>
 
+    ${(d.pdfUrl || d.factureUrl || d.avoirUrl) ? `<a class="btn btn-secondary btn-full" style="text-decoration:none;display:block;text-align:center;margin-bottom:10px;" href="${escHtml(d.factureUrl || d.pdfUrl || d.avoirUrl)}" target="_blank" rel="noopener">📄 Voir le PDF EBP${d.factureUrl ? ' (facture)' : d.avoirUrl ? ' (avoir)' : ' (devis)'}</a>` : ''}
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div>
         <label>Statut</label>
