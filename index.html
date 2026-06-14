@@ -1005,7 +1005,8 @@
         <a href="https://laruiccim-droid.github.io/harmonie-electricite/stock-setup.html" target="_blank" class="btn btn-secondary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:8px;">📦 Configuration du stock</a>
         <a href="https://laruiccim-droid.github.io/harmonie-electricite/analyse-marges.html" target="_blank" class="btn btn-secondary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:8px;">📊 Analyse des marges</a>
         <a href="https://laruiccim-droid.github.io/harmonie-electricite/fix-liens.html" target="_blank" class="btn btn-secondary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:8px;">🔗 Corriger les liens PDF</a>
-        <a href="https://laruiccim-droid.github.io/harmonie-electricite/fix-duree-rdv.html" target="_blank" class="btn btn-secondary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;">⏱ Corriger durée des RDV</a>
+        <a href="https://laruiccim-droid.github.io/harmonie-electricite/fix-duree-rdv.html" target="_blank" class="btn btn-secondary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:8px;">⏱ Corriger durée des RDV</a>
+        <button onclick="verifierNouvellesFactures()" class="btn btn-secondary btn-full">🔄 Vérifier les nouvelles factures</button>
       </div>
 
       <!-- Infos app -->
@@ -5816,6 +5817,29 @@ if ('serviceWorker' in navigator) {
       console.log('SW error (non bloquant):', err);
     });
   });
+}
+
+// Bouton "Vérifier les nouvelles factures" : relève à la demande la boîte mail
+// dédiée aux factures EBP (factures@harmonie-electricite.com) via l'endpoint
+// /api/check-invoices (relevé automatiquement chaque jour par un cron Vercel).
+function verifierNouvellesFactures() {
+  showToast('🔄 Vérification des factures...');
+  fetch('https://www.harmonie-electricite.com/api/check-invoices')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok) {
+        showToast('❌ Erreur : ' + (data.error || 'inconnue'));
+        return;
+      }
+      if (data.processed === 0) {
+        showToast('✅ Aucune nouvelle facture');
+      } else {
+        showToast('✅ ' + data.processed + ' facture(s) traitée(s)');
+      }
+    })
+    .catch(function(e) {
+      showToast('❌ Erreur réseau : ' + e.message);
+    });
 }
 
 // Bouton "Forcer la mise à jour" : désinstalle le Service Worker, vide tous
