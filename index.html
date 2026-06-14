@@ -4212,10 +4212,11 @@ async function renderDevisList() {
     return;
   }
 
-  const statusLabel = { brouillon:'Brouillon', envoye:'Envoyé', accepte:'Accepté', refuse:'Refusé', facture:'Facturé' };
+  const statusLabel = { brouillon:'Brouillon', envoye:'Envoyé', accepte:'Accepté', refuse:'Refusé', facture:'Facturé', avoir:'Avoir' };
   el.innerHTML = DEVIS_LIST.map(d => {
     const total = (d.lignes || []).reduce((s, l) => s + (l.qty * l.pu), 0);
     const isBon = d.numero && d.numero.startsWith('BI');
+    const ebpPdfUrl = d.factureUrl || d.pdfUrl || d.avoirUrl || null;
     return `<div class="devis-item">
       <div class="devis-header">
         <div>
@@ -4230,7 +4231,9 @@ async function renderDevisList() {
       </div>
       <div class="client-btns">
         <button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="devisOpen('${d.id}')">✏️ Modifier</button>
-        <button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="devisGenerer('${d.id}')">📄 Générer</button>
+        ${ebpPdfUrl
+          ? `<a class="btn btn-secondary" style="font-size:12px;padding:7px 11px;text-decoration:none;" href="${escHtml(ebpPdfUrl)}" target="_blank" rel="noopener">📄 PDF EBP</a>`
+          : `<button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="devisGenerer('${d.id}')">📄 Générer</button>`}
         <button class="btn btn-secondary" style="font-size:12px;padding:7px 11px;" onclick="devisDupliquer('${d.id}')">📋 Dupliquer</button>
         <button class="btn btn-danger" style="font-size:12px;padding:7px 11px;" onclick="devisSupprimerConfirm('${d.id}')">🗑</button>
       </div>
