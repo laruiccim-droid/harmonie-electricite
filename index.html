@@ -4934,6 +4934,14 @@ function docsOpenDetail(id) {
     return;
   }
 
+  // Document EBP reçu par email (pas de détail/lignes) → ouvrir directement le PDF EBP
+  const ebpPdfUrl = d.factureUrl || d.pdfUrl || d.avoirUrl || null;
+  if (ebpPdfUrl && !(d.lignes && d.lignes.length)) {
+    window.open(ebpPdfUrl, '_blank');
+    showToast('📄 Ouverture du PDF EBP…');
+    return;
+  }
+
   const overlay = document.createElement('div');
   overlay.className = 'client-fiche-modal'; overlay.id = 'doc-detail-modal';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
