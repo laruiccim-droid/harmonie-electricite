@@ -1,0 +1,6 @@
+name = "harmonie-email-intake"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Définis le secret avec : wrangler secret put INBOUND_SHARED_SECRET
+# (doit être identique à la variable d'env INBOUND_SHARED_SECRET sur Vercel)

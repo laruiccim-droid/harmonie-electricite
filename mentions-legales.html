@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentions légales — Harmonie Électricité</title>
+<meta name="robots" content="noindex, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+<style>
+:root {
+  --he-black:#000000;--he-ink-900:#0A0A0A;--he-ink-800:#111111;--he-ink-700:#16150F;
+  --he-ink-600:#1E1C16;--he-ink-500:#29261D;--he-gold:#C9A86A;--he-gold-light:#E4CD93;
+  --he-gold-pale:#F0E3C2;--he-gold-deep:#9A7B3F;--he-white:#FFFFFF;--he-paper:#F4F1EA;
+  --he-grey-300:#B6B1A6;--he-grey-500:#7C786E;--he-grey-700:#514E47;
+  --surface-card:#1E1C16;--border-hairline:rgba(201,168,106,0.22);--border-strong:rgba(201,168,106,0.55);
+  --grad-gold:linear-gradient(135deg,#F0E3C2 0%,#E4CD93 22%,#C9A86A 50%,#A9884A 74%,#8A6C38 100%);
+  --grad-ink:radial-gradient(120% 140% at 50% -20%,#1A1812 0%,#0A0A0A 60%);
+  --glow-gold-md:0 0 18px rgba(201,168,106,0.22);
+  --font-display:'Jost','Century Gothic','Futura',system-ui,sans-serif;
+  --font-body:'Jost',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fs-xs:0.75rem;--ls-wide:0.22em;--ls-caps:0.10em;--lh-relaxed:1.7;
+  --radius-sm:4px;--radius-md:8px;--radius-pill:999px;--container-lg:1200px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--he-ink-900);color:var(--he-paper);font-family:var(--font-body);overflow-x:hidden;font-size:16px;line-height:1.55}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+ul{list-style:none;padding:0;margin:0}
+i[data-lucide]{width:18px;height:18px;stroke-width:1.5;display:inline-block;vertical-align:middle}
+.wrap{max-width:var(--container-lg);margin:0 auto;padding:0 clamp(20px,4vw,40px)}
+.eyebrow{font-family:var(--font-body);font-weight:500;font-size:var(--fs-xs);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--he-gold);display:inline-block}
+h1,h2,h3{font-family:var(--font-display);text-transform:uppercase;letter-spacing:var(--ls-caps);font-weight:400;margin:0;color:#fff}
+.gold{color:var(--he-gold)}
+.muted{color:var(--he-grey-300)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--radius-sm);font-family:var(--font-body);font-weight:500;font-size:14px;letter-spacing:.06em;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.btn i[data-lucide]{width:16px;height:16px}
+.btn-outline{background:transparent;color:var(--he-gold);border:1.5px solid var(--border-strong)}
+.btn-outline:hover{background:rgba(201,168,106,.08)}
+.btn-primary{background:var(--grad-gold);color:var(--he-ink-900)}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:var(--glow-gold-md)}
+.btn-sm{padding:8px 16px;font-size:13px}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);background:rgba(10,10,10,.72);border-bottom:1px solid var(--border-hairline)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;gap:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:38px}
+.brand .nm{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.16em;font-size:13px;color:#fff;line-height:1.15}
+.brand .nm b{display:block;color:var(--he-gold);font-weight:400}
+.links{display:flex;gap:28px;align-items:center}
+.links a{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--he-grey-300);transition:color .15s}
+.links a:hover{color:var(--he-gold)}
+.nav-actions{display:flex;gap:12px;align-items:center}
+.burger{display:none;background:none;border:none;color:var(--he-gold);cursor:pointer;padding:4px}
+.burger i[data-lucide]{width:26px;height:26px}
+.mobile-nav{display:none;flex-direction:column;background:var(--he-ink-800);border-bottom:1px solid var(--border-hairline);padding:16px 0}
+.mobile-nav.open{display:flex}
+.mobile-nav a{display:block;padding:12px clamp(20px,4vw,40px);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--he-grey-300);border-bottom:1px solid var(--border-hairline)}
+.mobile-nav a:hover{color:var(--he-gold)}
+.mobile-nav a:last-child{border:none}
+.mob-cta{padding:16px clamp(20px,4vw,40px);display:flex;flex-direction:column;gap:10px;margin-top:4px}
+
+/* PAGE HERO */
+.page-hero{padding:clamp(50px,7vw,80px) 0 clamp(36px,5vw,56px);background:var(--grad-ink);border-bottom:1px solid var(--border-hairline)}
+.page-hero .back{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--he-grey-500);letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px;transition:color .15s}
+.page-hero .back:hover{color:var(--he-gold)}
+.page-hero .back i[data-lucide]{width:15px;height:15px}
+.page-hero h1{font-size:clamp(2rem,4vw,3rem);margin:10px 0 0}
+
+/* CONTENT */
+.legal-content{padding:clamp(48px,7vw,80px) 0}
+.legal-wrap{max-width:800px}
+.legal-section{margin-bottom:40px;padding-bottom:40px;border-bottom:1px solid var(--border-hairline)}
+.legal-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.legal-section h2{font-size:1rem;letter-spacing:.14em;color:var(--he-gold);margin-bottom:16px}
+.legal-section p{font-size:15px;color:var(--he-grey-300);line-height:1.75;margin-bottom:10px}
+.legal-section p:last-child{margin-bottom:0}
+.legal-section strong{color:var(--he-paper)}
+.legal-section a{color:var(--he-gold);text-decoration:underline;text-decoration-color:rgba(201,168,106,0.4);transition:text-decoration-color .15s}
+.legal-section a:hover{text-decoration-color:var(--he-gold)}
+.legal-section ul{padding-left:0;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.legal-section ul li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--he-grey-300);line-height:1.65}
+.legal-section ul li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--he-gold);flex-shrink:0;margin-top:8px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border-hairline);padding:48px 0 36px;background:var(--he-ink-900)}
+.foot-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.1fr;gap:32px;margin:34px 0 30px}
+.foot-col h4{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:#fff;margin:0 0 16px;font-weight:400}
+.foot-col a,.foot-col .li{display:block;font-size:13px;color:var(--he-grey-300);margin-bottom:9px;line-height:1.4}
+.foot-col a:hover{color:var(--he-gold)}
+.foot-brand img{height:46px;margin-bottom:14px}
+.foot-legal{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;border-top:1px solid var(--border-hairline);padding-top:24px;font-size:12px;color:var(--he-grey-500)}
+.foot-legal a{color:var(--he-gold)}
+.node-divider{display:flex;align-items:center;gap:14px;color:var(--he-grey-500);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.node-divider::before,.node-divider::after{content:'';flex:1;height:1px;background:var(--border-hairline)}
+
+@media(max-width:960px){
+  .links,.nav-actions{display:none}
+  .burger{display:block}
+  .foot-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .foot-top{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/">
+      <img src="assets/monogram.png" alt="Harmonie Électricité">
+      <span class="nm">Harmonie<b>Électricité</b></span>
+    </a>
+    <nav class="links" aria-label="Navigation principale">
+      <a href="/#solutions">Solutions</a>
+      <a href="/#bornes">Bornes de recharge</a>
+      <a href="/#coproprietes">Copropriétés</a>
+      <a href="/#realisations">Réalisations</a>
+      <a href="/#apropos">À propos</a>
+      <a href="/#boutique">Boutique</a>
+    </nav>
+    <div class="nav-actions">
+      <a href="/#espace" class="btn btn-outline btn-sm"><i data-lucide="user"></i> Espace client</a>
+      <a href="/#contact" class="btn btn-primary btn-sm">Demander un devis</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+      <i data-lucide="menu"></i>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="/#solutions">Solutions</a>
+    <a href="/#bornes">Bornes de recharge</a>
+    <a href="/#coproprietes">Copropriétés</a>
+    <a href="/#realisations">Réalisations</a>
+    <a href="/#apropos">À propos</a>
+    <a href="/#boutique">Boutique</a>
+    <div class="mob-cta">
+      <a href="/#espace" class="btn btn-outline btn-sm" style="justify-content:center"><i data-lucide="user"></i> Espace client</a>
+      <a href="/#contact" class="btn btn-primary btn-sm" style="justify-content:center">Demander un devis</a>
+    </div>
+  </nav>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="wrap">
+    <a href="/" class="back"><i data-lucide="arrow-left"></i> Retour à l'accueil</a>
+    <span class="eyebrow">Informations légales</span>
+    <h1>Mentions <span class="gold">légales</span></h1>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="legal-content">
+  <div class="wrap legal-wrap">
+
+    <div class="legal-section">
+      <h2>1. Éditeur du site</h2>
+      <p><strong>Harmonie Électricité</strong></p>
+      <p>Forme juridique : SARL</p>
+      <p>Adresse : 225 chemin des Bochets, 73170 Yenne</p>
+      <p>Téléphone : <a href="tel:0631134701">06 31 13 47 01</a></p>
+      <p>E-mail : <a href="mailto:contact@harmonie-electricite.com">contact@harmonie-electricite.com</a></p>
+      <p>SIRET : 831 772 736 00011</p>
+      <p>RCS : Chambéry</p>
+      <p>Capital social : 5 000 €</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>2. Hébergement</h2>
+      <p>Ce site est hébergé par :</p>
+      <p><strong>Vercel Inc.</strong><br>340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis<br>
+      <a href="https://vercel.com" target="_blank" rel="noopener">vercel.com</a></p>
+    </div>
+
+    <div class="legal-section">
+      <h2>3. Propriété intellectuelle</h2>
+      <p>L'ensemble du contenu de ce site (textes, images, graphiques, logo) est la propriété exclusive de <strong>Harmonie Électricité</strong>. Toute reproduction, même partielle, est interdite sans autorisation préalable écrite.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>4. Responsabilité</h2>
+      <p>Harmonie Électricité ne saurait être tenue responsable des dommages directs ou indirects résultant de l'utilisation de ce site ou de l'impossibilité d'y accéder.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>5. Données personnelles</h2>
+      <p>Les données collectées via le formulaire de contact sont utilisées uniquement pour répondre à vos demandes. Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données.</p>
+      <p>Pour exercer ce droit : <a href="mailto:contact@harmonie-electricite.com">contact@harmonie-electricite.com</a></p>
+      <p>Pour plus d'informations, consultez notre <a href="/politique-confidentialite">Politique de confidentialité</a>.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>6. Cookies</h2>
+      <p>Ce site n'utilise pas de cookies publicitaires ou de suivi tiers. Seuls des cookies techniques strictement nécessaires au bon fonctionnement du site peuvent être utilisés.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="node-divider">Installation • Maintenance • Dépannage</div>
+    <div class="foot-top">
+      <div class="foot-col foot-brand">
+        <img src="assets/logo-wordmark.png" alt="Harmonie Électricité">
+        <p class="muted" style="font-size:13px;line-height:1.6;max-width:300px">Spécialiste de la sécurité
+          électronique et du contrôle d'accès pour les copropriétés, entreprises et particuliers.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Solutions</h4>
+        <a href="/#solutions">Contrôle d'accès</a>
+        <a href="/#solutions">Vidéosurveillance</a>
+        <a href="/#solutions">Alarmes</a>
+        <a href="/#solutions">Interphonie</a>
+        <a href="/#temporaire">Sécurité temporaire</a>
+      </div>
+      <div class="foot-col">
+        <h4>Société</h4>
+        <a href="/#bornes">Bornes de recharge</a>
+        <a href="/#apropos">À propos</a>
+        <a href="/#boutique">Boutique</a>
+        <a href="/#espace">Espace client</a>
+        <a href="/#contact">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h4>Contact</h4>
+        <span class="li"><a href="tel:0631134701">06 31 13 47 01</a></span>
+        <span class="li"><a href="mailto:contact@harmonie-electricite.com">contact@harmonie-electricite.com</a></span>
+        <span class="li">225 chemin des Bochets<br>73170 Yenne</span>
+      </div>
+    </div>
+    <div class="foot-legal">
+      <span>© 2026 Harmonie Électricité — Mathieu Laruicci</span>
+      <span>
+        <a href="/mentions-legales">Mentions légales</a>
+        &nbsp;·&nbsp;
+        <a href="/politique-confidentialite">Politique de confidentialité</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); });
+const burger = document.getElementById('burger');
+const mobileNav = document.getElementById('mobile-nav');
+burger.addEventListener('click', () => {
+  const open = mobileNav.classList.toggle('open');
+  burger.setAttribute('aria-expanded', open);
+});
+</script>
+</body>
+</html>

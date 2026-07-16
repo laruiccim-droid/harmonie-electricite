@@ -1,0 +1,46 @@
+/* ── Harmonie Électricité — Design System — Colors ── */
+:root {
+  /* Core palette */
+  --he-black:       #0A0A0A;
+  --he-gold:        #C9A86A;
+  --he-gold-light:  #DFC28C;
+  --he-gold-dark:   #A8843F;
+  --he-white:       #F4F1EA;
+
+  /* Ink scale (dark backgrounds) */
+  --he-ink-900:     #0A0A0A;
+  --he-ink-800:     #111111;
+  --he-ink-700:     #181818;
+  --he-ink-600:     #222222;
+  --he-ink-500:     #2C2C2C;
+
+  /* Grey scale */
+  --he-grey-100:    #E8E5DE;
+  --he-grey-200:    #CCC9C0;
+  --he-grey-300:    #A8A49A;
+  --he-grey-400:    #857F74;
+  --he-grey-500:    #635D52;
+  --he-grey-600:    #4A4540;
+  --he-grey-700:    #35302B;
+  --he-grey-800:    #242018;
+
+  /* Semantic */
+  --he-paper:       #E8E5DE;
+  --he-text:        #C8C4BA;
+
+  /* Borders */
+  --border-hairline: rgba(201,168,106,0.12);
+  --border-subtle:   rgba(201,168,106,0.20);
+  --border-strong:   rgba(201,168,106,0.40);
+
+  /* Surfaces */
+  --surface-card:    rgba(17,17,17,0.9);
+  --surface-raised:  rgba(24,24,24,0.95);
+  --surface-overlay: rgba(10,10,10,0.88);
+
+  /* Gradients */
+  --grad-gold:       linear-gradient(135deg, #C9A86A 0%, #DFC28C 50%, #C9A86A 100%);
+  --grad-gold-subtle:linear-gradient(135deg, rgba(201,168,106,0.15) 0%, rgba(223,194,140,0.08) 100%);
+  --grad-gold-wash:  radial-gradient(ellipse 70% 50% at 20% 60%, rgba(201,168,106,0.08) 0%, transparent 70%);
+  --grad-ink:        linear-gradient(160deg, #111111 0%, #0A0A0A 60%, #0d0c09 100%);
+}

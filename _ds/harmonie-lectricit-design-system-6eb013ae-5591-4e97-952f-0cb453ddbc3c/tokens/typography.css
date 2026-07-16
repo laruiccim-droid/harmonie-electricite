@@ -1,0 +1,24 @@
+/* ── Harmonie Électricité — Design System — Typography ── */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+
+:root {
+  --font-body:    'Jost', system-ui, sans-serif;
+  --font-display: 'Jost', system-ui, sans-serif;
+
+  /* Scale */
+  --fs-2xs:  10px;
+  --fs-xs:   11px;
+  --fs-sm:   12px;
+  --fs-base: 14px;
+  --fs-lead: 15px;
+  --fs-lg:   17px;
+  --fs-xl:   20px;
+  --fs-2xl:  26px;
+
+  /* Letter spacing */
+  --ls-tight:  -0.01em;
+  --ls-normal:  0;
+  --ls-wide:    0.10em;
+  --ls-wider:   0.16em;
+  --ls-widest:  0.22em;
+}

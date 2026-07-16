@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Générer og-cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; font-family: sans-serif; }
+  canvas { border: 1px solid #444; }
+  button { padding: 14px 32px; background: #C9A86A; color: #000; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  p { color: #aaa; font-size: 13px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<button onclick="download()">⬇️ Télécharger og-cover.jpg</button>
+<p>Ensuite place le fichier dans : Site-web/assets/og-cover.jpg</p>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Attendre que la police soit chargée
+document.fonts.ready.then(() => {
+  draw();
+});
+
+function draw() {
+  const W = 1200, H = 630;
+
+  // ── Fond noir profond
+  ctx.fillStyle = '#0A0A0A';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Dégradé radial or subtil (coin haut-droite)
+  const grd = ctx.createRadialGradient(W, 0, 0, W, 0, 700);
+  grd.addColorStop(0, 'rgba(201,168,106,0.18)');
+  grd.addColorStop(0.5, 'rgba(201,168,106,0.06)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Ligne horizontale or en haut
+  const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
+  lineGrad.addColorStop(0, 'transparent');
+  lineGrad.addColorStop(0.3, 'rgba(201,168,106,0.8)');
+  lineGrad.addColorStop(0.7, 'rgba(201,168,106,0.8)');
+  lineGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 4);
+  ctx.lineTo(W, 4);
+  ctx.stroke();
+
+  // ── Ligne bas
+  ctx.beginPath();
+  ctx.moveTo(0, H - 4);
+  ctx.lineTo(W, H - 4);
+  ctx.stroke();
+
+  // ── Monogramme "HE" dans un cercle
+  ctx.save();
+  ctx.translate(96, H / 2);
+
+  // Cercle fond or
+  const circleGrad = ctx.createRadialGradient(0, -8, 5, 0, -8, 52);
+  circleGrad.addColorStop(0, '#E4CD93');
+  circleGrad.addColorStop(0.5, '#C9A86A');
+  circleGrad.addColorStop(1, '#8A6C38');
+  ctx.fillStyle = circleGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 52, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Texte HE
+  ctx.fillStyle = '#0A0A0A';
+  ctx.font = '700 26px "Jost", sans-serif';
+  ctx.letterSpacing = '2px';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('HE', 0, 1);
+  ctx.restore();
+
+  // ── Séparateur vertical
+  ctx.strokeStyle = 'rgba(201,168,106,0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(180, H / 2 - 100);
+  ctx.lineTo(180, H / 2 + 100);
+  ctx.stroke();
+
+  // ── Nom de l'entreprise
+  const goldGrad = ctx.createLinearGradient(200, 0, 800, 0);
+  goldGrad.addColorStop(0, '#F0E3C2');
+  goldGrad.addColorStop(0.4, '#E4CD93');
+  goldGrad.addColorStop(0.7, '#C9A86A');
+  goldGrad.addColorStop(1, '#A9884A');
+
+  ctx.fillStyle = goldGrad;
+  ctx.font = '600 52px "Jost", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Harmonie Électricité', 210, H / 2 - 60);
+
+  // ── Tagline principale
+  ctx.fillStyle = '#F4F1EA';
+  ctx.font = '400 30px "Jost", sans-serif';
+  ctx.fillText('Installateur certifié Ajax Systems', 210, H / 2 - 10);
+
+  // ── Sous-titre
+  ctx.fillStyle = '#7C786E';
+  ctx.font = '300 22px "Jost", sans-serif';
+  ctx.fillText('Alarme · Vidéosurveillance · Contrôle d\'accès · Courant faible', 210, H / 2 + 35);
+
+  // ── Pills / badges
+  const pills = ['Savoie', 'Haute-Savoie', 'Isère', 'Ain'];
+  let px = 210;
+  const py = H / 2 + 90;
+  ctx.font = '500 14px "Jost", sans-serif';
+  pills.forEach(p => {
+    const tw = ctx.measureText(p).width;
+    const pw = tw + 28;
+    const ph = 32;
+    // Fond pill
+    ctx.strokeStyle = 'rgba(201,168,106,0.5)';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(201,168,106,0.10)';
+    roundRect(ctx, px, py - ph / 2, pw, ph, ph / 2);
+    ctx.fill();
+    ctx.stroke();
+    // Texte pill
+    ctx.fillStyle = '#C9A86A';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p, px + pw / 2, py);
+    px += pw + 10;
+  });
+
+  // ── Bas de page — URL + certif
+  ctx.fillStyle = 'rgba(201,168,106,0.5)';
+  ctx.font = '400 16px "Jost", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('harmonie-electricite.com', 210, H - 38);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('Partenaire certifié · 06 31 13 47 01', W - 60, H - 38);
+
+  // ── Grille de points décorative (droite)
+  ctx.fillStyle = 'rgba(201,168,106,0.12)';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 12; c++) {
+      ctx.beginPath();
+      ctx.arc(W - 280 + c * 22, 80 + r * 22, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function download() {
+  const link = document.createElement('a');
+  link.download = 'og-cover.jpg';
+  link.href = canvas.toDataURL('image/jpeg', 0.95);
+  link.click();
+}
+</script>
+</body>
+</html>

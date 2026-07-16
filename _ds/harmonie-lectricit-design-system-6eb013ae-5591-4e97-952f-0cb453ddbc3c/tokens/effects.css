@@ -1,0 +1,26 @@
+/* ── Harmonie Électricité — Design System — Effects ── */
+:root {
+  /* Shadows / glows */
+  --glow-gold-sm:  0 0 12px rgba(201,168,106,0.25), 0 0 4px rgba(201,168,106,0.15);
+  --glow-gold-md:  0 0 28px rgba(201,168,106,0.30), 0 0 8px rgba(201,168,106,0.18);
+  --glow-gold-lg:  0 0 56px rgba(201,168,106,0.35), 0 0 16px rgba(201,168,106,0.22);
+  --glow-node:     0 0 8px rgba(201,168,106,0.60);
+
+  --shadow-card:   0 4px 24px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.30);
+  --shadow-elevated: 0 8px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+
+  /* Easing */
+  --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Transitions */
+  --transition-fast:   all 150ms var(--ease-out);
+  --transition-base:   all 250ms var(--ease-out);
+  --transition-slow:   all 400ms var(--ease-out);
+
+  /* Blur */
+  --blur-sm:   blur(6px);
+  --blur-md:   blur(12px);
+  --blur-lg:   blur(24px);
+}

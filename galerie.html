@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="/assets/monogram.png">
+<link rel="apple-touch-icon" href="/assets/monogram.png">
+<title>Galerie Réalisations — Harmonie Électricité</title>
+<meta name="description" content="Galerie photos de réalisations Harmonie Électricité : bornes IRVE, vidéosurveillance, interphonie, automatismes et contrôle d'accès en Savoie, Isère, Ain.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --he-ink-900:#0A0A0A;--he-ink-800:#111;--he-ink-700:#1A1812;--he-ink-600:#1E1C16;
+  --he-hairline:rgba(201,168,106,0.22);--he-hairline-strong:rgba(201,168,106,0.55);
+  --he-gold:#C9A86A;--he-gold-light:#DFC28A;
+  --he-white:#F4F1EA;--he-grey-300:#B6B1A6;--he-grey-500:#7C786E;--he-grey-700:#514E47;
+  --grad-gold:linear-gradient(135deg,#F0E3C2 0%,#E4CD93 22%,#C9A86A 50%,#A9884A 74%,#8A6C38 100%);
+  --glow-gold-sm:0 0 0 1px rgba(201,168,106,.3);
+  --glow-gold-md:0 0 18px rgba(201,168,106,.22);
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --font:'Jost','Century Gothic',system-ui,sans-serif;
+  --radius-pill:999px;--radius-sm:4px;
+}
+body{background:var(--he-ink-900);color:var(--he-white);font-family:'Jost',sans-serif;min-height:100vh;}
+
+/* ── NAV (identique index.html) ── */
+nav{display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:70px;
+  border-bottom:1px solid var(--he-hairline);
+  background:rgba(10,10,10,.9);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;}
+.nav-logo{height:36px;}
+.nav-tagline{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--he-grey-700);
+  border-left:1px solid var(--he-hairline);padding-left:14px;margin-left:4px;}
+.nav-links{display:flex;gap:6px;list-style:none;}
+.nav-links a{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--he-grey-300);padding:6px 12px;border-radius:var(--radius-sm);
+  transition:color .18s,background .18s;display:flex;align-items:center;gap:6px;}
+.nav-links a:hover,.nav-links a.active{color:var(--he-gold);background:rgba(201,168,106,.05)}
+.nav-links .has-dropdown{position:relative;}
+.nav-links .has-dropdown .dropdown{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;
+  background:var(--he-ink-700);border:1px solid var(--he-hairline);
+  min-width:220px;z-index:50;}
+.nav-links .has-dropdown:hover .dropdown{display:block;}
+.dropdown a{display:block;padding:10px 16px;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--he-grey-300);border-bottom:1px solid var(--he-hairline);}
+.dropdown a:last-child{border-bottom:none}
+.dropdown a:hover{color:var(--he-gold);background:rgba(201,168,106,.05)}
+.nav-cta-group{display:flex;gap:10px;align-items:center;}
+.btn-client{font-family:var(--font);font-size:11px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;padding:8px 16px;border-radius:var(--radius-pill);
+  background:transparent;color:var(--he-grey-300);border:1px solid var(--he-hairline);
+  cursor:pointer;transition:all .18s var(--ease);text-decoration:none;display:inline-flex;align-items:center;}
+.btn-client:hover{color:var(--he-gold);border-color:var(--he-hairline-strong);}
+.btn-primary{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;padding:9px 22px;border-radius:var(--radius-pill);
+  background:var(--grad-gold);color:var(--he-ink-900);border:none;cursor:pointer;
+  transition:opacity .18s,box-shadow .18s;text-decoration:none;display:inline-flex;align-items:center;}
+.btn-primary:hover{opacity:.88;box-shadow:var(--glow-gold-md)}
+
+/* HAMBURGER + MOBILE NAV */
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:200;flex-shrink:0;}
+.nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--he-white);transition:transform .3s,opacity .3s;}
+.nav-open .nav-hamburger span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+.nav-open .nav-hamburger span:nth-child(2){opacity:0;}
+.nav-open .nav-hamburger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+.mobile-nav{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:rgba(10,10,10,.97);z-index:150;overflow-y:auto;padding:24px;}
+.nav-open .mobile-nav{display:block;}
+.mobile-nav-links{list-style:none;padding:0;margin:0;}
+.mobile-nav-links li a{display:block;padding:15px 0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--he-grey-300);border-bottom:1px solid var(--he-hairline);text-decoration:none;transition:color .2s;}
+.mobile-nav-links li a:hover{color:var(--he-gold);}
+.mobile-nav-cta{margin-top:24px;display:flex;flex-direction:column;gap:12px;}
+.mobile-nav-cta .btn-primary,.mobile-nav-cta .btn-client{width:100%;text-align:center;justify-content:center;}
+
+@media(max-width:1024px){
+  nav{padding:0 24px;}
+  .nav-tagline{display:none;}
+}
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  .nav-links,.nav-cta-group{display:none;}
+  .nav-hamburger{display:flex;}
+}
+
+/* HERO */
+.page-hero{padding:80px 40px 48px;text-align:center;position:relative;overflow:hidden;}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,106,0.08) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--he-gold);margin-bottom:12px;}
+.page-h1{font-size:clamp(32px,5vw,52px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+.page-h1 .gold{color:var(--he-gold);}
+.page-sub{font-size:14px;color:var(--he-grey-300);margin-top:16px;line-height:1.6;}
+
+/* TABS */
+.gallery-nav{display:flex;flex-wrap:wrap;gap:8px;padding:0 40px 32px;justify-content:center;position:sticky;top:70px;z-index:50;background:var(--he-ink-900);padding-top:20px;border-bottom:1px solid var(--he-hairline);}
+.gtab{background:transparent;border:1px solid var(--he-hairline);color:var(--he-grey-300);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.08em;padding:8px 18px;border-radius:2px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.gtab:hover{border-color:var(--he-hairline-strong);color:var(--he-gold-light);}
+.gtab.active{background:var(--he-gold);border-color:var(--he-gold);color:#000;font-weight:600;}
+.tab-count{font-size:10px;opacity:.7;margin-left:4px;}
+
+/* GALLERY GRID */
+.gallery-section{display:none;padding:32px 40px 60px;}
+.gallery-section.active{display:block;}
+.gallery-grid{columns:4 220px;column-gap:8px;}
+.gallery-grid img{width:100%;margin-bottom:8px;border-radius:2px;cursor:pointer;display:block;transition:opacity .2s,transform .15s;border:1px solid transparent;}
+.gallery-grid img:hover{opacity:.88;transform:scale(1.01);border-color:var(--he-hairline-strong);}
+
+/* LIGHTBOX */
+#lightbox{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.96);justify-content:center;align-items:center;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:2px;}
+#lb-close{position:absolute;top:20px;right:24px;background:none;border:none;color:var(--he-white);font-size:32px;cursor:pointer;opacity:.7;transition:opacity .2s;line-height:1;}
+#lb-close:hover{opacity:1;}
+#lb-prev,#lb-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(201,168,106,0.15);border:1px solid var(--he-hairline-strong);color:var(--he-gold);font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+#lb-prev{left:20px;}
+#lb-next{right:20px;}
+#lb-prev:hover,#lb-next:hover{background:rgba(201,168,106,0.3);}
+#lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.1em;color:var(--he-grey-300);}
+
+/* FOOTER */
+footer{border-top:1px solid var(--he-hairline);padding:32px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-copy{font-size:11px;color:var(--he-grey-500);}
+.footer-links{display:flex;gap:20px;}
+.footer-links a{font-size:11px;color:var(--he-grey-500);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--he-gold);}
+
+@media(max-width:768px){
+  .page-hero{padding:60px 20px 32px;}
+  .gallery-nav{padding:16px 20px 16px;top:70px;}
+  .gallery-section{padding:24px 16px 48px;}
+  .gallery-grid{columns:2 160px;}
+  #lb-prev{left:8px;}
+  #lb-next{right:8px;}
+  footer{padding:24px 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV (identique index.html) -->
+<nav>
+  <div class="nav-brand">
+    <a href="index.html">
+      <img class="nav-logo" src="assets/logo-wordmark.png" alt="Harmonie Électricité">
+    </a>
+    <span class="nav-tagline">Installation · Maintenance · Dépannage</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li class="has-dropdown">
+      <a href="index.html#solutions">Solutions ▾</a>
+      <div class="dropdown">
+        <a href="index.html#solutions">Contrôle d'accès</a>
+        <a href="index.html#solutions">Vidéosurveillance</a>
+        <a href="index.html#solutions">Alarmes AJAX</a>
+        <a href="index.html#solutions">Interphonie</a>
+        <a href="index.html#solutions">Automatismes</a>
+        <a href="index.html#bornes">Bornes IRVE</a>
+      </div>
+    </li>
+    <li><a href="index.html#interventions">Interventions</a></li>
+    <li><a href="index.html#coproprietes">Copropriétés</a></li>
+    <li><a href="index.html#realisations">Réalisations</a></li>
+    <li><a href="/galerie" class="active">Galerie</a></li>
+    <li><a href="index.html#apropos">À propos</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta-group">
+    <a class="btn-client" href="index.html#espace-client">Espace client</a>
+    <a class="btn-client" href="index.html#boutique">Boutique</a>
+    <a class="btn-primary" href="index.html#contact">Demander un devis</a>
+  </div>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+  <ul class="mobile-nav-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="index.html#solutions">Solutions</a></li>
+    <li><a href="index.html#interventions">Interventions</a></li>
+    <li><a href="index.html#coproprietes">Copropriétés</a></li>
+    <li><a href="index.html#realisations">Réalisations</a></li>
+    <li><a href="/galerie">Galerie</a></li>
+    <li><a href="index.html#apropos">À propos</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <div class="mobile-nav-cta">
+    <a class="btn-client" href="index.html#espace-client">Espace client</a>
+    <a class="btn-client" href="index.html#boutique">Boutique</a>
+    <a class="btn-primary" href="index.html#contact">Demander un devis</a>
+  </div>
+</div>
+
+<div class="page-hero">
+  <div class="eyebrow">Portfolio</div>
+  <h1 class="page-h1">Galerie de <span class="gold">réalisations</span></h1>
+  <p class="page-sub">Installations réalisées en Savoie, Isère et Ain — cliquez pour agrandir</p>
+</div>
+
+<div class="gallery-nav">
+  <button class="gtab active" onclick="showTab('irve', this)">Bornes IRVE <span class="tab-count" id="cnt-irve"></span></button>
+  <button class="gtab" onclick="showTab('video', this)">Vidéosurveillance <span class="tab-count" id="cnt-video"></span></button>
+  <button class="gtab" onclick="showTab('interphonie', this)">Interphonie <span class="tab-count" id="cnt-interphonie"></span></button>
+  <button class="gtab" onclick="showTab('automatismes', this)">Automatismes <span class="tab-count" id="cnt-automatismes"></span></button>
+  <button class="gtab" onclick="showTab('acces', this)">Contrôle d'accès <span class="tab-count" id="cnt-acces"></span></button>
+  <button class="gtab" onclick="showTab('alarme', this)">Alarme <span class="tab-count" id="cnt-alarme"></span></button>
+  <button class="gtab" onclick="showTab('sonorisation', this)">Sonorisation <span class="tab-count" id="cnt-sonorisation"></span></button>
+  <button class="gtab" onclick="showTab('divers', this)">Divers <span class="tab-count" id="cnt-divers"></span></button>
+</div>
+
+<div id="tab-irve" class="gallery-section active">
+  <div class="gallery-grid" id="grid-irve"></div>
+</div>
+
+<div id="tab-video" class="gallery-section">
+  <div class="gallery-grid" id="grid-video">
+  </div>
+</div>
+
+<div id="tab-interphonie" class="gallery-section">
+  <div class="gallery-grid" id="grid-interphonie">
+  </div>
+</div>
+
+<div id="tab-automatismes" class="gallery-section">
+  <div class="gallery-grid" id="grid-automatismes">
+  </div>
+</div>
+
+<div id="tab-acces" class="gallery-section">
+  <div class="gallery-grid" id="grid-acces">
+  </div>
+</div>
+
+<div id="tab-alarme" class="gallery-section">
+  <div class="gallery-grid" id="grid-alarme"></div>
+</div>
+
+<div id="tab-sonorisation" class="gallery-section">
+  <div class="gallery-grid" id="grid-sonorisation"></div>
+</div>
+
+<div id="tab-divers" class="gallery-section">
+  <div class="gallery-grid" id="grid-divers"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lb-close" onclick="closeLb()">×</button>
+  <button id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button id="lb-next" onclick="lbNav(1)">›</button>
+  <div id="lb-counter"></div>
+</div>
+
+<footer>
+  <div class="footer-copy">© 2026 Harmonie Électricité — Mathieu Laruicci · Yenne</div>
+  <div class="footer-links">
+    <a href="/mentions-legales">Mentions légales</a>
+    <a href="/politique-confidentialite">Confidentialité</a>
+    <a href="/#contact">Contact</a>
+  </div>
+</footer>
+
+<script>
+var currentImgs = [], currentIdx = 0;
+
+function showTab(id, btn) {
+  document.querySelectorAll('.gallery-section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.gtab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top: document.querySelector('.gallery-nav').offsetTop - 64, behavior:'smooth'});
+}
+
+function openLb(img) {
+  var section = img.closest('.gallery-section');
+  currentImgs = Array.from(section.querySelectorAll('img'));
+  currentIdx = currentImgs.indexOf(img);
+  setLbImg();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setLbImg() {
+  var img = currentImgs[currentIdx];
+  document.getElementById('lb-img').src = img.src;
+  document.getElementById('lb-img').alt = img.alt;
+  document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + currentImgs.length;
+}
+
+function lbNav(dir) {
+  currentIdx = (currentIdx + dir + currentImgs.length) % currentImgs.length;
+  setLbImg();
+}
+
+function closeLb() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if(e.target === this) closeLb();
+});
+
+document.addEventListener('keydown', function(e) {
+  var lb = document.getElementById('lightbox');
+  if(!lb.classList.contains('open')) return;
+  if(e.key === 'Escape') closeLb();
+  if(e.key === 'ArrowLeft') lbNav(-1);
+  if(e.key === 'ArrowRight') lbNav(1);
+});
+
+// Handle URL hash tab
+var hash = window.location.hash.replace('#','');
+if(['irve','video','interphonie','automatismes','acces'].indexOf(hash) >= 0) {
+  var btn = document.querySelector('.gtab[onclick*="'+hash+'"]');
+  if(btn) { document.querySelectorAll('.gallery-section').forEach(function(s){s.classList.remove('active');}); document.querySelectorAll('.gtab').forEach(function(b){b.classList.remove('active');}); document.getElementById('tab-' + hash).classList.add('active'); btn.classList.add('active'); }
+}
+
+// ── Photos dynamiques depuis Supabase ──
+(function() {
+  var SB_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+  var SB_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+  var VALID_TABS = ['irve','video','interphonie','automatismes','acces','alarme','sonorisation','divers'];
+
+  fetch(SB_URL + '/rest/v1/photos?select=*&show_galerie=eq.true&order=created_at.desc', {
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY }
+  })
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(photos) {
+    if (!photos || !photos.length) return;
+    var counts = {};
+    // Compter les photos statiques existantes
+    VALID_TABS.forEach(function(tab) {
+      var g = document.getElementById('grid-' + tab);
+      counts[tab] = g ? g.querySelectorAll('img').length : 0;
+    });
+    photos.forEach(function(p) {
+      var tab = VALID_TABS.indexOf(p.categorie) >= 0 ? p.categorie : null;
+      if (!tab) return;
+      var grid = document.getElementById('grid-' + tab);
+      if (!grid) return;
+      var img = document.createElement('img');
+      img.src = p.url;
+      img.alt = p.legende || p.categorie;
+      img.loading = 'lazy';
+      img.setAttribute('data-tab', tab);
+      img.onclick = function(){ openLb(this); };
+      img.onerror = function(){ this.style.display = 'none'; counts[tab] = Math.max(0, (counts[tab]||1) - 1); var el = document.getElementById('cnt-' + tab); if(el) el.textContent = counts[tab] ? '('+counts[tab]+')' : ''; };
+      // Insérer en tête (plus récentes en premier)
+      grid.insertBefore(img, grid.firstChild);
+      counts[tab] = (counts[tab] || 0) + 1;
+    });
+    // Mettre à jour les compteurs dans les onglets
+    VALID_TABS.forEach(function(tab) {
+      var el = document.getElementById('cnt-' + tab);
+      if (el && counts[tab]) el.textContent = '(' + counts[tab] + ')';
+    });
+    // Afficher l'onglet Alarme si des photos existent
+    if (counts['alarme']) {
+      document.querySelector('[onclick*="alarme"]').style.display = '';
+    }
+  })
+  .catch(function(e){ console.warn('Photos dynamiques:', e); });
+})();
+
+/* ── Hamburger nav ── */
+function closeMobileNav(){document.body.classList.remove('nav-open');document.getElementById('navHamburger').setAttribute('aria-expanded','false');}
+document.getElementById('navHamburger').addEventListener('click',function(){
+  const open=document.body.classList.toggle('nav-open');
+  this.setAttribute('aria-expanded',open);
+});
+document.addEventListener('click',function(e){
+  if(document.body.classList.contains('nav-open')&&!e.target.closest('nav')&&!e.target.closest('.mobile-nav')){closeMobileNav();}
+});
+document.querySelectorAll('.mobile-nav-links a, .mobile-nav-cta a').forEach(function(a){
+  a.addEventListener('click', closeMobileNav);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalogue Ajax Systems — Harmonie Électricité</title>
+<link rel="stylesheet" href="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/tokens/colors.css">
+<link rel="stylesheet" href="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/tokens/typography.css">
+<link rel="stylesheet" href="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/tokens/effects.css">
+<link rel="stylesheet" href="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/styles.css">
+<style>
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--he-ink-900);color:var(--he-paper);font-family:var(--font-body);}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gutter);}
+i[data-lucide]{width:18px;height:18px;stroke-width:1.5;display:inline-block;vertical-align:middle;}
+
+/* ── Header ── */
+header{position:sticky;top:0;z-index:200;backdrop-filter:blur(12px);
+  background:rgba(10,10,10,0.88);border-bottom:1px solid var(--border-hairline);}
+.nav{display:flex;align-items:center;justify-content:space-between;height:72px;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand img{height:38px;}
+.brand .nm{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.16em;font-size:13px;color:#fff;line-height:1.1;}
+.brand .nm b{display:block;color:var(--he-gold);font-weight:400;}
+.links{display:flex;gap:26px;align-items:center;}
+.links a{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--he-grey-300);transition:color 140ms;}
+.links a:hover{color:var(--he-gold);}
+.btn-outline{display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;font-family:var(--font-body);font-size:12px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;
+  border:1.5px solid var(--border-strong);border-radius:var(--radius-pill);
+  color:var(--he-gold);background:transparent;cursor:pointer;transition:all 180ms;}
+.btn-outline:hover{background:rgba(201,168,106,.10);}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;
+  padding:9px 22px;font-family:var(--font-body);font-size:12px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;
+  border:1.5px solid transparent;border-radius:var(--radius-pill);
+  color:var(--he-ink-900);background:var(--grad-gold);cursor:pointer;transition:all 180ms;}
+.btn-primary:hover{box-shadow:var(--glow-gold-md);}
+.nav-actions{display:flex;gap:10px;}
+.burger{display:none;background:none;border:none;color:var(--he-gold);cursor:pointer;padding:6px;}
+
+/* ── Hero ── */
+.hero{
+  position:relative;overflow:hidden;
+  padding:96px 0 76px;
+  background:var(--grad-ink);
+}
+.hero::after{content:'';position:absolute;inset:0;background:var(--grad-gold-wash);pointer-events:none;}
+.hero .ctl{position:absolute;top:0;left:0;width:340px;opacity:.45;pointer-events:none;}
+.hero .ctr{position:absolute;top:0;right:0;width:320px;opacity:.45;pointer-events:none;}
+.hero-inner{position:relative;z-index:1;max-width:680px;}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;
+  font-size:var(--fs-xs);font-weight:500;letter-spacing:var(--ls-wide);
+  text-transform:uppercase;color:var(--he-gold);}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--he-gold);}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.4rem,5.5vw,4rem);
+  line-height:1.04;letter-spacing:.07em;text-transform:uppercase;
+  color:#fff;margin:16px 0 18px;}
+.hero h1 em{color:var(--he-gold);font-style:normal;}
+.hero .lead{font-size:var(--fs-lead);line-height:1.7;color:var(--he-grey-300);max-width:520px;}
+.hero-tags{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px;}
+.htag{display:inline-flex;align-items:center;gap:6px;
+  padding:5px 13px;font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;
+  border:1px solid var(--border-strong);border-radius:var(--radius-pill);color:var(--he-gold);}
+.htag i{width:12px;height:12px;}
+
+/* ── Filter bar ── */
+.filterbar{
+  position:sticky;top:72px;z-index:190;
+  background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-hairline);
+}
+.filters{display:flex;gap:3px;padding:10px 0;overflow-x:auto;scrollbar-width:none;}
+.filters::-webkit-scrollbar{display:none;}
+.filter-btn{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 15px;font-family:var(--font-body);font-size:11px;font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;
+  border:1px solid transparent;border-radius:var(--radius-pill);
+  color:var(--he-grey-500);background:transparent;cursor:pointer;
+  transition:all 160ms;white-space:nowrap;
+}
+.filter-btn:hover{color:var(--he-gold);border-color:var(--border-hairline);background:rgba(201,168,106,.05);}
+.filter-btn.active{color:var(--he-ink-900);background:var(--grad-gold);border-color:transparent;box-shadow:var(--glow-gold-sm);}
+.filter-btn i{width:13px;height:13px;}
+
+/* ── Section ── */
+.cat-section{padding:64px 0 0;}
+.cat-section:last-of-type{padding-bottom:80px;}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;}
+.sec-head-left .sec-eyebrow{font-size:var(--fs-xs);font-weight:500;letter-spacing:var(--ls-wide);
+  text-transform:uppercase;color:var(--he-gold);margin-bottom:7px;}
+.sec-head-left h2{font-family:var(--font-display);font-size:clamp(1.4rem,2.3vw,1.9rem);
+  font-weight:400;letter-spacing:.09em;text-transform:uppercase;color:#fff;margin:0;}
+.sec-count{font-size:11px;color:var(--he-grey-700);letter-spacing:.06em;margin-bottom:4px;}
+
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:18px;}
+
+/* ── Card ── */
+.card{
+  position:relative;
+  background:var(--surface-card);
+  border:1px solid var(--border-hairline);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  cursor:pointer;
+  /* scroll reveal */
+  opacity:0;transform:translateY(20px);
+  transition:opacity 500ms var(--ease-out),transform 500ms var(--ease-out),
+              border-color 220ms,box-shadow 220ms;
+}
+.card.in{opacity:1;transform:none;}
+.card:hover{border-color:var(--border-strong);box-shadow:var(--glow-gold-md);transform:translateY(-3px);}
+.card:hover .card-img img{transform:scale(1.05);}
+
+/* circuit corner */
+.card::before,.card::after{content:'';position:absolute;opacity:0;transition:opacity 220ms;}
+.card::before{top:0;right:0;width:44px;height:1px;background:var(--he-gold);}
+.card::after{top:0;right:44px;width:1px;height:26px;background:var(--he-gold);}
+.card:hover::before,.card:hover::after{opacity:.5;}
+
+.card-img{
+  aspect-ratio:1/1;background:var(--he-ink-800);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;padding:22px;
+}
+.card-img img{width:100%;height:100%;object-fit:contain;
+  transition:transform 380ms var(--ease-out);
+  filter:drop-shadow(0 6px 20px rgba(0,0,0,.7));}
+.card-img-ph{display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;color:var(--he-grey-700);}
+.card-img-ph i{width:44px;height:44px;stroke-width:.9;}
+
+.card-body{padding:18px 18px 20px;}
+.card-chip{display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;font-size:10px;font-weight:500;letter-spacing:.10em;text-transform:uppercase;
+  border:1px solid var(--border-strong);border-radius:var(--radius-pill);color:var(--he-gold);
+  margin-bottom:11px;}
+.card-chip i{width:10px;height:10px;}
+.card-name{font-family:var(--font-display);font-size:.95rem;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;color:#fff;margin:0 0 9px;line-height:1.25;}
+.card-desc{font-size:13px;line-height:1.6;color:var(--he-grey-300);margin:0 0 14px;}
+.card-feats{list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:5px;}
+.card-feats li{font-size:11.5px;color:var(--he-grey-500);display:flex;align-items:flex-start;gap:7px;}
+.card-feats li::before{content:'';flex-shrink:0;width:4px;height:4px;border-radius:50%;
+  background:var(--he-gold);margin-top:6px;}
+.card-link{display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--he-gold);}
+.card-link i{width:12px;height:12px;transition:transform 180ms;}
+.card:hover .card-link i{transform:translateX(4px);}
+
+.badge-new{position:absolute;top:13px;left:13px;
+  padding:3px 9px;font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+  background:var(--grad-gold);color:var(--he-ink-900);border-radius:var(--radius-pill);z-index:1;}
+
+/* ── Divider ── */
+.divider{padding:36px 0;}
+.divider-inner{display:flex;align-items:center;}
+.divider-line{flex:1;height:1px;background:var(--border-hairline);}
+.divider-ring{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--he-gold);flex-shrink:0;margin:0 5px;}
+.divider-dot{width:6px;height:6px;border-radius:50%;background:var(--he-gold);box-shadow:var(--glow-node);flex-shrink:0;margin:0 5px;}
+
+/* ── Solutions ── */
+.solutions{padding:72px 0;border-top:1px solid var(--border-hairline);background:var(--he-ink-800);}
+.sol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:36px;}
+.sol-card{
+  background:var(--surface-raised);border:1px solid var(--border-hairline);border-radius:var(--radius-md);
+  padding:24px 20px 20px;
+  opacity:0;transform:translateY(16px);
+  transition:opacity 480ms var(--ease-out),transform 480ms var(--ease-out),border-color 200ms,box-shadow 200ms;
+}
+.sol-card.in{opacity:1;transform:none;}
+.sol-card:hover{border-color:var(--border-strong);box-shadow:var(--glow-gold-sm);transform:translateY(-2px);}
+.sol-icon{width:36px;height:36px;border-radius:6px;
+  background:rgba(201,168,106,.10);border:1px solid var(--border-hairline);
+  display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.sol-icon i{width:18px;height:18px;color:var(--he-gold);}
+.sol-name{font-family:var(--font-display);font-size:.9rem;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;color:#fff;margin:0 0 7px;}
+.sol-desc{font-size:12.5px;line-height:1.6;color:var(--he-grey-500);margin:0 0 12px;}
+.sol-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.sol-tag{font-size:10px;padding:2px 8px;border:1px solid var(--border-hairline);
+  border-radius:var(--radius-pill);color:var(--he-grey-700);letter-spacing:.05em;}
+
+/* ── CTA ── */
+.cta{padding:80px 0;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--border-hairline);}
+.cta::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(55% 80% at 50% 110%,rgba(201,168,106,.13),transparent 65%);pointer-events:none;}
+.cta-inner{position:relative;z-index:1;}
+.cta h2{font-family:var(--font-display);font-size:clamp(1.7rem,3.2vw,2.6rem);
+  font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:#fff;margin:14px 0 10px;}
+.cta .lead{font-size:var(--fs-lead);color:var(--he-grey-300);margin:0 0 30px;}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* ── Footer ── */
+footer{padding:36px 0;background:var(--he-black);border-top:1px solid var(--border-hairline);}
+.footer-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.footer-brand{display:flex;align-items:center;gap:10px;}
+.footer-brand img{height:28px;}
+.footer-nm{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.14em;font-size:11px;
+  color:var(--he-grey-500);line-height:1.2;}
+.footer-nm b{display:block;color:var(--he-gold);font-weight:400;}
+.footer-note{font-size:11px;color:var(--he-grey-700);letter-spacing:.04em;}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .links,.nav-actions{display:none;}
+  .burger{display:block;}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+}
+@media(max-width:580px){
+  .grid{grid-template-columns:1fr 1fr;}
+  .card-img{padding:14px;}
+  .card-body{padding:13px 13px 15px;}
+  .sec-head{flex-direction:column;align-items:flex-start;gap:6px;}
+  .hero h1{font-size:clamp(2rem,8vw,3rem);}
+}
+@media(max-width:380px){
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="index.html">
+      <img src="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/assets/monogram.png" alt=""/>
+      <span class="nm">Harmonie<b>Électricité</b></span>
+    </a>
+    <nav class="links">
+      <a href="#alarmes">Alarmes</a>
+      <a href="#video">Vidéosurveillance</a>
+      <a href="#centrales">Centrales</a>
+      <a href="#incendie">Incendie</a>
+      <a href="#solutions">Solutions</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn-outline" onclick="nav('#cta-section')">
+        <i data-lucide="phone"></i>Nous contacter
+      </button>
+      <button class="btn-primary" onclick="nav('#cta-section')">
+        Demander un devis
+      </button>
+    </div>
+    <button class="burger" onclick="nav('#cta-section')">
+      <i data-lucide="menu" style="width:24px;height:24px;"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <img class="ctl" src="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/assets/circuit-corner-tl.png" alt=""/>
+  <img class="ctr" src="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/assets/circuit-corner-tr.png" alt=""/>
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="eyebrow">Partenaire officiel Ajax Systems</div>
+      <h1>Catalogue<br><em>Sécurité & Alarme</em></h1>
+      <p class="lead">Découvrez la gamme complète Ajax Systems — leader européen de la sécurité électronique sans fil. Installez et supervisez votre sécurité depuis une seule application.</p>
+      <div class="hero-tags">
+        <span class="htag"><i data-lucide="shield-check"></i>Grade 3</span>
+        <span class="htag"><i data-lucide="wifi"></i>100 % sans fil</span>
+        <span class="htag"><i data-lucide="smartphone"></i>App mobile</span>
+        <span class="htag"><i data-lucide="bell"></i>Télésurveillance</span>
+        <span class="htag"><i data-lucide="clock"></i>5 ans autonomie</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FILTER BAR ══ -->
+<div class="filterbar">
+  <div class="wrap">
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-target="all" onclick="filterCat(this,'all')">
+        <i data-lucide="grid-2x2"></i>Tout voir
+      </button>
+      <button class="filter-btn" data-target="alarmes" onclick="filterCat(this,'alarmes')">
+        <i data-lucide="shield-alert"></i>Alarmes & Détecteurs
+      </button>
+      <button class="filter-btn" data-target="video" onclick="filterCat(this,'video')">
+        <i data-lucide="camera"></i>Vidéosurveillance
+      </button>
+      <button class="filter-btn" data-target="centrales" onclick="filterCat(this,'centrales')">
+        <i data-lucide="cpu"></i>Centrales
+      </button>
+      <button class="filter-btn" data-target="prolongateurs" onclick="filterCat(this,'prolongateurs')">
+        <i data-lucide="radio"></i>Prolongateurs
+      </button>
+      <button class="filter-btn" data-target="incendie" onclick="filterCat(this,'incendie')">
+        <i data-lucide="flame"></i>Sécurité incendie
+      </button>
+      <button class="filter-btn" data-target="confort" onclick="filterCat(this,'confort')">
+        <i data-lucide="sliders-horizontal"></i>Confort & Auto
+      </button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════
+     ALARMES & DÉTECTEURS PÉRIPHÉRIQUES
+     ══════════════════════════════════ -->
+<div id="alarmes" class="cat-section" data-category="alarmes">
+<div class="wrap">
+
+  <!-- Détecteurs de mouvement -->
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Alarmes & Détecteurs</div>
+      <h2>Détecteurs de mouvement</h2>
+    </div>
+    <span class="sec-count">3 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fmp_xl_93d1779d25%402.jpg" alt="MotionProtect Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=activity></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="activity"></i>Mouvement intérieur</div>
+        <h3 class="card-name">MotionProtect Jeweller</h3>
+        <p class="card-desc">Détecteur infrarouge sans fil avec immunité aux animaux jusqu'à 20 kg. Algorithme SmartDetect pour zéro fausse alarme.</p>
+        <ul class="card-feats">
+          <li>Portée 12 m, angle 88,5°</li>
+          <li>Immunité animaux ≤ 20 kg</li>
+          <li>Autonomie 5 ans</li>
+          <li>Anti-sabotage intégré</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fmc_j_xl_c08a42c711%402.jpg" alt="MotionCam Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=camera></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="camera"></i>Vérification photo</div>
+        <h3 class="card-name">MotionCam Jeweller</h3>
+        <p class="card-desc">Détecteur de mouvement avec appareil photo intégré — prend une série de clichés à chaque alarme pour confirmer l'intrusion avant intervention.</p>
+        <ul class="card-feats">
+          <li>Photo HDR en 9 secondes</li>
+          <li>Portée 12 m, immunité animaux</li>
+          <li>Protocoles Jeweller + Wings</li>
+          <li>Autonomie 4 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fmotion_protect_outdoor_xl_db42296798%402.jpg" alt="MotionProtect Outdoor Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=activity></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="cloud-rain"></i>Extérieur IP55</div>
+        <h3 class="card-name">MotionProtect Outdoor</h3>
+        <p class="card-desc">Détecteur de mouvement double capteur pour l'extérieur — algorithme LISA anti-fausses alarmes, résistant à toutes les intempéries.</p>
+        <ul class="card-feats">
+          <li>Double PIR + analyse LISA</li>
+          <li>Anti-masquage 24 h/24</li>
+          <li>IP55 · −25 °C à +60 °C</li>
+          <li>Autonomie 5 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div><!-- /grid mouvement -->
+
+  <!-- Détecteurs ouverture & bris de glace -->
+  <div class="sec-head" style="margin-top:48px;">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Détecteurs d'ouverture & bris de glace</div>
+      <h2>Portes, fenêtres & vitrages</h2>
+    </div>
+    <span class="sec-count">2 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fdp_p_j_xl_410df7528e%402.jpg" alt="DoorProtect Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=door-open></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="door-open"></i>Ouverture</div>
+        <h3 class="card-name">DoorProtect Jeweller</h3>
+        <p class="card-desc">Détecteur magnétique sans fil pour portes, fenêtres et lucarnes. Fonction chime — sonne à l'ouverture comme une sonnette d'entrée.</p>
+        <ul class="card-feats">
+          <li>Portée radio 1 200 m</li>
+          <li>Autonomie 7 ans</li>
+          <li>2 aimants fournis (tailles différentes)</li>
+          <li>Connecteur externe capteur NC</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fgp_xl_98444c95f8%402.jpg" alt="GlassProtect Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=scan></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="scan"></i>Bris de glace</div>
+        <h3 class="card-name">GlassProtect Jeweller</h3>
+        <p class="card-desc">Détecteur acoustique de bris de glace — algorithme DualTone qui reconnaît la signature sonore unique du verre brisé jusqu'à 9 mètres.</p>
+        <ul class="card-feats">
+          <li>Portée 9 m, angle 180°</li>
+          <li>Algorithme DualTone anti-fausse alarme</li>
+          <li>3 niveaux de sensibilité</li>
+          <li>Autonomie 7 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div><!-- /grid ouverture -->
+
+  <!-- Sirènes & claviers -->
+  <div class="sec-head" style="margin-top:48px;">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Sirènes & Claviers</div>
+      <h2>Signalisation & commande</h2>
+    </div>
+    <span class="sec-count">3 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fss_j_xl_67bf5a0236%402.jpg" alt="StreetSiren Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=volume-2></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="volume-2"></i>Sirène extérieure</div>
+        <h3 class="card-name">StreetSiren Jeweller</h3>
+        <p class="card-desc">Sirène extérieure sans fil avec cadre lumineux LED — indique les modes de sécurité, les alarmes et les délais d'armement depuis l'extérieur du bâtiment.</p>
+        <ul class="card-feats">
+          <li>113 dB à 1 mètre</li>
+          <li>Cadre LED multifonction</li>
+          <li>IP54 · Autonomie 5 ans</li>
+          <li>Durée alarme réglable 3 s – 3 min</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fhs_xl_e99f50b9bc%402.jpg" alt="HomeSiren Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=bell></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="bell"></i>Sirène intérieure</div>
+        <h3 class="card-name">HomeSiren Jeweller</h3>
+        <p class="card-desc">Sirène d'intérieur intelligente multifonction — alarme sonore, indicateur d'état du système, chime d'ouverture de porte et indicateur LED externe.</p>
+        <ul class="card-feats">
+          <li>Indicateur LED tiers supporté</li>
+          <li>Volume et durée réglables</li>
+          <li>Portée radio 2 000 m</li>
+          <li>Autonomie 5 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="alarmes">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fkeypad_plus_j_xl_8fec8ae8f0%402.jpg" alt="KeyPad Plus Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=keyboard></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="credit-card"></i>Clavier sans fil</div>
+        <h3 class="card-name">KeyPad Plus Jeweller</h3>
+        <p class="card-desc">Clavier tactile sans fil avec authentification sans contact — codes PIN, badges Pass et porte-clés Tag chiffrés DESFire® pour une gestion fine des accès.</p>
+        <ul class="card-feats">
+          <li>Pass/Tag DESFire® 128-bit</li>
+          <li>Jusqu'à 200 codes utilisateurs</li>
+          <li>Bouton panique intégré</li>
+          <li>Autonomie 3,5 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div><!-- /grid sirènes -->
+
+</div><!-- /wrap alarmes -->
+</div><!-- /cat alarmes -->
+
+<div class="wrap"><div class="divider"><div class="divider-inner"><div class="divider-line"></div><div class="divider-ring"></div><div class="divider-dot"></div><div class="divider-ring"></div><div class="divider-line"></div></div></div></div>
+
+<!-- ══════════════════════════════
+     VIDÉOSURVEILLANCE
+     ══════════════════════════════ -->
+<div id="video" class="cat-section" data-category="video">
+<div class="wrap">
+
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Vidéosurveillance</div>
+      <h2>Caméras & Enregistrement</h2>
+    </div>
+    <span class="sec-count">5 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="video">
+      <div class="badge-new">Nouveau</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fdoor_bell_xl_cb531ae2b9%402.jpg" alt="DoorBell" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=camera></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="door-closed"></i>Sonnette vidéo</div>
+        <h3 class="card-name">DoorBell</h3>
+        <p class="card-desc">Sonnette vidéo IA avec reconnaissance personnes, animaux et véhicules — 4 MP HDR, audio bidirectionnel et capteur PIR intégré.</p>
+        <ul class="card-feats">
+          <li>4 MP · HDR · 155° de champ</li>
+          <li>Reconnaissance IA intégrée</li>
+          <li>Audio bidirectionnel anti-écho</li>
+          <li>IP54 · Batterie de secours 1 h</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="video">
+      <div class="badge-new">Exclusif</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fcurtain_cam_ecc462a5f1%402.jpg" alt="CurtainCam Outdoor HighMount" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=eye></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="eye"></i>Détecteur + Caméra</div>
+        <h3 class="card-name">CurtainCam Outdoor HighMount</h3>
+        <p class="card-desc">Premier détecteur rideau Ajax avec caméra PhOD intégrée — protection périmétrique extérieure avec vérification photo instantanée sur chaque alarme.</p>
+        <ul class="card-feats">
+          <li>PIR rideau + photo sur alarme</li>
+          <li>Conçu pour installation en hauteur</li>
+          <li>IP55 · Protocole Wings</li>
+          <li>Sans câblage</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="video">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fmountcam_005dc40a2b%402.jpg" alt="MountCam" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=camera></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="camera"></i>Caméra intérieure</div>
+        <h3 class="card-name">MountCam</h3>
+        <p class="card-desc">Caméra compacte sur support mural — intégration native dans l'écosystème Ajax pour une supervision vidéo unifiée avec le système d'alarme.</p>
+        <ul class="card-feats">
+          <li>Full HD · Champ large</li>
+          <li>Vision nocturne IR</li>
+          <li>App Ajax intégrée</li>
+          <li>Enregistrement sur événement</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="video">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fbulletcam_xl_dd67824e04%402.jpg" alt="BulletCam" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=camera></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="scan-eye"></i>Caméra extérieure IA</div>
+        <h3 class="card-name">BulletCam</h3>
+        <p class="card-desc">Caméra filaire extérieure IA — reconnaissance objets (personnes, véhicules, animaux), IR 50 m, boîtier métal IP65 et stockage microSD 256 Go.</p>
+        <ul class="card-feats">
+          <li>5 MP ou 8 MP · IA intégrée</li>
+          <li>IR 50 m · IP65 métal</li>
+          <li>microSD 256 Go · ONVIF/RTSP</li>
+          <li>Authentification sans mot de passe</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="video">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fturretcam_xl_2edaf4e650%402.jpg" alt="TurretCam" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=camera></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="aperture"></i>Caméra dôme IA</div>
+        <h3 class="card-name">TurretCam</h3>
+        <p class="card-desc">Caméra tourelle filaire IA pour intérieur et extérieur — grand angle de vision, détection intelligente et intégration complète dans l'écosystème Ajax.</p>
+        <ul class="card-feats">
+          <li>5 MP ou 8 MP · Grand angle</li>
+          <li>Reconnaissance IA personnes/véhicules</li>
+          <li>IR intégré · IP67</li>
+          <li>Compatible NVR Ajax</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="video">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fnvr_h_c55b927a7e%402.jpg" alt="NVR HDC" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=hard-drive></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="hard-drive"></i>Enregistreur local</div>
+        <h3 class="card-name">NVR HDC</h3>
+        <p class="card-desc">Enregistreur vidéo réseau local — stockage sur site pour les installations sans connexion internet stable ou les sites à haute confidentialité.</p>
+        <ul class="card-feats">
+          <li>Stockage local sécurisé</li>
+          <li>Compatible BulletCam & TurretCam</li>
+          <li>Accès à distance chiffré</li>
+          <li>Idéal sites isolés</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="wrap"><div class="divider"><div class="divider-inner"><div class="divider-line"></div><div class="divider-ring"></div><div class="divider-dot"></div><div class="divider-ring"></div><div class="divider-line"></div></div></div></div>
+
+<!-- ══════════════════════════════
+     CENTRALES DE CONTRÔLE
+     ══════════════════════════════ -->
+<div id="centrales" class="cat-section" data-category="centrales">
+<div class="wrap">
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Centrales de contrôle</div>
+      <h2>Le cœur du système</h2>
+    </div>
+    <span class="sec-count">6 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="centrales">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fhub_5187d721bb%402.png" alt="Hub 2 (2G) Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=cpu></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="cpu"></i>Centrale</div>
+        <h3 class="card-name">Hub 2 (2G) Jeweller</h3>
+        <p class="card-desc">Centrale sans fil avec vérification photo — coordonne jusqu'à 100 appareils, connexion Ethernet + SIM, compatible télésurveillance.</p>
+        <ul class="card-feats">
+          <li>Vérification photo sur alarme</li>
+          <li>Ethernet + SIM 2G</li>
+          <li>Jusqu'à 100 appareils</li>
+          <li>Chiffrement bout en bout</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="centrales">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fhub_bp_jeweller_black_1732115997%402.png" alt="Hub BP Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=battery-charging></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="battery-charging"></i>Sur batterie</div>
+        <h3 class="card-name">Hub BP Jeweller</h3>
+        <p class="card-desc">Centrale sur batterie rechargeable — idéale pour les chantiers, les sites temporaires ou les bâtiments sans alimentation fixe.</p>
+        <ul class="card-feats">
+          <li>Batterie intégrée rechargeable</li>
+          <li>Vérification photo incluse</li>
+          <li>SIM + Ethernet</li>
+          <li>Zéro câblage</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="centrales">
+      <div class="badge-new">Nouveau</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fsuperior_hub_g3_black_206d95745c%402.png" alt="Superior Hub G3 Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=shield></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="shield-check"></i>Grade 3</div>
+        <h3 class="card-name">Superior Hub G3</h3>
+        <p class="card-desc">Centrale 3e génération certifiée Grade 3 — le standard le plus exigeant pour les installations professionnelles, musées et objets haute valeur.</p>
+        <ul class="card-feats">
+          <li>Certification Grade 3</li>
+          <li>Ethernet + Wi-Fi + double SIM</li>
+          <li>Résistance brouilleurs RF</li>
+          <li>Vérification photo & audio</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="centrales">
+      <div class="badge-new">Nouveau</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fsuperior_hub_hybrid_2_black_52f36d51a5%402.png" alt="Superior Hub Hybrid 2" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=layers></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="layers"></i>Hybride Fibra + Radio</div>
+        <h3 class="card-name">Superior Hub Hybrid 2</h3>
+        <p class="card-desc">Centrale hybride 2e génération — combine appareils filaires Fibra et sans fil Jeweller. Jusqu'à 250 appareils pour les grandes installations.</p>
+        <ul class="card-feats">
+          <li>250 appareils Fibra + Jeweller</li>
+          <li>Idéal immeubles et bureaux</li>
+          <li>Grade 3 disponible</li>
+          <li>Installation mixte filaire/sans fil</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="centrales">
+      <div class="badge-new">Pro</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fmega_hub_9b1d9a8dce%402.png" alt="Superior MegaHub" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=server></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="server"></i>Grande installation</div>
+        <h3 class="card-name">Superior MegaHub</h3>
+        <p class="card-desc">La centrale la plus puissante d'Ajax — jusqu'à 999 appareils pour les entrepôts, centres commerciaux et grands campus industriels.</p>
+        <ul class="card-feats">
+          <li>999 appareils connectés</li>
+          <li>Multi-protocoles Fibra + Jeweller</li>
+          <li>Supervision multi-sites</li>
+          <li>Intégration systèmes tiers</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="centrales">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fhub_256999a1dd%402.png" alt="Hub (2G) Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=cpu></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="cpu"></i>Entrée de gamme Pro</div>
+        <h3 class="card-name">Hub (2G) Jeweller</h3>
+        <p class="card-desc">La centrale d'entrée de gamme professionnelle Ajax — Ethernet + SIM 2G, jusqu'à 100 appareils, application mobile et télésurveillance.</p>
+        <ul class="card-feats">
+          <li>Ethernet + SIM 2G</li>
+          <li>100 appareils Jeweller</li>
+          <li>Application Ajax Security</li>
+          <li>Compatible stations de télésurveillance</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="wrap"><div class="divider"><div class="divider-inner"><div class="divider-line"></div><div class="divider-ring"></div><div class="divider-dot"></div><div class="divider-ring"></div><div class="divider-line"></div></div></div></div>
+
+<!-- ══════════════════════════════
+     PROLONGATEURS
+     ══════════════════════════════ -->
+<div id="prolongateurs" class="cat-section" data-category="prolongateurs">
+<div class="wrap">
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Prolongateurs de portée</div>
+      <h2>Étendez votre couverture</h2>
+    </div>
+    <span class="sec-count">3 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="prolongateurs">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Frex_2_ca92ad0fe2%402.png" alt="ReX 2 Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=radio></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="signal"></i>Jeweller + Wings</div>
+        <h3 class="card-name">ReX 2 Jeweller</h3>
+        <p class="card-desc">Prolongateur de portée compatible Jeweller et Wings — étend la couverture radio dans les grandes surfaces, caves et bâtiments épais.</p>
+        <ul class="card-feats">
+          <li>Compatible Jeweller + Wings</li>
+          <li>Prise en charge caméras Ajax</li>
+          <li>Jusqu'à 25 appareils relayés</li>
+          <li>Anti-sabotage</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="prolongateurs">
+      <div class="badge-new">Nouveau</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fsuperior_rex_g3_jeweller_black_be0aaafc26%402.png" alt="Superior ReX G3 Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=radio></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="shield-check"></i>Grade 3</div>
+        <h3 class="card-name">Superior ReX G3</h3>
+        <p class="card-desc">Prolongateur Grade 3 avec vérification audio et connexion Ethernet — pour les installations haute sécurité avec exigence de fiabilité maximale.</p>
+        <ul class="card-feats">
+          <li>Certification Grade 3</li>
+          <li>Vérification audio des alarmes</li>
+          <li>Connexion Ethernet filaire</li>
+          <li>Compatible Superior Hub</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="prolongateurs">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Frex_6a8acad462%402.png" alt="ReX Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=radio></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="radio"></i>Prolongateur</div>
+        <h3 class="card-name">ReX Jeweller</h3>
+        <p class="card-desc">Le prolongateur de portée sans fil Ajax — double le rayon de couverture du réseau et maintient la supervision en temps réel de chaque appareil relayé.</p>
+        <ul class="card-feats">
+          <li>Double la portée réseau</li>
+          <li>Compatible tous appareils Jeweller</li>
+          <li>Installation rapide QR code</li>
+          <li>Supervision temps réel</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="wrap"><div class="divider"><div class="divider-inner"><div class="divider-line"></div><div class="divider-ring"></div><div class="divider-dot"></div><div class="divider-ring"></div><div class="divider-line"></div></div></div></div>
+
+<!-- ══════════════════════════════
+     SÉCURITÉ INCENDIE
+     ══════════════════════════════ -->
+<div id="incendie" class="cat-section" data-category="incendie">
+<div class="wrap">
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Sécurité incendie</div>
+      <h2>Détection incendie sans fil</h2>
+    </div>
+    <span class="sec-count">3 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="incendie">
+      <div class="badge-new">Type 4</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Ftype4_line_51c4f6d034%402.jpg" alt="Type4 Line" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=flame></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="flame"></i>Gamme incendie</div>
+        <h3 class="card-name">Type4 Line</h3>
+        <p class="card-desc">Première gamme d'alarme incendie sans fil adressable certifiée Type 4 — pour les ERP et bâtiments professionnels sans aucun câblage.</p>
+        <ul class="card-feats">
+          <li>100 % sans fil · Aucun câblage</li>
+          <li>Certifié Type 4 adressable</li>
+          <li>Détecteurs fumée, chaleur, CO</li>
+          <li>Déclencheurs manuels inclus</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="incendie">
+      <div class="badge-new">Nouveau</div>
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Ftype4_firehub_black_d46534e211%402.png" alt="Type4 Fire Hub" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=flame></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="tablet-smartphone"></i>Centrale incendie</div>
+        <h3 class="card-name">Type4 Fire Hub</h3>
+        <p class="card-desc">Centrale d'alarme incendie Type 4 adressable avec écran tactile intégré — installation simplifiée dans les ERP, hôtels et bâtiments industriels.</p>
+        <ul class="card-feats">
+          <li>Type 4 adressable certifié</li>
+          <li>Écran tactile de configuration</li>
+          <li>Notifications temps réel</li>
+          <li>Compatible protocole Jeweller</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="incendie">
+      <div class="card-img">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fen54_fire_hub_jeweller_black_fd80de7c0f%402.png" alt="EN54 Fire Hub" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=badge-check></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="badge-check"></i>Certifié EN54</div>
+        <h3 class="card-name">EN54 Fire Hub</h3>
+        <p class="card-desc">Centrale incendie certifiée EN54 — la norme européenne la plus stricte pour les systèmes d'alarme incendie dans les bâtiments professionnels et institutions publiques.</p>
+        <ul class="card-feats">
+          <li>Certification EN54 européenne</li>
+          <li>Compatibilité détecteurs sans fil</li>
+          <li>Protection intrusion intégrée</li>
+          <li>Conformité réglementaire totale</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="wrap"><div class="divider"><div class="divider-inner"><div class="divider-line"></div><div class="divider-ring"></div><div class="divider-dot"></div><div class="divider-ring"></div><div class="divider-line"></div></div></div></div>
+
+<!-- ══════════════════════════════
+     CONFORT & AUTOMATISATION
+     ══════════════════════════════ -->
+<div id="confort" class="cat-section" data-category="confort">
+<div class="wrap">
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-eyebrow">Confort & Automatisation</div>
+      <h2>La maison connectée</h2>
+    </div>
+    <span class="sec-count">3 produits</span>
+  </div>
+  <div class="grid">
+
+    <div class="card" data-cat="confort">
+      <div class="card-img" style="background:radial-gradient(circle at 50% 60%,#1a1812,#0a0a0a);">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Fupload%2Fcomfort_lg_d33106234c%402.jpg" alt="LifeQuality Lite Jeweller" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=wind></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="wind"></i>Qualité de l'air</div>
+        <h3 class="card-name">LifeQuality Lite Jeweller</h3>
+        <p class="card-desc">Moniteur de qualité de l'air intérieur — mesure CO₂, température, humidité et pression avec alertes automatiques sur votre smartphone.</p>
+        <ul class="card-feats">
+          <li>CO₂, température, humidité</li>
+          <li>Alertes seuils sur app mobile</li>
+          <li>Intégration native Ajax</li>
+          <li>Autonomie 2 ans</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="confort">
+      <div class="card-img" style="background:radial-gradient(circle at 50% 60%,#1a1812,#0a0a0a);">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Findex%2Ffirst-block%2Fcomfort-automation%2Fcomfort-automation.xl.jpg" alt="Relais & Interrupteurs" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=zap></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="zap"></i>Automatisation</div>
+        <h3 class="card-name">Relais & Interrupteurs</h3>
+        <p class="card-desc">Relais intelligents et interrupteurs connectés — automatisez l'éclairage, les prises et les équipements électriques depuis l'application Ajax.</p>
+        <ul class="card-feats">
+          <li>Contrôle à distance via app</li>
+          <li>Scénarios automatiques</li>
+          <li>Compatible éclairage et volets</li>
+          <li>Sans câblage supplémentaire</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+    <div class="card" data-cat="confort">
+      <div class="card-img" style="background:radial-gradient(circle at 50% 60%,#1a1812,#0a0a0a);">
+        <img src="https://ajax.systems/api/cdn-img/?img=%2Findex%2Ffirst-block%2Fcomfort-automation%2Fcomfort-automation.xl.jpg" alt="Détecteurs fuite" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-img-ph><i data-lucide=droplets></i></div>';lucide.createIcons()">
+      </div>
+      <div class="card-body">
+        <div class="card-chip"><i data-lucide="droplets"></i>Détection fuite</div>
+        <h3 class="card-name">Détecteurs de fuites & Vannes</h3>
+        <p class="card-desc">Détecteurs d'inondation avec vanne d'arrêt automatique — protégez votre bien contre les dégâts des eaux avec coupure automatique de l'alimentation.</p>
+        <ul class="card-feats">
+          <li>Détection fuite instantanée</li>
+          <li>Vanne d'arrêt motorisée</li>
+          <li>Alerte mobile immédiate</li>
+          <li>Installation sous évier ou machine</li>
+        </ul>
+        <span class="card-link">En savoir plus <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</main>
+
+<!-- ══ SOLUTIONS ══ -->
+<section class="solutions" id="solutions">
+  <div class="wrap">
+    <div class="sec-head" style="border:none;">
+      <div class="sec-head-left">
+        <div class="sec-eyebrow">Applications</div>
+        <h2>Solutions par secteur</h2>
+      </div>
+    </div>
+    <p style="font-size:var(--fs-lead);color:var(--he-grey-300);max-width:560px;margin:0 0 4px;line-height:1.7;">
+      Ajax s'adapte à chaque contexte. Nos techniciens étudient votre site et configurent la solution optimale.
+    </p>
+    <div class="sol-grid">
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="home"></i></div>
+        <div class="sol-name">Résidentiel</div>
+        <p class="sol-desc">Maisons, appartements, résidences secondaires et propriétés vacantes.</p>
+        <div class="sol-tags"><span class="sol-tag">Maisons</span><span class="sol-tag">Appartements</span><span class="sol-tag">Résidences 2nd</span></div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="building-2"></i></div>
+        <div class="sol-name">Commercial</div>
+        <p class="sol-desc">Bureaux, commerces, restaurants et cabinets médicaux.</p>
+        <div class="sol-tags"><span class="sol-tag">Bureaux</span><span class="sol-tag">Commerces</span><span class="sol-tag">Restaurants</span></div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="factory"></i></div>
+        <div class="sol-name">Industriel</div>
+        <p class="sol-desc">Entrepôts, sites de production et plateformes logistiques.</p>
+        <div class="sol-tags"><span class="sol-tag">Entrepôts</span><span class="sol-tag">Production</span><span class="sol-tag">Sites isolés</span></div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="landmark"></i></div>
+        <div class="sol-name">ERP & Municipal</div>
+        <p class="sol-desc">Musées, établissements scolaires et équipements recevant du public.</p>
+        <div class="sol-tags"><span class="sol-tag">Musées</span><span class="sol-tag">Écoles</span><span class="sol-tag">ERP</span></div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="flame"></i></div>
+        <div class="sol-name">Incendie réglementaire</div>
+        <p class="sol-desc">Systèmes certifiés Type 4 et EN54 pour les obligations légales.</p>
+        <div class="sol-tags"><span class="sol-tag">Type 4</span><span class="sol-tag">EN54</span><span class="sol-tag">Certifié</span></div>
+      </div>
+      <div class="sol-card">
+        <div class="sol-icon"><i data-lucide="shield-check"></i></div>
+        <div class="sol-name">Haute sécurité Grade 3</div>
+        <p class="sol-desc">Bijouteries, banques et zones à risque élevé avec certification Grade 3.</p>
+        <div class="sol-tags"><span class="sol-tag">Bijouteries</span><span class="sol-tag">Banques</span><span class="sol-tag">Grade 3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta" id="cta-section">
+  <div class="wrap">
+    <div class="cta-inner">
+      <div class="eyebrow" style="justify-content:center;">Installation professionnelle en Savoie</div>
+      <h2>Étude gratuite de<br>votre projet sécurité</h2>
+      <p class="lead">Nos techniciens certifiés Ajax se déplacent sur votre site pour évaluer vos besoins et proposer la solution adaptée.</p>
+      <div class="cta-btns">
+        <button class="btn-primary" style="font-size:13px;padding:13px 30px;">
+          <i data-lucide="phone-call" style="width:15px;height:15px;"></i>
+          Demander un devis
+        </button>
+        <button class="btn-outline" style="font-size:13px;padding:13px 30px;">
+          <i data-lucide="mail" style="width:15px;height:15px;"></i>
+          Nous écrire
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <img src="_ds/harmonie-lectricit-design-system-6eb013ae-5591-4e97-952f-0cb453ddbc3c/assets/monogram.png" alt=""/>
+        <span class="footer-nm">Harmonie<b>Électricité</b></span>
+      </div>
+      <span class="footer-note">Catalogue Ajax Systems — Installateur certifié Savoie</span>
+      <span class="footer-note" style="display:flex;align-items:center;gap:6px;">
+        <i data-lucide="award" style="width:13px;height:13px;color:var(--he-gold);"></i>
+        Partenaire officiel Ajax Systems
+      </span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ SCRIPTS ══ -->
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+lucide.createIcons();
+
+const nav = sel => { const el = document.querySelector(sel); if(el) window.scrollTo({top:el.offsetTop-144,behavior:'smooth'}); };
+
+/* ── Scroll reveal ── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const card = entry.target;
+    const siblings = Array.from(card.parentElement.children).filter(c => c.classList.contains('card') || c.classList.contains('sol-card'));
+    const idx = siblings.indexOf(card);
+    setTimeout(() => card.classList.add('in'), idx * 65);
+    revealObs.unobserve(card);
+  });
+}, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.card, .sol-card').forEach(c => revealObs.observe(c));
+
+/* ── Filter ── */
+function filterCat(btn, target) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const dividers = document.querySelectorAll('.divider');
+  const sections = document.querySelectorAll('.cat-section');
+
+  if (target === 'all') {
+    sections.forEach(s => s.style.display = '');
+    dividers.forEach(d => d.parentElement.style.display = '');
+    const first = document.querySelector('.cat-section');
+    if (first) window.scrollTo({top: first.offsetTop - 144, behavior: 'smooth'});
+  } else {
+    sections.forEach(s => s.style.display = s.dataset.category === target ? '' : 'none');
+    dividers.forEach(d => d.parentElement.style.display = 'none');
+    const target_el = document.getElementById(target);
+    if (target_el) {
+      window.scrollTo({top: target_el.offsetTop - 144, behavior: 'smooth'});
+      target_el.querySelectorAll('.card, .sol-card').forEach(c => {
+        if (!c.classList.contains('in')) revealObs.observe(c);
+      });
+    }
+  }
+}
+
+/* ── Highlight active section on scroll ── */
+const sectionEls = document.querySelectorAll('.cat-section[id]');
+const scrollObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.target === id);
+      });
+    }
+  });
+}, { threshold: 0.25 });
+sectionEls.forEach(s => scrollObs.observe(s));
+</script>
+</body>
+</html>

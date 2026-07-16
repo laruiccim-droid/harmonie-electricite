@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Admin Photos — Harmonie Électricité</title>
+<link rel="icon" type="image/png" href="/assets/monogram.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0A0A0A;--ink2:#141210;--ink3:#1c1a17;
+  --gold:#C9A86A;--gold2:#f0e3c2;
+  --grey:#7C786E;--grey2:#B6B1A6;
+  --white:#F4F1EA;
+  --red:#e05050;--green:#4caf7d;
+  --hairline:rgba(201,168,106,0.22);
+  --r:12px;
+}
+body{background:var(--ink);color:var(--white);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:100px;}
+
+header{background:var(--ink2);border-bottom:1px solid var(--hairline);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;}
+header img{width:32px;height:32px;border-radius:8px;}
+header h1{font-size:.95rem;font-weight:700;color:var(--gold);flex:1;}
+header small{display:block;font-size:.68rem;color:var(--grey2);}
+#btnLogout{background:none;border:1px solid var(--hairline);color:var(--grey2);border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;}
+
+.tabs{display:flex;background:var(--ink2);border-bottom:1px solid var(--hairline);position:sticky;top:57px;z-index:40;}
+.tab{flex:1;padding:12px 4px;text-align:center;font-size:.75rem;color:var(--grey);cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+.tab.active{color:var(--gold);border-color:var(--gold);}
+.badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;border-radius:10px;font-size:.6rem;font-weight:700;padding:1px 5px;margin-left:4px;vertical-align:middle;}
+
+.screen{display:none;padding:16px;}
+.screen.active{display:block;}
+
+/* LOGIN */
+.login-card{max-width:340px;margin:60px auto;background:var(--ink2);border:1px solid var(--hairline);border-radius:var(--r);padding:28px 22px;}
+.login-card h2{font-size:1.1rem;margin-bottom:20px;color:var(--gold);text-align:center;}
+
+/* FIELDS */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.78rem;color:var(--grey2);margin-bottom:5px;letter-spacing:.04em;}
+.field input,.field select,.field textarea{width:100%;background:var(--ink3);border:1px solid var(--hairline);border-radius:8px;padding:11px 13px;color:var(--white);font-size:.9rem;font-family:inherit;outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
+.field select option{background:var(--ink3);}
+.check-row{display:flex;gap:16px;}
+.check-item{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--grey2);cursor:pointer;}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
+
+/* BUTTONS */
+.btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn-gold{background:linear-gradient(135deg,#F0E3C2,#C9A86A);color:var(--ink);}
+.btn-gold:hover{opacity:.88;}
+.btn-gold:disabled{opacity:.4;cursor:not-allowed;}
+
+/* CATEGORY PILLS */
+.cat-pills{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;margin-bottom:12px;scrollbar-width:none;}
+.cat-pills::-webkit-scrollbar{display:none;}
+.cat-pill{background:var(--ink2);border:1px solid var(--hairline);color:var(--grey2);border-radius:20px;padding:6px 14px;font-size:.78rem;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;}
+.cat-pill.active{background:rgba(201,168,106,.15);border-color:var(--gold);color:var(--gold);}
+.pill-count{background:var(--ink3);border-radius:10px;padding:1px 6px;font-size:.65rem;margin-left:4px;}
+
+/* PHOTO GRID */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.photo-thumb-wrap{position:relative;aspect-ratio:1;}
+.photo-thumb-wrap img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;}
+.photo-overlay{position:absolute;inset:0;border-radius:8px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;gap:6px;opacity:0;transition:opacity .2s;}
+.photo-thumb-wrap:hover .photo-overlay{opacity:1;}
+.photo-action{background:rgba(255,255,255,.18);border:none;border-radius:6px;color:#fff;padding:5px 8px;font-size:.72rem;cursor:pointer;}
+.photo-action.del{background:rgba(220,50,50,.55);}
+.cover-badge{position:absolute;top:4px;left:4px;background:var(--gold);color:var(--ink);border-radius:4px;font-size:.6rem;font-weight:700;padding:2px 5px;pointer-events:none;}
+
+/* UPLOAD PREVIEWS */
+.previews{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;}
+.preview-wrap{position:relative;aspect-ratio:1;cursor:pointer;}
+.preview-wrap img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;transition:border-color .2s;}
+
+/* DROPZONE */
+.drop-zone{border:2px dashed var(--hairline);border-radius:10px;padding:28px 20px;text-align:center;color:var(--grey);font-size:.85rem;cursor:pointer;transition:border-color .2s;margin-bottom:6px;}
+.drop-zone:hover{border-color:var(--gold);}
+
+/* PROGRESS */
+.progress-bar{height:6px;background:var(--ink3);border-radius:3px;overflow:hidden;margin:10px 0;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#C9A86A,#f0e3c2);border-radius:3px;transition:width .3s;}
+.status-line{font-size:.78rem;color:var(--grey2);text-align:center;min-height:20px;margin-bottom:8px;}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;}
+.modal{background:var(--ink2);border-top:1px solid var(--hairline);border-radius:16px 16px 0 0;padding:20px 16px;width:100%;max-height:80vh;overflow-y:auto;}
+.modal h3{font-size:.95rem;color:var(--gold);margin-bottom:14px;}
+.modal-close{position:absolute;right:16px;top:16px;background:none;border:none;color:var(--grey2);font-size:1.2rem;cursor:pointer;}
+.cat-option{padding:12px 14px;border-radius:8px;border:1px solid var(--hairline);margin-bottom:8px;cursor:pointer;font-size:.88rem;background:var(--ink3);}
+.cat-option:hover{border-color:var(--gold);color:var(--gold);}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink2);border:1px solid var(--gold);color:var(--gold);padding:10px 20px;border-radius:30px;font-size:.82rem;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--grey);}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;}
+
+/* UC SELECT */
+.uc-toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+.uc-toolbar button{background:var(--ink2);border:1px solid var(--hairline);color:var(--grey2);border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer;}
+.uc-toolbar button:hover{border-color:var(--gold);color:var(--gold);}
+
+/* SOCIAL */
+.social-divider{border-top:1px solid var(--hairline);padding-top:14px;margin-top:8px;}
+.social-divider-label{font-size:.75rem;color:var(--grey2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.social-caption{margin-top:8px;}
+.social-caption textarea{width:100%;background:var(--ink3);border:1px solid var(--hairline);border-radius:8px;padding:10px 12px;color:var(--white);font-size:.82rem;font-family:inherit;resize:vertical;outline:none;transition:border-color .2s;}
+.social-caption textarea:focus{border-color:var(--gold);}
+.platform-card{background:var(--ink2);border:1px solid var(--hairline);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+.platform-card.connected{border-color:rgba(76,175,125,.4);}
+.platform-icon{font-size:1.6rem;flex-shrink:0;width:40px;text-align:center;}
+.platform-info{flex:1;}
+.platform-name{font-size:.9rem;font-weight:600;margin-bottom:2px;}
+.platform-status{font-size:.75rem;color:var(--grey);}
+.platform-status.ok{color:var(--green);}
+.platform-btn{background:none;border:1px solid var(--hairline);color:var(--grey2);border-radius:8px;padding:7px 14px;font-size:.78rem;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.platform-btn:hover{border-color:var(--gold);color:var(--gold);}
+.platform-btn.disconnect{border-color:rgba(224,80,80,.4);color:var(--red);}
+.platform-btn.disconnect:hover{background:rgba(224,80,80,.1);}
+.platform-btn.connecting{opacity:.5;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screenLogin" class="screen active" style="padding:20px;">
+  <div class="login-card">
+    <h2>🔑 Accès Admin</h2>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="pwdInput" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-gold" onclick="doLogin()">Connexion</button>
+    <p id="loginErr" style="color:var(--red);font-size:.8rem;margin-top:10px;text-align:center;"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <header>
+    <img src="/assets/monogram.png" alt="">
+    <h1>Admin Photos<small>Harmonie Électricité</small></h1>
+    <button id="btnLogout" onclick="logout()">Déco.</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('galerie')">🖼 Galerie</div>
+    <div class="tab" onclick="showTab('upload')">📷 Ajouter</div>
+    <div class="tab" onclick="showTab('unclassified')">🗂 Non classées<span class="badge" id="ucBadge" style="display:none"></span></div>
+    <div class="tab" onclick="showTab('reseaux')">📡 Réseaux</div>
+  </div>
+
+  <!-- GALERIE -->
+  <div id="tabGalerie" class="screen active">
+    <div class="cat-pills" id="catPills"></div>
+    <div id="galerieGrid"></div>
+  </div>
+
+  <!-- AJOUTER -->
+  <div id="tabUpload" class="screen">
+    <div style="max-width:480px;margin:0 auto;">
+      <div class="field">
+        <label>Description du chantier *</label>
+        <input type="text" id="upTitre" placeholder="ex: Maison Dupont — Alarme Ajax">
+      </div>
+      <div class="field">
+        <label>Catégorie *</label>
+        <select id="upCat">
+          <option value="alarme">Alarme</option>
+          <option value="video">Vidéosurveillance</option>
+          <option value="interphonie">Interphonie</option>
+          <option value="automatismes">Motorisations / Portails</option>
+          <option value="acces">Contrôle d'accès</option>
+          <option value="irve">Bornes IRVE</option>
+          <option value="sonorisation">Sonorisation</option>
+          <option value="divers">Divers</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="check-row">
+          <label class="check-item"><input type="checkbox" id="upGalerie" checked> Galerie</label>
+          <label class="check-item"><input type="checkbox" id="upAccueil"> Accueil</label>
+        </div>
+      </div>
+
+      <!-- RÉSEAUX SOCIAUX -->
+      <div class="social-divider">
+        <div class="social-divider-label">
+          <span>📡 Publier aussi sur</span>
+          <a href="#" onclick="showTab('reseaux');return false;" style="font-size:.7rem;color:var(--gold);text-decoration:none;">Gérer les connexions →</a>
+        </div>
+        <div class="check-row" id="socialChecks">
+          <label class="check-item"><input type="checkbox" id="upFacebook" onchange="toggleSocialCaption()"> <span id="fbCheckLabel">Facebook</span></label>
+          <label class="check-item"><input type="checkbox" id="upInstagram" onchange="toggleSocialCaption()"> <span id="igCheckLabel">Instagram</span></label>
+          <label class="check-item"><input type="checkbox" id="upLinkedin" onchange="toggleSocialCaption()"> <span id="liCheckLabel">LinkedIn</span></label>
+          <label class="check-item"><input type="checkbox" id="upGoogle" onchange="toggleSocialCaption()"> <span id="ggCheckLabel">Google</span></label>
+        </div>
+        <div class="social-caption" id="socialCaption" style="display:none;">
+          <textarea id="upSocialText" rows="3" placeholder="Texte du post (laisser vide pour utiliser la description du chantier)"></textarea>
+          <p style="font-size:.7rem;color:var(--grey);margin-top:4px;">📸 Toutes les photos seront publiées — la photo ★ apparaît en premier</p>
+        </div>
+      </div>
+
+      <div class="drop-zone" id="upDrop" onclick="document.getElementById('upFile').click()">
+        📷 Appuyer pour choisir des photos
+        <input type="file" id="upFile" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+      </div>
+      <p style="font-size:.72rem;color:var(--grey);text-align:center;margin-bottom:6px;">Cliquez sur une photo pour la choisir comme couverture (★)</p>
+      <div class="previews" id="upPreviews"></div>
+      <div class="progress-bar" id="upBar" style="display:none"><div class="progress-fill" id="upFill" style="width:0"></div></div>
+      <p class="status-line" id="upStatus"></p>
+      <button class="btn btn-gold" id="upBtn" onclick="doUpload()" disabled>Envoyer</button>
+    </div>
+  </div>
+
+  <!-- RÉSEAUX SOCIAUX -->
+  <div id="tabReseaux" class="screen">
+    <div style="max-width:480px;margin:0 auto;padding:8px 0;">
+      <p style="font-size:.8rem;color:var(--grey2);margin-bottom:16px;line-height:1.5;">Connectez vos comptes une seule fois. Ensuite, à chaque upload vous pourrez publier directement sur les réseaux cochés.</p>
+
+      <div class="platform-card" id="cardFacebook">
+        <div class="platform-icon">📘</div>
+        <div class="platform-info">
+          <div class="platform-name">Facebook</div>
+          <div class="platform-status" id="statusFacebook">Chargement…</div>
+        </div>
+        <button class="platform-btn" id="btnFacebook" onclick="connectPlatform('facebook')">Connecter</button>
+      </div>
+
+      <div class="platform-card" id="cardInstagram">
+        <div class="platform-icon">📸</div>
+        <div class="platform-info">
+          <div class="platform-name">Instagram</div>
+          <div class="platform-status" id="statusInstagram">Chargement…</div>
+        </div>
+        <button class="platform-btn" id="btnInstagram" onclick="connectPlatform('facebook')">Via Facebook</button>
+      </div>
+
+      <div class="platform-card" id="cardLinkedin">
+        <div class="platform-icon">💼</div>
+        <div class="platform-info">
+          <div class="platform-name">LinkedIn</div>
+          <div class="platform-status" id="statusLinkedin">Chargement…</div>
+        </div>
+        <button class="platform-btn" id="btnLinkedin" onclick="connectPlatform('linkedin')">Connecter</button>
+      </div>
+
+      <div class="platform-card" id="cardGoogle">
+        <div class="platform-icon">🏢</div>
+        <div class="platform-info">
+          <div class="platform-name">Google Business</div>
+          <div class="platform-status" id="statusGoogle">Chargement…</div>
+        </div>
+        <button class="platform-btn" id="btnGoogle" onclick="connectPlatform('google')">Connecter</button>
+      </div>
+
+      <div style="background:var(--ink2);border:1px solid var(--hairline);border-radius:10px;padding:14px;margin-top:8px;">
+        <p style="font-size:.75rem;color:var(--grey);line-height:1.6;">
+          <strong style="color:var(--grey2);">Prérequis :</strong> avant de connecter une plateforme, vous devez créer une app développeur sur chacune d'elles et ajouter les variables d'environnement sur Vercel (<code style="color:var(--gold);">FB_APP_ID</code>, <code style="color:var(--gold);">FB_APP_SECRET</code>, <code style="color:var(--gold);">LI_CLIENT_ID</code>, <code style="color:var(--gold);">LI_CLIENT_SECRET</code>, <code style="color:var(--gold);">GOOGLE_CLIENT_ID</code>, <code style="color:var(--gold);">GOOGLE_CLIENT_SECRET</code>).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- NON CLASSÉES -->
+  <div id="tabUnclassified" class="screen">
+    <div class="uc-toolbar">
+      <span style="font-size:.8rem;color:var(--grey2);" id="ucCount"></span>
+      <button onclick="assignSelected()">Classer la sélection →</button>
+    </div>
+    <div id="ucContainer"></div>
+  </div>
+
+  <!-- MODAL CHANGER CATÉGORIE -->
+  <div class="modal-backdrop" id="moveCatModal" style="display:none;" onclick="closeCatModal(event)">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeCatModal()">✕</button>
+      <h3 id="moveCatTitle">Changer de catégorie</h3>
+      <div id="moveCatList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const CATS = {
+  alarme:'Alarme', video:'Vidéosurveillance', interphonie:'Interphonie',
+  automatismes:'Motorisations', acces:"Contrôle d'accès", irve:'Bornes IRVE',
+  sonorisation:'Sonorisation', divers:'Divers', autre:'Autre'
+};
+
+let PWD = '';
+let allChantiers = [];
+let galCat = 'alarme';
+let upFiles = [];
+let coverIdx = 0;
+let movingPhotoId = null;
+let moveMode = 'cat'; // 'cat' or 'uc'
+let ucPhotos = [];
+let ucSelected = new Set();
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const pwd = document.getElementById('pwdInput').value;
+  if (!pwd) return;
+  const res = await fetch('/api/chantier?action=list-chantiers', {
+    headers: { 'x-admin-password': pwd }
+  });
+  if (!res.ok) { document.getElementById('loginErr').textContent = 'Mot de passe incorrect'; return; }
+  PWD = pwd;
+  sessionStorage.setItem('admin_pwd', pwd);
+  document.getElementById('screenLogin').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  allChantiers = await res.json();
+  init();
+}
+
+function logout() {
+  sessionStorage.removeItem('admin_pwd');
+  location.reload();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function api(action, body) {
+  try {
+    const res = await fetch('/api/chantier?action=' + action, {
+      method: body ? 'POST' : 'GET',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const json = await res.json();
+    if (!res.ok) { toast((json.error || 'Erreur'), true); return null; }
+    return json;
+  } catch(e) { toast('Erreur réseau', true); return null; }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  renderCatPills();
+  renderGalerie();
+  loadUnclassified();
+  loadSocialStatus();
+  // Restore last tab
+  const lastTab = sessionStorage.getItem('admin_tab') || 'galerie';
+  showTab(lastTab);
+}
+
+async function loadChantiers() {
+  const data = await api('list-chantiers');
+  if (data) allChantiers = data;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(name) {
+  const tabs = ['galerie','upload','unclassified','reseaux'];
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === name));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  sessionStorage.setItem('admin_tab', name);
+  if (name === 'unclassified') loadUnclassified();
+  if (name === 'galerie') { renderCatPills(); renderGalerie(); }
+  if (name === 'reseaux') loadSocialStatus();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = err ? 'var(--red)' : 'var(--gold)';
+  t.style.color = err ? 'var(--red)' : 'var(--gold)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── GALERIE TAB ───────────────────────────────────────────────────────────
+function getPhotosByCat(cat) {
+  const result = [];
+  for (const c of allChantiers) {
+    for (const p of (c.photos || [])) {
+      if ((p.categorie || 'autre') === cat) {
+        result.push({ ...p, _chantierId: c.id, _coverUrl: c.cover_url });
+      }
+    }
+  }
+  result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  return result;
+}
+
+function renderCatPills() {
+  document.getElementById('catPills').innerHTML = Object.entries(CATS).map(([k, v]) => {
+    const count = getPhotosByCat(k).length;
+    return `<button class="cat-pill${k === galCat ? ' active' : ''}" onclick="selectCat('${k}')">${v}${count ? ' <span class="pill-count">'+count+'</span>' : ''}</button>`;
+  }).join('');
+}
+
+function selectCat(cat) {
+  galCat = cat;
+  renderCatPills();
+  renderGalerie();
+}
+
+function renderGalerie() {
+  const photos = getPhotosByCat(galCat);
+  const el = document.getElementById('galerieGrid');
+  if (!photos.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📷</div>Aucune photo dans cette catégorie.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="photo-grid">' + photos.map(p => {
+    const isCover = p._coverUrl === p.url;
+    return `<div class="photo-thumb-wrap">
+      <img src="${p.url}" loading="lazy" onerror="this.style.display='none'" style="border:2px solid ${isCover ? 'var(--gold)' : 'transparent'};border-radius:8px;">
+      ${isCover ? '<div class="cover-badge">★ Couv.</div>' : ''}
+      <div class="photo-overlay">
+        <button class="photo-action" onclick="setCoverFromGal('${p.url}','${p._chantierId}',event)" title="Couverture">★</button>
+        <button class="photo-action" onclick="openMoveCat('${p.id}','${p.categorie||'autre'}',event)">⇄</button>
+        <button class="photo-action del" onclick="deletePhoto('${p.id}',event)">✕</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+async function setCoverFromGal(url, chantierId, event) {
+  if (event) event.stopPropagation();
+  if (!chantierId || chantierId === 'null') { toast('Photo non classée', true); return; }
+  await api('set-cover', { chantier_id: chantierId, cover_url: url });
+  await loadChantiers();
+  renderGalerie();
+  toast('Photo de couverture mise à jour !');
+}
+
+// ── MOVE CATEGORY ─────────────────────────────────────────────────────────
+function openMoveCat(photoId, currentCat, event) {
+  if (event) event.stopPropagation();
+  movingPhotoId = photoId;
+  moveMode = 'cat';
+  document.getElementById('moveCatTitle').textContent = 'Changer de catégorie';
+  document.getElementById('moveCatList').innerHTML = Object.entries(CATS)
+    .filter(([k]) => k !== currentCat)
+    .map(([k, v]) => `<div class="cat-option" onclick="doMoveCat('${k}')">${v}</div>`)
+    .join('');
+  document.getElementById('moveCatModal').style.display = 'flex';
+}
+
+function openUcMoveCat(photoId) {
+  movingPhotoId = photoId;
+  moveMode = 'uc';
+  document.getElementById('moveCatTitle').textContent = 'Classer dans…';
+  document.getElementById('moveCatList').innerHTML = Object.entries(CATS)
+    .map(([k, v]) => `<div class="cat-option" onclick="doMoveCat('${k}')">${v}</div>`)
+    .join('');
+  document.getElementById('moveCatModal').style.display = 'flex';
+}
+
+function openUcBatchMoveCat() {
+  if (!ucSelected.size) { toast('Sélectionnez des photos d\'abord', true); return; }
+  movingPhotoId = null;
+  moveMode = 'ucbatch';
+  document.getElementById('moveCatTitle').textContent = 'Classer la sélection dans…';
+  document.getElementById('moveCatList').innerHTML = Object.entries(CATS)
+    .map(([k, v]) => `<div class="cat-option" onclick="doMoveCat('${k}')">${v}</div>`)
+    .join('');
+  document.getElementById('moveCatModal').style.display = 'flex';
+}
+
+function closeCatModal(event) {
+  if (event && event.target !== document.getElementById('moveCatModal')) return;
+  document.getElementById('moveCatModal').style.display = 'none';
+  movingPhotoId = null;
+}
+
+async function doMoveCat(newCat) {
+  document.getElementById('moveCatModal').style.display = 'none';
+  if (moveMode === 'ucbatch') {
+    for (const id of ucSelected) {
+      await api('update-photo', { photo_id: id, categorie: newCat, show_galerie: true });
+    }
+    toast(ucSelected.size + ' photos classées en ' + CATS[newCat]);
+    ucSelected.clear();
+  } else if (movingPhotoId) {
+    await api('update-photo', { photo_id: movingPhotoId, categorie: newCat });
+    toast('Photo déplacée vers ' + CATS[newCat]);
+  }
+  movingPhotoId = null;
+  await loadChantiers();
+  renderCatPills();
+  renderGalerie();
+  if (document.getElementById('tabUnclassified').classList.contains('active')) loadUnclassified();
+}
+
+function assignSelected() {
+  openUcBatchMoveCat();
+}
+
+// ── UPLOAD TAB ────────────────────────────────────────────────────────────
+function handleFiles(files) {
+  upFiles = Array.from(files);
+  coverIdx = 0;
+  renderPreviews();
+  document.getElementById('upBtn').disabled = !upFiles.length;
+}
+
+function renderPreviews() {
+  document.getElementById('upPreviews').innerHTML = upFiles.map((f, i) => {
+    const isCover = i === coverIdx;
+    const url = URL.createObjectURL(f);
+    return `<div class="preview-wrap" onclick="selectCover(${i})">
+      <img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:3px solid ${isCover ? 'var(--gold)' : 'transparent'};">
+      ${isCover ? '<div class="cover-badge">★ Couv.</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function selectCover(idx) {
+  coverIdx = idx;
+  renderPreviews();
+}
+
+async function doUpload() {
+  const titre = document.getElementById('upTitre').value.trim();
+  if (!titre) { toast('Description requise', true); return; }
+  if (!upFiles.length) return;
+
+  const categorie = document.getElementById('upCat').value;
+  const show_galerie = document.getElementById('upGalerie').checked;
+  const show_accueil = document.getElementById('upAccueil').checked;
+
+  const btn = document.getElementById('upBtn');
+  btn.disabled = true;
+  const bar = document.getElementById('upBar');
+  const fill = document.getElementById('upFill');
+  const status = document.getElementById('upStatus');
+  bar.style.display = 'block';
+  status.textContent = 'Création du chantier…';
+
+  const chantier = await api('create-chantier', { titre, categorie, show_galerie, show_accueil });
+  if (!chantier || !chantier.id) {
+    toast('Erreur création chantier', true);
+    btn.disabled = false;
+    return;
+  }
+  const chantier_id = chantier.id;
+
+  const results = [];
+  for (let i = 0; i < upFiles.length; i++) {
+    status.textContent = `Envoi ${i + 1} / ${upFiles.length}…`;
+    fill.style.width = `${(i / upFiles.length) * 100}%`;
+    const fd = new FormData();
+    fd.append('password', PWD);
+    fd.append('categorie', categorie);
+    fd.append('chantier_id', chantier_id);
+    fd.append('show_galerie', show_galerie ? 'true' : 'false');
+    fd.append('show_accueil', show_accueil ? 'true' : 'false');
+    const compressed = await compressImage(upFiles[i]);
+    fd.append('photos', compressed, upFiles[i].name);
+    try {
+      const r = await fetch('/api/upload-photo', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.results && d.results[0]) results.push(d.results[0]);
+    } catch(e) {}
+  }
+
+  // Définir la photo de couverture
+  const coverUrl = (results[coverIdx] || results[0] || {}).url;
+  if (coverUrl) {
+    await api('set-cover', { chantier_id, cover_url: coverUrl });
+  }
+
+  fill.style.width = '100%';
+  status.textContent = `${results.length} photo(s) envoyée(s) !`;
+
+  // ── Publication réseaux sociaux ──
+  const platforms = [];
+  if (document.getElementById('upFacebook').checked) platforms.push('facebook');
+  if (document.getElementById('upInstagram').checked) platforms.push('instagram');
+  if (document.getElementById('upLinkedin').checked) platforms.push('linkedin');
+  if (document.getElementById('upGoogle').checked) platforms.push('google');
+
+  if (platforms.length && coverUrl) {
+    const socialText = document.getElementById('upSocialText').value.trim() || titre;
+    status.textContent = `Publication sur ${platforms.join(', ')}…`;
+    const allImageUrls = results.map(r => r.url).filter(Boolean);
+    try {
+      const r = await fetch('/api/social-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
+        body: JSON.stringify({ platforms, text: socialText, image_urls: allImageUrls, cover_index: coverIdx }),
+      });
+      const d = await r.json();
+      const ok = platforms.filter(p => !d.results?.[p]?.error);
+      const fail = platforms.filter(p => d.results?.[p]?.error);
+      if (ok.length) toast(`✅ Publié sur ${ok.join(', ')} !`);
+      if (fail.length) {
+        for (const p of fail) toast(`❌ ${p}: ${d.results[p].error}`, true);
+      }
+    } catch(e) {
+      toast('Erreur publication réseaux : ' + e.message, true);
+    }
+  }
+
+  // Reset formulaire
+  upFiles = [];
+  coverIdx = 0;
+  document.getElementById('upPreviews').innerHTML = '';
+  document.getElementById('upFile').value = '';
+  document.getElementById('upTitre').value = '';
+  document.getElementById('upAccueil').checked = false;
+  document.getElementById('upFacebook').checked = false;
+  document.getElementById('upInstagram').checked = false;
+  document.getElementById('upLinkedin').checked = false;
+  document.getElementById('upGoogle').checked = false;
+  document.getElementById('upSocialText').value = '';
+  document.getElementById('socialCaption').style.display = 'none';
+  btn.disabled = true;
+  if (!platforms.length) toast('Upload terminé !');
+  await loadChantiers();
+  renderCatPills();
+}
+
+// ── UNCLASSIFIED ──────────────────────────────────────────────────────────
+async function loadUnclassified() {
+  const res = await api('list-unclassified');
+  ucPhotos = res || [];
+  ucSelected.clear();
+  const badge = document.getElementById('ucBadge');
+  badge.textContent = ucPhotos.length;
+  badge.style.display = ucPhotos.length ? 'inline-flex' : 'none';
+  document.getElementById('ucCount').textContent = ucPhotos.length
+    ? `${ucPhotos.length} photo(s) non classée(s)`
+    : '';
+  renderUnclassified();
+}
+
+function renderUnclassified() {
+  const el = document.getElementById('ucContainer');
+  if (!ucPhotos.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div>Toutes les photos sont classées !</div>';
+    return;
+  }
+  el.innerHTML = '<div class="photo-grid">' + ucPhotos.map(p =>
+    `<div class="photo-thumb-wrap" id="uc_${p.id}">
+      <img src="${p.url}" loading="lazy" onerror="this.style.display='none'" style="border:2px solid transparent;border-radius:8px;" id="ucimg_${p.id}" onclick="toggleUcSelect('${p.id}')">
+      <div class="photo-overlay">
+        <button class="photo-action" onclick="openUcMoveCat('${p.id}')">Classer</button>
+        <button class="photo-action del" onclick="deletePhoto('${p.id}',event)">✕</button>
+      </div>
+    </div>`
+  ).join('') + '</div>';
+}
+
+function toggleUcSelect(id) {
+  const img = document.getElementById('ucimg_' + id);
+  if (ucSelected.has(id)) {
+    ucSelected.delete(id);
+    img.style.borderColor = 'transparent';
+  } else {
+    ucSelected.add(id);
+    img.style.borderColor = 'var(--gold)';
+  }
+}
+
+// ── DELETE PHOTO ──────────────────────────────────────────────────────────
+function deletePhoto(id, event) {
+  if (event) event.stopPropagation();
+  const prev = document.getElementById('del-menu');
+  if (prev) { prev.remove(); if (prev.dataset.photoId === id) return; }
+
+  const menu = document.createElement('div');
+  menu.id = 'del-menu';
+  menu.dataset.photoId = id;
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#1e1e1e;border:1px solid #333;border-radius:10px;padding:6px 0;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,.6);';
+
+  const options = [
+    { label: '🏠 Retirer de l\'accueil', sub: 'La photo reste dans la galerie', action: async () => {
+      await api('update-photo', { photo_id: id, show_accueil: false });
+      toast('Retiré de l\'accueil');
+    }},
+    { label: '🖼 Retirer de la galerie', sub: 'La photo reste sur l\'accueil', action: async () => {
+      await api('update-photo', { photo_id: id, show_galerie: false });
+      toast('Retiré de la galerie');
+    }},
+    { label: '🗑 Supprimer définitivement', sub: 'Efface la photo partout', danger: true, action: async () => {
+      if (!confirm('Supprimer définitivement cette photo ?')) return;
+      await api('delete-photo', { photo_id: id });
+      toast('Photo supprimée');
+    }},
+  ];
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'display:block;width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;color:' + (opt.danger ? '#e55' : '#eee') + ';';
+    btn.innerHTML = '<div style="font-size:.85rem;font-weight:600;">' + opt.label + '</div><div style="font-size:.72rem;color:#888;margin-top:1px;">' + opt.sub + '</div>';
+    btn.onmouseenter = () => btn.style.background = '#2a2a2a';
+    btn.onmouseleave = () => btn.style.background = 'none';
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      menu.remove();
+      await opt.action();
+      await loadChantiers();
+      renderCatPills();
+      renderGalerie();
+      if (document.getElementById('tabUnclassified').classList.contains('active')) loadUnclassified();
+    };
+    menu.appendChild(btn);
+  });
+
+  if (event) {
+    const rect = event.target.getBoundingClientRect();
+    menu.style.top = Math.min(rect.bottom + 6, window.innerHeight - 180) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function close(e) {
+    if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', close); }
+  }), 0);
+}
+
+// ── IMAGE COMPRESSION ─────────────────────────────────────────────────────
+async function compressImage(file, maxPx = 1600, quality = 0.82) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      c.toBlob(b => resolve(b || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ── SOCIAL ────────────────────────────────────────────────────────────────────
+
+function toggleSocialCaption() {
+  const any = document.getElementById('upFacebook').checked
+    || document.getElementById('upLinkedin').checked
+    || document.getElementById('upGoogle').checked;
+  document.getElementById('socialCaption').style.display = any ? 'block' : 'none';
+}
+
+let socialConnected = {}; // { facebook: {page_name, updated_at}, ... }
+
+async function loadSocialStatus() {
+  try {
+    const res = await fetch('/api/social-auth?action=status', {
+      headers: { 'x-admin-password': PWD }
+    });
+    const rows = await res.json();
+    socialConnected = {};
+    for (const r of (rows || [])) socialConnected[r.platform] = r;
+  } catch(e) { socialConnected = {}; }
+  renderSocialStatus();
+  updateSocialCheckLabels();
+}
+
+function renderSocialStatus() {
+  const platforms = [
+    { key: 'facebook',  label: 'Facebook' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'linkedin',  label: 'LinkedIn' },
+    { key: 'google',    label: 'Google Business' },
+  ];
+  for (const { key, label } of platforms) {
+    const conn = socialConnected[key];
+    const card = document.getElementById('card' + key.charAt(0).toUpperCase() + key.slice(1));
+    const status = document.getElementById('status' + key.charAt(0).toUpperCase() + key.slice(1));
+    const btn = document.getElementById('btn' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (conn) {
+      card.classList.add('connected');
+      status.className = 'platform-status ok';
+      status.textContent = '✓ ' + conn.page_name;
+      btn.className = 'platform-btn disconnect';
+      btn.textContent = 'Déconnecter';
+      btn.onclick = () => disconnectPlatform(key);
+    } else {
+      card.classList.remove('connected');
+      status.className = 'platform-status';
+      status.textContent = key === 'instagram' ? 'Se connecte via Facebook' : 'Non connecté';
+      btn.className = 'platform-btn';
+      btn.textContent = key === 'instagram' ? 'Via Facebook →' : 'Connecter';
+      btn.onclick = () => connectPlatform(key === 'instagram' ? 'facebook' : key);
+    }
+  }
+}
+
+function updateSocialCheckLabels() {
+  const map = {
+    facebook:  { labelId: 'fbCheckLabel', checkId: 'upFacebook' },
+    instagram: { labelId: 'igCheckLabel', checkId: 'upInstagram' },
+    linkedin:  { labelId: 'liCheckLabel', checkId: 'upLinkedin' },
+    google:    { labelId: 'ggCheckLabel', checkId: 'upGoogle' },
+  };
+  for (const [key, { labelId, checkId }] of Object.entries(map)) {
+    const el = document.getElementById(labelId);
+    const conn = socialConnected[key];
+    const label = key === 'google' ? 'Google' : key.charAt(0).toUpperCase() + key.slice(1);
+    el.textContent = conn ? label + ' ✓' : label;
+    el.style.color = conn ? 'var(--green)' : '';
+    document.getElementById(checkId).disabled = !conn;
+  }
+}
+
+function connectPlatform(platform) {
+  const btn = document.getElementById('btn' + platform.charAt(0).toUpperCase() + platform.slice(1));
+  btn.classList.add('connecting');
+  btn.textContent = 'Connexion…';
+
+  const popup = window.open(
+    `/api/social-auth?platform=${platform}&action=start&pwd=${encodeURIComponent(PWD)}`,
+    'social-auth-' + platform,
+    'width=600,height=700,scrollbars=yes,resizable=yes'
+  );
+
+  const handler = async (e) => {
+    if (e.data?.type !== 'social-auth' || e.data?.platform !== platform) return;
+    window.removeEventListener('message', handler);
+    try { popup?.close(); } catch(e2) {}
+    if (e.data.success) {
+      toast(`✅ ${e.data.name} connecté !`);
+      await loadSocialStatus();
+    } else {
+      toast(`❌ Erreur : ${e.data.error}`, true);
+      btn.classList.remove('connecting');
+      btn.textContent = 'Connecter';
+    }
+  };
+  window.addEventListener('message', handler);
+
+  // Fallback si la popup est fermée manuellement
+  const check = setInterval(() => {
+    if (popup?.closed) {
+      clearInterval(check);
+      window.removeEventListener('message', handler);
+      loadSocialStatus();
+    }
+  }, 1000);
+}
+
+async function disconnectPlatform(platform) {
+  if (!confirm(`Déconnecter ${platform} ?`)) return;
+  await fetch(`/api/social-auth?action=disconnect&platform=${platform}`, {
+    method: 'POST',
+    headers: { 'x-admin-password': PWD },
+  });
+  toast(`${platform} déconnecté`);
+  await loadSocialStatus();
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── AUTO-LOGIN ─────────────────────────────────────────────────────────────
+(async () => {
+  const saved = sessionStorage.getItem('admin_pwd');
+  if (!saved) return;
+  const res = await fetch('/api/chantier?action=list-chantiers', {
+    headers: { 'x-admin-password': saved }
+  });
+  if (!res.ok) { sessionStorage.removeItem('admin_pwd'); return; }
+  PWD = saved;
+  document.getElementById('screenLogin').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  allChantiers = await res.json();
+  init();
+})();
+</script>
+</body>
+</html>
