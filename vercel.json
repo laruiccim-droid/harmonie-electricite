@@ -4,6 +4,16 @@
   "crons": [
     { "path": "/api/check-invoices", "schedule": "0 6 * * *" }
   ],
+  "redirects": [
+    { "source": "/alarme-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/alarme", "permanent": true },
+    { "source": "/videosurveillance-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/videosurveillance", "permanent": true },
+    { "source": "/automatisme-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/automatismes", "permanent": true },
+    { "source": "/controle-acces-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/controle-acces", "permanent": true },
+    { "source": "/interphone-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/interphonie", "permanent": true },
+    { "source": "/bornes-irve-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/bornes-irve", "permanent": true },
+    { "source": "/depannage-(yenne|belley|chambery|aix-les-bains|massignieu|bourget-du-lac)", "destination": "/", "permanent": true },
+    { "source": "/catalogue-ajax", "destination": "/alarme", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
