@@ -121,10 +121,21 @@ nav{display:flex;align-items:center;justify-content:space-between;
 #lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.1em;color:var(--he-grey-300);}
 
 /* FOOTER */
-footer{border-top:1px solid var(--he-hairline);padding:32px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
-.footer-copy{font-size:11px;color:var(--he-grey-500);}
-.footer-links{display:flex;gap:20px;}
-.footer-links a{font-size:11px;color:var(--he-grey-500);text-decoration:none;transition:color .2s;}
+footer{padding:0;border-top:1px solid var(--he-hairline);}
+.footer-node-divider{padding:22px 40px;}
+.node-divider{display:flex;align-items:center;gap:14px;}
+.nd-line{flex:1;height:1.5px;background:var(--he-hairline-strong,rgba(201,168,106,0.55));}
+.nd-dot-ring{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--he-gold);flex-shrink:0;}
+.nd-label{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--he-grey-500);}
+.footer-body{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;padding:32px 40px;border-bottom:1px solid var(--he-hairline);}
+.footer-brand-desc{font-size:12px;color:var(--he-grey-500);line-height:1.7;max-width:240px;margin-top:8px;}
+.footer-col-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--he-gold);margin-bottom:14px;}
+.footer-col a{display:block;font-size:12px;color:var(--he-grey-500);margin-bottom:8px;text-decoration:none;transition:color .18s;}
+.footer-col a:hover{color:var(--he-gold);}
+.footer-bottom{padding:18px 40px;display:flex;align-items:center;justify-content:space-between;}
+.footer-copy{font-size:10px;color:var(--he-grey-700,#514E47);letter-spacing:.04em;}
+.footer-links{display:flex;gap:18px;}
+.footer-links a{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--he-grey-700,#514E47);text-decoration:none;transition:color .18s;}
 .footer-links a:hover{color:var(--he-gold);}
 
 @media(max-width:768px){
@@ -144,7 +155,7 @@ footer{border-top:1px solid var(--he-hairline);padding:32px 40px;display:flex;ju
 <nav>
   <div class="nav-brand">
     <a href="index.html">
-      <img class="nav-logo" src="assets/logo-wordmark.png" alt="Harmonie Électricité">
+      <img class="nav-logo" src="/assets/logo-wordmark.png" alt="Harmonie Électricité">
     </a>
     <span class="nav-tagline">Installation · Maintenance · Dépannage</span>
   </div>
@@ -260,11 +271,49 @@ footer{border-top:1px solid var(--he-hairline);padding:32px 40px;display:flex;ju
 </div>
 
 <footer>
-  <div class="footer-copy">© 2026 Harmonie Électricité — Mathieu Laruicci · Yenne</div>
-  <div class="footer-links">
-    <a href="/mentions-legales">Mentions légales</a>
-    <a href="/politique-confidentialite">Confidentialité</a>
-    <a href="/#contact">Contact</a>
+  <div class="footer-node-divider">
+    <div class="node-divider">
+      <div class="nd-dot-ring"></div><div class="nd-line"></div>
+      <span class="nd-label">Installation • Maintenance • Dépannage</span>
+      <div class="nd-line"></div><div class="nd-dot-ring"></div>
+    </div>
+  </div>
+  <div class="footer-body">
+    <div>
+      <img src="/assets/logo-wordmark.png" alt="Harmonie Électricité" style="height:36px;margin-bottom:8px;">
+      <p class="footer-brand-desc">Spécialiste de la sécurité électronique en Savoie. Contrôle d'accès, vidéosurveillance, alarmes, interphonie et bornes IRVE.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Solutions</div>
+      <a href="/controle-acces">Contrôle d'accès</a>
+      <a href="/videosurveillance">Vidéosurveillance</a>
+      <a href="/alarme">Alarmes AJAX</a>
+      <a href="/interphonie">Interphonie</a>
+      <a href="/automatismes">Automatismes</a>
+      <a href="/bornes-irve">Bornes IRVE</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Société</div>
+      <a href="/#interventions">Interventions</a>
+      <a href="/#coproprietes">Copropriétés</a>
+      <a href="/#apropos">À propos</a>
+      <a href="/">Boutique</a>
+      <a href="/">Espace client</a>
+      <a href="/#contact">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Contact</div>
+      <a href="tel:0631134701">06 31 13 47 01</a>
+      <a href="mailto:contact@harmonie-electricite.com">contact@harmonie-electricite.com</a>
+      <a href="/">225 chemin des Bochets<br>73170 Yenne</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Harmonie Électricité — Mathieu Laruicci · Yenne · Chambéry · Aix-les-Bains · Belley · Annecy</div>
+    <div class="footer-links">
+      <a href="/mentions-legales">Mentions légales</a>
+      <a href="/politique-confidentialite">Confidentialité</a>
+    </div>
   </div>
 </footer>
 
