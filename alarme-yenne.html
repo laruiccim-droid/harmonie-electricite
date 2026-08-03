@@ -11,7 +11,7 @@
 <meta name="description" content="Harmonie Électricité, installateur certifié Ajax Systems basé à Yenne (73170). Alarme sans fil, vidéosurveillance, motorisation portail, interphonie. Intervention sur Yenne, Saint-Jean-de-Chevelu, Novalaise, Saint-Paul-sur-Yenne, Lucey, Billième et toute la CCY. Devis gratuit — ☎ 06 31 13 47 01">
 <meta name="keywords" content="installateur alarme Yenne, alarme Ajax Yenne, motorisation portail Yenne, sécurité Yenne 73170, installateur Ajax Yenne, alarme maison Yenne, vidéosurveillance Yenne, électricien sécurité Yenne, alarme Saint-Jean-de-Chevelu, alarme Novalaise, alarme Saint-Paul-sur-Yenne, alarme Lucey, alarme Billième, courant faible CCY">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.harmonie-electricite.com/alarme-yenne.html">
+<link rel="canonical" href="https://www.harmonie-electricite.com/alarme-yenne">
 <meta name="geo.region" content="FR-73">
 <meta name="geo.placename" content="Yenne, Savoie">
 <meta name="geo.position" content="45.7066;5.7532">
@@ -19,7 +19,7 @@
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.harmonie-electricite.com/alarme-yenne.html">
+<meta property="og:url" content="https://www.harmonie-electricite.com/alarme-yenne">
 <meta property="og:title" content="Installateur Alarme Ajax & Sécurité à Yenne — Harmonie Électricité">
 <meta property="og:description" content="Installateur certifié Ajax Systems basé à Yenne. Alarme, motorisation portail, vidéosurveillance sur toute la CCY. Devis gratuit.">
 <meta property="og:image" content="https://www.harmonie-electricite.com/assets/og-cover.jpg">
@@ -80,7 +80,7 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://www.harmonie-electricite.com/" },
-        { "@type": "ListItem", "position": 2, "name": "Installateur Alarme Yenne", "item": "https://www.harmonie-electricite.com/alarme-yenne.html" }
+        { "@type": "ListItem", "position": 2, "name": "Installateur Alarme Yenne", "item": "https://www.harmonie-electricite.com/alarme-yenne" }
       ]
     }
   ]
@@ -133,14 +133,6 @@ html{scroll-behavior:smooth}
 body{background:var(--he-ink-900);color:var(--he-paper);font-family:var(--font);line-height:1.6;}
 a{color:inherit;text-decoration:none;}
 img{max-width:100%;}
-
-/* ── NAV ── */
-.site-nav{position:sticky;top:0;z-index:100;height:70px;background:rgba(10,10,10,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--he-hairline);display:flex;align-items:center;padding:0 clamp(16px,4vw,48px);}
-.nav-brand{display:flex;align-items:center;gap:12px;font-size:15px;font-weight:600;letter-spacing:.04em;}
-.nav-disc{width:36px;height:36px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0A0A0A;letter-spacing:.08em;}
-.nav-links{margin-left:auto;display:flex;gap:28px;font-size:13px;letter-spacing:.06em;}
-.nav-links a{color:var(--he-grey-300);transition:color .2s;}
-.nav-links a:hover,.nav-links a.active{color:var(--he-gold);}
 
 /* ── HERO LOCAL ── */
 .local-hero{padding:80px clamp(16px,6vw,80px) 60px;max-width:900px;margin:0 auto;text-align:center;}
@@ -198,32 +190,180 @@ img{max-width:100%;}
 .cta-banner h2{font-size:clamp(22px,3vw,36px);font-weight:600;margin-bottom:12px;}
 .cta-banner p{color:var(--he-grey-300);font-size:15px;margin-bottom:32px;}
 
-/* ── FOOTER ── */
-.local-footer{padding:32px clamp(16px,4vw,48px);border-top:1px solid var(--he-hairline);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--he-grey-700);}
-.local-footer a{color:var(--he-gold);}
+
 
 @media(max-width:640px){
-  .nav-links{display:none;}
   .local-hero{padding:48px 16px 40px;}
+}
+
+/* ── FOOTER ── */
+footer{padding:0;border-top:1px solid var(--he-hairline);}
+.footer-node-divider{padding:22px 40px;}
+.node-divider{display:flex;align-items:center;gap:14px;}
+.nd-line{flex:1;height:1.5px;background:var(--he-hairline-strong);position:relative;overflow:hidden;}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+.nd-line::after{content:'';position:absolute;top:0;left:0;height:100%;width:40%;
+  background:linear-gradient(90deg,transparent,var(--he-gold-light),transparent);
+  animation:sweep 2.5s ease infinite;}
+.nd-dot-ring{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--he-gold);flex-shrink:0;}
+.nd-label{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--he-gold);white-space:nowrap;}
+.footer-body{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;padding:32px 40px;border-bottom:1px solid var(--he-hairline);}
+.footer-brand-desc{font-size:12px;color:var(--he-grey-500);line-height:1.7;max-width:240px;}
+.footer-col-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--he-gold);margin-bottom:14px;}
+.footer-col a{display:block;font-size:12px;color:var(--he-grey-500);margin-bottom:8px;
+  letter-spacing:.03em;transition:color .18s;}
+.footer-col a:hover{color:var(--he-gold)}
+.footer-bottom{padding:18px 40px;display:flex;align-items:center;
+  justify-content:space-between;}
+.footer-copy{font-size:10px;color:var(--he-grey-700);letter-spacing:.04em;}
+.footer-links{display:flex;gap:18px;}
+.footer-links a{font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--he-grey-700);transition:color .18s;}
+.footer-links a:hover{color:var(--he-gold)}
+@media(max-width:900px){
+  .footer-body{grid-template-columns:1fr 1fr;gap:32px;padding:32px 24px;}
+}
+@media(max-width:640px){
+  .footer-body{grid-template-columns:1fr;gap:24px;padding:24px 16px;}
+  .footer-node-divider{padding:16px;}
+  .footer-bottom{padding:14px 16px;flex-direction:column;gap:8px;text-align:center;}
+}
+
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:70px;
+  border-bottom:1px solid var(--he-hairline);
+  background:rgba(10,10,10,.9);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:12px;}
+.nav-logo{height:36px;}
+.nav-tagline{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--he-grey-700);
+  border-left:1px solid var(--he-hairline);padding-left:14px;margin-left:4px;}
+.nav-links{display:flex;gap:6px;list-style:none;}
+.nav-links a{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--he-grey-300);padding:6px 12px;border-radius:4px;
+  transition:color .18s,background .18s;display:flex;align-items:center;gap:6px;text-decoration:none;}
+.nav-links a:hover{color:var(--he-gold);background:rgba(201,168,106,.05)}
+.nav-links .has-dropdown{position:relative;}
+.nav-links .has-dropdown .dropdown{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;
+  background:var(--he-ink-700);border:1px solid var(--he-hairline);
+  min-width:220px;z-index:50;}
+.nav-links .has-dropdown:hover .dropdown{display:block;}
+.dropdown a{display:block;padding:10px 16px;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--he-grey-300);border-bottom:1px solid var(--he-hairline);}
+.dropdown a:last-child{border-bottom:none}
+.dropdown a:hover{color:var(--he-gold);background:rgba(201,168,106,.05)}
+.nav-cta-group{display:flex;gap:10px;align-items:center;}
+.btn-nav-primary{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;padding:9px 22px;border-radius:var(--radius-pill);
+  background:var(--grad-gold);color:var(--he-ink-900);border:none;cursor:pointer;
+  transition:opacity .18s;}
+.btn-nav-primary:hover{opacity:.88;}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:200;flex-shrink:0;}
+.nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--he-white);transition:transform .3s,opacity .3s;}
+.nav-open .nav-hamburger span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+.nav-open .nav-hamburger span:nth-child(2){opacity:0;}
+.nav-open .nav-hamburger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+.mobile-nav{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:rgba(10,10,10,.97);z-index:150;overflow-y:auto;padding:24px;}
+.nav-open .mobile-nav{display:block;}
+.mobile-nav-links{list-style:none;padding:0;margin:0;}
+.mobile-nav-links li a{display:block;padding:15px 0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--he-grey-300);border-bottom:1px solid var(--he-hairline);text-decoration:none;transition:color .2s;}
+.mobile-nav-links li a:hover{color:var(--he-gold);}
+.mobile-nav-cta{margin-top:24px;display:flex;flex-direction:column;gap:12px;}
+.mobile-nav-cta .btn-nav-primary{width:100%;text-align:center;}
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  .nav-links,.nav-cta-group{display:none;}
+  .nav-hamburger{display:flex;}
+}
+
+/* ── FOOTER ── */
+footer{padding:0;border-top:1px solid var(--he-hairline);}
+.footer-node-divider{padding:22px 40px;}
+.node-divider{display:flex;align-items:center;gap:14px;}
+.nd-line{flex:1;height:1.5px;background:var(--he-hairline-strong);position:relative;overflow:hidden;}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+.nd-line::after{content:'';position:absolute;top:0;left:0;height:100%;width:40%;
+  background:linear-gradient(90deg,transparent,var(--he-gold-light),transparent);
+  animation:sweep 2.5s ease infinite;}
+.nd-dot-ring{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--he-gold);flex-shrink:0;}
+.nd-label{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--he-gold);white-space:nowrap;}
+.footer-body{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;padding:32px 40px;border-bottom:1px solid var(--he-hairline);}
+.footer-brand-desc{font-size:12px;color:var(--he-grey-500);line-height:1.7;max-width:240px;}
+.footer-col-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--he-gold);margin-bottom:14px;}
+.footer-col a{display:block;font-size:12px;color:var(--he-grey-500);margin-bottom:8px;
+  letter-spacing:.03em;transition:color .18s;}
+.footer-col a:hover{color:var(--he-gold)}
+.footer-bottom{padding:18px 40px;display:flex;align-items:center;
+  justify-content:space-between;}
+.footer-copy{font-size:10px;color:var(--he-grey-700);letter-spacing:.04em;}
+.footer-links{display:flex;gap:18px;}
+.footer-links a{font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--he-grey-700);transition:color .18s;}
+.footer-links a:hover{color:var(--he-gold)}
+@media(max-width:900px){
+  .footer-body{grid-template-columns:1fr 1fr;gap:32px;padding:32px 24px;}
+}
+@media(max-width:640px){
+  .footer-body{grid-template-columns:1fr;gap:24px;padding:24px 16px;}
+  .footer-node-divider{padding:16px;}
+  .footer-bottom{padding:14px 16px;flex-direction:column;gap:8px;text-align:center;}
 }
 </style>
 </head>
 <body>
 
-<!-- ── NAVIGATION ── -->
-<nav class="site-nav">
-  <a href="/" class="nav-brand">
-    <div class="nav-disc">HE</div>
-    <span>Harmonie Électricité</span>
-  </a>
-  <div class="nav-links">
-    <a href="/">Accueil</a>
-    <a href="/#solutions">Solutions</a>
-    <a href="/#interventions">Interventions</a>
-    <a href="/catalogue-ajax.html">Catalogue Ajax</a>
-    <a href="/#contact">Contact</a>
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <img class="nav-logo" src="/assets/logo-wordmark.png" alt="Harmonie Électricité">
+    <span class="nav-tagline">Installation · Maintenance · Dépannage</span>
   </div>
+  <ul class="nav-links">
+    <li><a href="/">Accueil</a></li>
+    <li class="has-dropdown">
+      <a href="/#solutions">Solutions ▾</a>
+      <div class="dropdown">
+        <a href="/controle-acces">Contrôle d'accès</a>
+        <a href="/videosurveillance">Vidéosurveillance</a>
+        <a href="/alarme">Alarmes AJAX</a>
+        <a href="/interphonie">Interphonie</a>
+        <a href="/automatismes">Automatismes</a>
+        <a href="/bornes-irve">Bornes IRVE</a>
+      </div>
+    </li>
+    <li><a href="/#interventions">Interventions</a></li>
+    <li><a href="/galerie">Galerie</a></li>
+    <li><a href="/#contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta-group">
+    <a href="/#contact"><button class="btn-nav-primary">Demander un devis</button></a>
+  </div>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+  <ul class="mobile-nav-links">
+    <li><a href="/" onclick="closeMobileNav()">Accueil</a></li>
+    <li><a href="/#solutions" onclick="closeMobileNav()">Solutions</a></li>
+    <li><a href="/#interventions" onclick="closeMobileNav()">Interventions</a></li>
+    <li><a href="/galerie" onclick="closeMobileNav()">Galerie</a></li>
+    <li><a href="/#contact" onclick="closeMobileNav()">Contact</a></li>
+  </ul>
+  <div class="mobile-nav-cta">
+    <a href="/#contact" onclick="closeMobileNav()"><button class="btn-nav-primary">Demander un devis</button></a>
+  </div>
+</div>
 
 <!-- ── HERO ── -->
 <section class="local-hero">
@@ -421,9 +561,52 @@ img{max-width:100%;}
 </div>
 
 <!-- ── FOOTER ── -->
-<footer class="local-footer">
-  <div>© 2026 Harmonie Électricité — Mathieu Laruicci · 225 chemin des Bochets, 73170 Yenne</div>
-  <div><a href="/">← Retour au site</a></div>
+<!-- FOOTER -->
+<footer>
+  <div class="footer-node-divider">
+    <div class="node-divider" style="padding:0;">
+      <div class="nd-dot-ring"></div>
+      <div class="nd-line"></div>
+      <span class="nd-label">Installation • Maintenance • Dépannage</span>
+      <div class="nd-line"></div>
+      <div class="nd-dot-ring"></div>
+    </div>
+  </div>
+  <div class="footer-body">
+    <div>
+      <img src="/assets/logo-wordmark.png" alt="Harmonie Électricité" style="height:36px;margin-bottom:12px;">
+      <p class="footer-brand-desc">Spécialiste de la sécurité électronique et du contrôle d'accès pour les copropriétés, entreprises et particuliers en Savoie.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Solutions</div>
+      <a href="/controle-acces">Contrôle d'accès</a>
+      <a href="/videosurveillance">Vidéosurveillance</a>
+      <a href="/alarme">Alarmes AJAX</a>
+      <a href="/interphonie">Interphonie</a>
+      <a href="/automatismes">Automatismes</a>
+      <a href="/bornes-irve">Bornes IRVE</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Société</div>
+      <a href="/#interventions">Interventions</a>
+      <a href="/#coproprietes">Copropriétés</a>
+      <a href="/#apropos">À propos</a>
+      <a href="/#contact">Contact</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Contact</div>
+      <a href="tel:0631134701">06 31 13 47 01</a>
+      <a href="mailto:contact@harmonie-electricite.com" style="font-size:11px">contact@harmonie-electricite.com</a>
+      <a href="#">225 chemin des Bochets<br>73170 Yenne</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Harmonie Électricité — Mathieu Laruicci · Yenne · Chambéry · Aix-les-Bains · Belley · Annecy</div>
+    <div class="footer-links">
+      <a href="/mentions-legales">Mentions légales</a>
+      <a href="/politique-confidentialite">Confidentialité</a>
+    </div>
+  </div>
 </footer>
 
 <script>

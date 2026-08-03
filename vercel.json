@@ -5,24 +5,7 @@
     { "path": "/api/check-invoices", "schedule": "0 6 * * *" }
   ],
   "redirects": [
-    { "source": "/alarme-:city", "destination": "/alarme", "permanent": true },
-    { "source": "/videosurveillance-:city", "destination": "/videosurveillance", "permanent": true },
-    { "source": "/automatisme-:city", "destination": "/automatismes", "permanent": true },
-    { "source": "/controle-acces-:city", "destination": "/controle-acces", "permanent": true },
-    { "source": "/interphone-:city", "destination": "/interphonie", "permanent": true },
-    { "source": "/bornes-irve-:city", "destination": "/bornes-irve", "permanent": true },
-    { "source": "/depannage-:city", "destination": "/", "permanent": true },
-    { "source": "/catalogue-ajax", "destination": "/alarme", "permanent": true },
-    { "source": "/catalogue-ajax.html", "destination": "/alarme", "permanent": true },
-    { "source": "/galerie.html", "destination": "/galerie", "permanent": true },
-    { "source": "/controle-acces-yenne.html", "destination": "/controle-acces", "permanent": true },
-    { "source": "/automatisme-yenne.html", "destination": "/automatismes", "permanent": true },
-    { "source": "/bornes-irve-yenne.html", "destination": "/bornes-irve", "permanent": true },
-    { "source": "/depannage-yenne.html", "destination": "/", "permanent": true },
-    { "source": "/bornes-irve-belley.html", "destination": "/bornes-irve", "permanent": true },
-    { "source": "/interphone-yenne.html", "destination": "/interphonie", "permanent": true },
-    { "source": "/alarme-yenne.html", "destination": "/alarme", "permanent": true },
-    { "source": "/videosurveillance-yenne.html", "destination": "/videosurveillance", "permanent": true }
+    { "source": "/catalogue-ajax", "destination": "/alarme", "permanent": true }
   ],
   "headers": [
     {

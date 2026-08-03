@@ -2,56 +2,104 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.harmonie-electricite.com/</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/alarme</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/videosurveillance</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/controle-acces</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/interphonie</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/automatismes</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/bornes-irve</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/galerie</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.harmonie-electricite.com/mentions-legales</loc>
-    <lastmod>2026-07-23</lastmod>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <!-- Pages locales SEO — Yenne & CCY -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-yenne</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Pages locales SEO — Belley -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-belley</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Pages locales SEO — Chambéry -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-chambery</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Pages locales SEO — Aix-les-Bains -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-aix-les-bains</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Pages locales SEO — Massignieu-de-Rives -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-massignieu</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- Pages locales SEO — Bourget-du-Lac -->
+  <url><loc>https://www.harmonie-electricite.com/alarme-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/videosurveillance-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/automatisme-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/controle-acces-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/interphone-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/bornes-irve-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.harmonie-electricite.com/depannage-bourget-du-lac</loc><lastmod>2026-08-03</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
