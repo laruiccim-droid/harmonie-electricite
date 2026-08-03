@@ -4,9 +4,7 @@
   "crons": [
     { "path": "/api/check-invoices", "schedule": "0 6 * * *" }
   ],
-  "redirects": [
-    { "source": "/catalogue-ajax", "destination": "/alarme", "permanent": true }
-  ],
+  "redirects": [],
   "headers": [
     {
       "source": "/(.*)",

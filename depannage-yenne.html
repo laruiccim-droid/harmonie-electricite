@@ -187,10 +187,50 @@ footer{padding:0;border-top:1px solid var(--he-hairline);}
 </style>
 </head>
 <body>
-<nav class="site-nav">
-  <a href="/" class="nav-brand"><div class="nav-disc">HE</div><span>Harmonie Électricité</span></a>
-  <div class="nav-links"><a href="/">Accueil</a><a href="/#solutions">Solutions</a><a href="/#interventions">Interventions</a><a href="/alarme">Catalogue Ajax</a><a href="/#contact">Contact</a></div>
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <img class="nav-logo" src="/assets/logo-wordmark.png" alt="Harmonie Electricite">
+    <span class="nav-tagline">Installation · Maintenance · Depannage</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/">Accueil</a></li>
+    <li class="has-dropdown">
+      <a href="/#solutions">Solutions ▾</a>
+      <div class="dropdown">
+        <a href="/controle-acces">Controle d acces</a>
+        <a href="/videosurveillance">Videosurveillance</a>
+        <a href="/alarme">Alarmes AJAX</a>
+        <a href="/interphonie">Interphonie</a>
+        <a href="/automatismes">Automatismes</a>
+        <a href="/bornes-irve">Bornes IRVE</a>
+      </div>
+    </li>
+    <li><a href="/#interventions">Interventions</a></li>
+    <li><a href="/galerie">Galerie</a></li>
+    <li><a href="/#contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta-group">
+    <a href="/#contact"><button class="btn-nav-primary">Demander un devis</button></a>
+  </div>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+  <ul class="mobile-nav-links">
+    <li><a href="/" onclick="closeMobileNav()">Accueil</a></li>
+    <li><a href="/#solutions" onclick="closeMobileNav()">Solutions</a></li>
+    <li><a href="/#interventions" onclick="closeMobileNav()">Interventions</a></li>
+    <li><a href="/galerie" onclick="closeMobileNav()">Galerie</a></li>
+    <li><a href="/#contact" onclick="closeMobileNav()">Contact</a></li>
+  </ul>
+  <div class="mobile-nav-cta">
+    <a href="/#contact" onclick="closeMobileNav()"><button class="btn-nav-primary">Demander un devis</button></a>
+  </div>
+</div>
 
 <section class="local-hero">
   <div class="local-breadcrumb"><a href="/">Accueil</a> › Dépannage › Yenne &amp; CCY</div>
