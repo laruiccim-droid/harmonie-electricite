@@ -37,7 +37,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Harmonie Élec">
-<meta name="theme-color" content="#f5a623">
+<meta name="theme-color" content="#C9A86A">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Harmonie Électricité</title>
@@ -45,17 +45,25 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
 
   :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #222;
-    --border: #2a2a2a;
-    --accent: #f5a623;
-    --accent2: #e8420a;
-    --green: #22c55e;
-    --red: #ef4444;
-    --text: #f0f0f0;
-    --muted: #888;
-    --radius: 14px;
+    /* ── Harmonie design system ── */
+    --bg:            #0A0A0A;
+    --surface:       #111111;
+    --surface2:      #16150F;
+    --border:        rgba(201,168,106,0.18);
+    --border-strong: rgba(201,168,106,0.45);
+    --accent:        #C9A86A;
+    --accent-light:  #E4CD93;
+    --accent-pale:   #F0E3C2;
+    --accent2:       #C2624C;
+    --grad-gold:     linear-gradient(135deg,#F0E3C2 0%,#E4CD93 22%,#C9A86A 50%,#A9884A 74%,#8A6C38 100%);
+    --green:         #6FA86A;
+    --red:           #C2624C;
+    --text:          #F4F1EA;
+    --muted:         #7C786E;
+    --muted-light:   #B6B1A6;
+    --radius:        14px;
+    --radius-sm:     6px;
+    --radius-pill:   100px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -86,13 +94,10 @@
     justify-content: space-between;
   }
   .topbar-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 17px;
-    color: var(--accent);
-    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
   }
-  .topbar-logo span { color: var(--text); }
+  .topbar-logo img { height: 26px; display: block; }
   .sync-indicator {
     display: flex;
     align-items: center;
@@ -117,7 +122,7 @@
     bottom: 0; left: 50%;
     transform: translateX(-50%);
     width: 100%; max-width: 480px;
-    background: rgba(20,20,20,0.97);
+    background: rgba(10,10,9,0.97);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border);
@@ -160,7 +165,7 @@
     text-decoration: none;
   }
   .more-item:active { opacity: 0.7; transform: scale(0.96); }
-  .more-item.active { background: rgba(245,166,35,0.12); border-color: var(--accent); color: var(--accent); }
+  .more-item.active { background: rgba(201,168,106,0.1); border-color: rgba(201,168,106,0.4); color: var(--accent); }
   .more-icon { display: flex; align-items: center; justify-content: center; }
   .more-icon svg { width: 24px; height: 24px; }
   .nav-badge {
@@ -216,7 +221,7 @@
     white-space: nowrap;
   }
   .btn:active { transform: scale(0.96); }
-  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary { background: var(--grad-gold); color: #0A0A0A; }
   .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
   .btn-danger { background: var(--red); color: white; }
   .btn-green { background: var(--green); color: #000; }
@@ -240,18 +245,18 @@
     justify-content: center;
     transition: all 0.2s;
     margin: 0 auto;
-    box-shadow: 0 0 0 0 rgba(245,166,35,0.4);
+    box-shadow: 0 0 0 0 rgba(201,168,106,0.35);
   }
   .mic-btn.recording {
     background: var(--accent2);
     border-color: var(--accent2);
-    color: white;
+    color: var(--text);
     animation: micpulse 1.2s infinite;
   }
   @keyframes micpulse {
-    0% { box-shadow: 0 0 0 0 rgba(232,66,10,0.5); }
-    70% { box-shadow: 0 0 0 18px rgba(232,66,10,0); }
-    100% { box-shadow: 0 0 0 0 rgba(232,66,10,0); }
+    0% { box-shadow: 0 0 0 0 rgba(194,98,76,0.5); }
+    70% { box-shadow: 0 0 0 18px rgba(194,98,76,0); }
+    100% { box-shadow: 0 0 0 0 rgba(194,98,76,0); }
   }
   .mic-btn svg { width: 36px; height: 36px; }
   .mic-status {
@@ -297,7 +302,7 @@
   .tag-btn.selected {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(245,166,35,0.1);
+    background: rgba(201,168,106,0.08);
   }
 
   /* NOTES LIST */
@@ -321,8 +326,8 @@
     font-family: 'DM Mono', monospace;
     letter-spacing: 0.5px;
   }
-  .tag-devis { background: rgba(245,166,35,0.2); color: var(--accent); }
-  .tag-client { background: rgba(34,197,94,0.2); color: var(--green); }
+  .tag-devis { background: rgba(201,168,106,0.15); color: var(--accent); }
+  .tag-client { background: rgba(111,168,106,0.18); color: var(--green); }
   .tag-chantier { background: rgba(99,102,241,0.2); color: #818cf8; }
   .tag-materiel { background: rgba(232,66,10,0.2); color: #f87171; }
   .tag-idee { background: rgba(139,92,246,0.2); color: #c084fc; }
@@ -384,9 +389,9 @@
     border-radius: 6px;
     font-family: 'DM Mono', monospace;
   }
-  .urgency-high { background: rgba(239,68,68,0.2); color: #f87171; }
-  .urgency-medium { background: rgba(245,166,35,0.2); color: var(--accent); }
-  .urgency-low { background: rgba(34,197,94,0.2); color: var(--green); }
+  .urgency-high { background: rgba(194,98,76,0.18); color: #f87171; }
+  .urgency-medium { background: rgba(201,168,106,0.15); color: var(--accent); }
+  .urgency-low { background: rgba(111,168,106,0.18); color: var(--green); }
 
   .client-item {
     background: var(--surface2);
@@ -405,7 +410,7 @@
   /* AI RESPONSE */
   .ai-response {
     background: var(--surface);
-    border: 1px solid rgba(245,166,35,0.3);
+    border: 1px solid rgba(201,168,106,0.25);
     border-radius: 10px;
     padding: 14px;
     margin-top: 10px;
@@ -568,7 +573,7 @@
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 8px; padding: 6px 4px; text-align: center; cursor: pointer;
   }
-  .gcal-day-header.today { border-color: var(--accent); background: rgba(245,166,35,0.1); }
+  .gcal-day-header.today { border-color: var(--accent); background: rgba(201,168,106,0.08); }
   .gcal-day-name { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .gcal-day-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
   .gcal-day-header.today .gcal-day-num { color: var(--accent); }
@@ -607,9 +612,9 @@
   .devis-status { font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px; }
   .status-brouillon { background:rgba(136,136,136,0.15);color:var(--muted); }
   .status-envoye { background:rgba(96,165,250,0.15);color:#60a5fa; }
-  .status-accepte { background:rgba(34,197,94,0.15);color:var(--green); }
-  .status-refuse { background:rgba(239,68,68,0.15);color:var(--red); }
-  .status-facture { background:rgba(245,166,35,0.15);color:var(--accent); }
+  .status-accepte { background:rgba(111,168,106,0.15);color:var(--green); }
+  .status-refuse { background:rgba(194,98,76,0.15);color:var(--red); }
+  .status-facture { background:rgba(201,168,106,0.12);color:var(--accent); }
 
   /* Catalogue search */
   .cat-search { position:relative;margin-bottom:8px; }
@@ -655,7 +660,7 @@
 
   #tab-coffre { padding: 0; }
   .cc-lock { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; padding:32px 24px; min-height:60vh; }
-  .cc-logo { width:72px; height:72px; border-radius:20px; background:var(--accent); color:#000; display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:10px; box-shadow:0 6px 24px rgba(245,166,35,0.3); }
+  .cc-logo { width:72px; height:72px; border-radius:20px; background:var(--accent); color:#000; display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:10px; box-shadow:0 6px 24px rgba(201,168,106,0.25); }
   .cc-lock h2 { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; margin:4px 0 0; }
   .cc-lock p { color:var(--muted); margin:4px 0 16px; font-size:14px; max-width:280px; }
   .cc-dots { display:flex; gap:14px; margin:6px 0 16px; }
@@ -681,7 +686,7 @@
   .cc-list { margin:0 16px; }
   .cc-row { display:flex; align-items:center; gap:12px; padding:13px 14px; width:100%; text-align:left; background:var(--surface2); border:1px solid var(--border); border-radius:10px; margin-bottom:6px; cursor:pointer; color:var(--text); }
   .cc-row:active { background:var(--surface); }
-  .cc-ic { width:36px; height:36px; border-radius:10px; background:rgba(245,166,35,0.15); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .cc-ic { width:36px; height:36px; border-radius:10px; background:rgba(201,168,106,0.12); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
   .cc-tx { flex:1; min-width:0; }
   .cc-nm { font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cc-sub { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:1px; }
@@ -712,7 +717,7 @@
   .cc-chip:active { border-color:var(--accent); color:var(--accent); }
   .cc-seg { display:flex; gap:8px; margin-top:6px; }
   .cc-seg button { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; }
-  .cc-seg button.on { background:rgba(245,166,35,0.15); border-color:var(--accent); color:var(--accent); font-weight:700; }
+  .cc-seg button.on { background:rgba(201,168,106,0.12); border-color:var(--accent); color:var(--accent); font-weight:700; }
   .cc-danger-lnk { color:var(--red); background:none; border:none; font-weight:600; padding:8px; width:100%; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px; }
   .cc-small { font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5; }
   .cc-schwrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
@@ -722,7 +727,7 @@
 <body>
 
 <div class="topbar">
-  <div class="topbar-logo">⚡ Harmonie<span> Élec</span></div>
+  <div class="topbar-logo"><img src="/assets/logo-wordmark.png" alt="Harmonie Électricité"></div>
   <div class="sync-indicator">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncLabel">Local</span>
@@ -939,11 +944,11 @@
         <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 8px;">👤 Mon compte admin</div>
         <div id="params-bio-status" style="font-size:13px;color:var(--muted);margin-bottom:8px;"></div>
         <button id="params-bio-btn-activate" onclick="heActiverFaceIdParams()"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(245,166,35,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
+          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(201,168,106,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
           👤 Activer Face ID pour les paramètres
         </button>
         <button id="params-bio-btn-disable" onclick="heDesactiverFaceIdParams()"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid #ef4444;background:rgba(239,68,68,0.08);color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
+          style="width:100%;padding:10px;border-radius:10px;border:1px solid #C2624C;background:rgba(194,98,76,0.08);color:#C2624C;font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
           🗑 Désactiver Face ID
         </button>
         <button onclick="heChangerMotDePasse()" class="btn btn-secondary btn-full" style="margin-bottom:8px;">🔑 Changer mon mot de passe</button>
@@ -954,11 +959,11 @@
         <div id="params-user-info" style="font-size:13px;color:var(--text);margin-bottom:10px;"></div>
         <div id="params-user-bio-status" style="font-size:13px;color:var(--muted);margin-bottom:8px;"></div>
         <button id="params-user-bio-activate" onclick="heActiverFaceIdUser()"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(245,166,35,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
+          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(201,168,106,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
           👤 Activer Face ID sur cet appareil
         </button>
         <button id="params-user-bio-disable" onclick="heDesactiverFaceIdUser()"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid #ef4444;background:rgba(239,68,68,0.08);color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
+          style="width:100%;padding:10px;border-radius:10px;border:1px solid #C2624C;background:rgba(194,98,76,0.08);color:#C2624C;font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:8px;display:none;">
           🗑 Désactiver Face ID
         </button>
         <button onclick="heChangerMotDePasseUser()" class="btn btn-secondary btn-full" style="margin-bottom:8px;">🔑 Changer mon mot de passe</button>
@@ -1877,11 +1882,11 @@ function updateClientBadge() {
 const INTERVENTION_STATUTS = {
   attente_planification: { label: '🟠 En attente de planification', color: '#f97316' },
   planifiee:             { label: '📅 Planifiée',                   color: '#60a5fa' },
-  en_cours:              { label: '🔧 En cours',                     color: '#f5a623' },
-  terminee:              { label: '✅ Terminée',                     color: '#22c55e' },
+  en_cours:              { label: '🔧 En cours',                     color: '#C9A86A' },
+  terminee:              { label: '✅ Terminée',                     color: '#6FA86A' },
   rapport_envoye:        { label: '📤 Rapport envoyé',                color: '#a78bfa' },
-  facturee:              { label: '💶 Facturée',                      color: '#22c55e' },
-  annulee:               { label: '❌ Annulée',                       color: '#888' }
+  facturee:              { label: '💶 Facturée',                      color: '#6FA86A' },
+  annulee:               { label: '❌ Annulée',                       color: '#7C786E' }
 };
 
 function interventionNextId() {
@@ -1934,7 +1939,7 @@ function renderInterventions() {
     return `<div class="client-item" style="border-left:3px solid ${statutInfo.color};">
       <div class="client-top">
         <div class="client-name">${escHtml(i.client_nom || 'Client')} <span style="font-size:11px;color:var(--muted);">· ${escHtml(i.id)}</span></div>
-        ${i.urgent ? `<span style="background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">🚨 Urgent</span>` : ''}
+        ${i.urgent ? `<span style="background:#C2624C;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">🚨 Urgent</span>` : ''}
       </div>
       ${!i.client_id && i.from_email ? `<div class="client-type">✉️ Client non identifié — ${escHtml(i.from_email)}</div>` : ''}
       ${i.residence_nom ? `<div class="client-type">🏢 ${escHtml(i.residence_nom)}</div>` : ''}
@@ -2431,7 +2436,7 @@ async function loadAgenda() {
 
   // Bandeau offline si données en cache
   if (isOfflineData) {
-    html += '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#ef4444;display:flex;align-items:center;gap:6px;">'
+    html += '<div style="background:rgba(194,98,76,0.1);border:1px solid rgba(194,98,76,0.3);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#C2624C;display:flex;align-items:center;gap:6px;">'
       + '📵 <strong>Mode hors ligne</strong> — Affichage du cache · Création/modification impossible'
       + '</div>';
   }
@@ -2464,10 +2469,10 @@ async function loadAgenda() {
         const evColor = bonCache ? '10' : ((window._gcalColorCache && window._gcalColorCache[e.id]) || e.colorId);
         const gcalColors = {
           '6': {border:'#f97316', bg:'rgba(249,115,22,0.12)',  badge:'⏸'},  // orange = en pause
-          '10':{border:'#22c55e', bg:'rgba(34,197,94,0.12)',   badge:'✅'},  // vert = clôturé
+          '10':{border:'#6FA86A', bg:'rgba(111,168,106,0.12)',   badge:'✅'},  // vert = clôturé
           '3': {border:'#a855f7', bg:'rgba(168,85,247,0.12)',  badge:'📄'},  // violet = devis
           '7': {border:'#0ea5e9', bg:'rgba(14,165,233,0.12)',  badge:'🔧'},  // bleu = autre
-          '11':{border:'#ef4444', bg:'rgba(239,68,68,0.12)',   badge:'❗'}   // rouge = urgent
+          '11':{border:'#C2624C', bg:'rgba(194,98,76,0.12)',   badge:'❗'}   // rouge = urgent
         };
         const col = evColor && gcalColors[String(evColor)];
         const colStyle = col ? 'border-left:4px solid '+col.border+';background:'+col.bg+';' : '';
@@ -2614,7 +2619,7 @@ function creerProspect(event, parentOverlay) {
     + '<textarea id="pr-motif" rows="2" placeholder="Ce qu\'il recherche..."'
     + ' style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:sans-serif;outline:none;resize:none;margin-bottom:10px;">'
     + escHtml((event.description||'').replace(/\[.*?\]:[^\[\n]*/g,'').trim()) + '</textarea>'
-    + '<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:10px;font-size:12px;color:var(--muted);margin-bottom:12px;">'
+    + '<div style="background:rgba(201,168,106,0.08);border:1px solid rgba(201,168,106,0.15);border-radius:8px;padding:10px;font-size:12px;color:var(--muted);margin-bottom:12px;">'
     + '💡 Prospect créé dans l\'app. Transformable en client EBP après acceptation du devis.</div>';
 
   sheet.innerHTML = h;
@@ -3080,13 +3085,13 @@ async function gcalViewEvent(e) {
   // En-tête
   html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">';
   html += '<h3 style="margin-bottom:0;flex:1;font-size:17px;">' + escHtml(e.summary || 'Sans titre') + '</h3>';
-  if (statut) html += '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(245,166,35,0.15);color:var(--accent);margin-left:8px;flex-shrink:0;">' + escHtml(statutLabels[statut] || statut) + '</span>';
+  if (statut) html += '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(201,168,106,0.12);color:var(--accent);margin-left:8px;flex-shrink:0;">' + escHtml(statutLabels[statut] || statut) + '</span>';
   html += '</div>';
   html += '<div style="color:var(--accent);font-size:13px;margin-bottom:10px;font-family:monospace;">' + escHtml(timeStr) + '</div>';
 
   // Client trouvé automatiquement
   if (client) {
-    html += '<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:12px;margin-bottom:10px;">';
+    html += '<div style="background:rgba(111,168,106,0.08);border:1px solid rgba(111,168,106,0.18);border-radius:10px;padding:12px;margin-bottom:10px;">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
     html += '<div style="font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">👤 Client détecté</div>';
     html += '</div>';
@@ -3211,7 +3216,7 @@ async function gcalViewEvent(e) {
     // ── Bon CLÔTURÉ ────────────────────────────────────────
     const sessions = bonExistant.sessions || [];
     const notif = document.createElement('div');
-    notif.style.cssText = 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:12px;margin-bottom:8px;';
+    notif.style.cssText = 'background:rgba(111,168,106,0.12);border:1px solid rgba(111,168,106,0.3);border-radius:10px;padding:12px;margin-bottom:8px;';
     let sessionHtml = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
       + '<span style="font-size:20px;">✅</span>'
       + '<div><div style="font-weight:700;font-size:14px;color:var(--green);">Bon N°' + escHtml(bonExistant.numero||'') + ' clôturé</div>'
@@ -3220,7 +3225,7 @@ async function gcalViewEvent(e) {
     const allSessions = [{date:bonExistant.date, heureDebut:bonExistant.heureDebut, heureFin:bonExistant.heureFin}].concat(sessions);
     allSessions.forEach(function(s, i) {
       if (!s.date) return;
-      sessionHtml += '<div style="font-size:11px;color:var(--muted);padding:3px 0;border-top:1px solid rgba(34,197,94,0.15);">'
+      sessionHtml += '<div style="font-size:11px;color:var(--muted);padding:3px 0;border-top:1px solid rgba(111,168,106,0.15);">'
         + '<strong style="color:var(--green);">S' + (i+1) + '</strong> — '
         + escHtml(s.date) + (s.heureDebut?' · '+escHtml(s.heureDebut)+' → '+escHtml(s.heureFin||''):'')
         + '</div>';
@@ -3269,7 +3274,7 @@ async function gcalViewEvent(e) {
 
     // Bouton Clôturer directement
     const btnCloture = document.createElement('button');
-    btnCloture.style.cssText = 'width:100%;padding:10px;font-size:13px;background:rgba(34,197,94,0.15);border:1px solid var(--green);border-radius:10px;color:var(--green);font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:6px;';
+    btnCloture.style.cssText = 'width:100%;padding:10px;font-size:13px;background:rgba(111,168,106,0.15);border:1px solid var(--green);border-radius:10px;color:var(--green);font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:6px;';
     btnCloture.textContent = '✅ Clôturer le bon (sans nouvelle session)';
     btnCloture.onclick = function() {
       overlay.remove();
@@ -3339,7 +3344,7 @@ async function gcalViewEvent(e) {
   const descr = e.description || '';
   if (bonExistant && descr.includes('github.io')) {
     const btnFixLink = document.createElement('button');
-    btnFixLink.style.cssText = 'width:100%;padding:8px;font-size:12px;background:rgba(245,166,35,0.1);border:1px solid var(--accent);border-radius:8px;color:var(--accent);cursor:pointer;font-family:sans-serif;margin-bottom:8px;';
+    btnFixLink.style.cssText = 'width:100%;padding:8px;font-size:12px;background:rgba(201,168,106,0.08);border:1px solid var(--accent);border-radius:8px;color:var(--accent);cursor:pointer;font-family:sans-serif;margin-bottom:8px;';
     btnFixLink.textContent = '🔗 Corriger le lien PDF (ancien lien GitHub)';
     btnFixLink.onclick = async function() {
       btnFixLink.textContent = 'Correction en cours…';
@@ -3748,7 +3753,7 @@ function gcalShowEventForm(existing, dateStr, startT, endT) {
     <label style="margin-top:12px;">Notes libres</label>
     <textarea id="gcf-desc" placeholder="Remarques, accès, codes…" style="height:60px;width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;outline:none;resize:none;">${escHtml(userNotes)}</textarea>
 
-    <div id="gcf-recap" style="display:none;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:10px;padding:12px;margin-top:10px;font-size:13px;"></div>
+    <div id="gcf-recap" style="display:none;background:rgba(201,168,106,0.08);border:1px solid rgba(201,168,106,0.15);border-radius:10px;padding:12px;margin-top:10px;font-size:13px;"></div>
 
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button class="btn btn-secondary btn-full" onclick="document.getElementById('gcal-modal').remove()">Annuler</button>
@@ -3859,10 +3864,10 @@ async function gcalColorEvent(eventId, colorId) {
 // Mise à jour visuelle immédiate dans le DOM sans recharger
 function updateEventColorInDOM(eventId, colorId) {
   const colorMap = {
-    '10': { bg: 'rgba(34,197,94,0.15)',  border: '#22c55e', label: '🟢' },
+    '10': { bg: 'rgba(111,168,106,0.15)',  border: '#6FA86A', label: '🟢' },
     '3':  { bg: 'rgba(168,85,247,0.15)', border: '#a855f7', label: '🟣' },
     '7':  { bg: 'rgba(14,165,233,0.15)', border: '#0ea5e9', label: '🔵' },
-    '11': { bg: 'rgba(239,68,68,0.15)',  border: '#ef4444', label: '🔴' }
+    '11': { bg: 'rgba(194,98,76,0.15)',  border: '#C2624C', label: '🔴' }
   };
   const col = colorMap[String(colorId)];
   if (!col) return;
@@ -4417,7 +4422,7 @@ function devisShowEditor() {
       </div>
     </div>
 
-    <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:10px;padding:12px;margin-top:10px;">
+    <div style="background:rgba(201,168,106,0.08);border:1px solid rgba(201,168,106,0.15);border-radius:10px;padding:12px;margin-top:10px;">
       <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
         <span>Total HT</span><strong id="dv-ht">${total.toFixed(2)} €</strong>
       </div>
@@ -4796,17 +4801,17 @@ async function envoyerRappelMaintenance(c, joursAvant) {
 
   const html = `
 <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff;color:#222;">
-  <div style="background:#f5a623;padding:16px 20px;border-radius:10px 10px 0 0;text-align:center;">
+  <div style="background:#C9A86A;padding:16px 20px;border-radius:10px 10px 0 0;text-align:center;">
     <div style="font-size:20px;font-weight:900;color:#000;">⚡ Harmonie Électricité</div>
     <div style="font-size:12px;color:#333;margin-top:4px;">Rappel de maintenance</div>
   </div>
   <div style="background:#fafafa;padding:20px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;">
     <p>Bonjour,</p>
     <p>Nous vous rappelons que la prochaine visite de maintenance de votre équipement est prévue dans <strong>${joursAvant} jours</strong>.</p>
-    <div style="background:#fff;border:2px solid #f5a623;border-radius:10px;padding:16px;margin:16px 0;">
+    <div style="background:#fff;border:2px solid #C9A86A;border-radius:10px;padding:16px;margin:16px 0;">
       <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Contrat N° ${c.numero}</div>
       <div style="font-size:13px;color:#666;">Équipement : ${c.marque||''} ${c.modele||''}</div>
-      <div style="font-size:15px;font-weight:800;color:#f5a623;margin-top:8px;">📅 ${dateStr}</div>
+      <div style="font-size:15px;font-weight:800;color:#C9A86A;margin-top:8px;">📅 ${dateStr}</div>
     </div>
     <p>Nous prendrons contact avec vous prochainement pour convenir d'un rendez-vous.</p>
     <p style="font-size:12px;color:#999;">Harmonie Électricité · 06 31 13 47 01 · contact@harmonie-electricite.com</p>
@@ -4992,7 +4997,7 @@ function docsOpenDetail(id) {
   }
 
   // Total
-  h += `<div style="background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:10px;padding:12px;margin-bottom:12px;">
+  h += `<div style="background:rgba(201,168,106,.08);border:1px solid rgba(201,168,106,.2);border-radius:10px;padding:12px;margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;"><span>Total HT</span><strong>${(d.totalHT||0).toFixed(2)} €</strong></div>
     <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px;"><span>TVA ${d.tvaRate||20}%</span><span>${(d.totalTVA||0).toFixed(2)} €</span></div>
     <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--accent);"><span>Total TTC</span><span>${total.toFixed(2)} €</span></div>
@@ -5055,7 +5060,7 @@ function docsOpenDetail(id) {
     sheet.appendChild(btnReprendre);
 
     const btnClotureSansSession = document.createElement('button');
-    btnClotureSansSession.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--green);background:rgba(34,197,94,0.08);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:10px;';
+    btnClotureSansSession.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--green);background:rgba(111,168,106,0.08);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:10px;';
     btnClotureSansSession.textContent = '✅ Clôturer sans nouvelle session';
     btnClotureSansSession.onclick = async function() {
       btnClotureSansSession.textContent = '⏳...';
@@ -5093,7 +5098,7 @@ function docsOpenDetail(id) {
 
   // ── Corriger le client avec barre de recherche ──
   const btnCorrigerClient = document.createElement('button');
-  btnCorrigerClient.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(245,166,35,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:10px;';
+  btnCorrigerClient.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(201,168,106,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:10px;';
   btnCorrigerClient.textContent = '👤 Corriger le nom du client';
   btnCorrigerClient.onclick = function() {
     btnCorrigerClient.style.display = 'none';
@@ -5149,7 +5154,7 @@ function docsOpenDetail(id) {
 
     const btnOk = document.createElement('button');
     btnOk.textContent = '✅ Confirmer';
-    btnOk.style.cssText = 'flex:1;padding:9px;border-radius:8px;border:none;background:#22c55e;color:#000;font-weight:700;cursor:pointer;';
+    btnOk.style.cssText = 'flex:1;padding:9px;border-radius:8px;border:none;background:#6FA86A;color:#000;font-weight:700;cursor:pointer;';
     btnOk.onclick = async function() {
       const nomFinal = clientSelectionne ? clientSelectionne.name : searchInp.value.trim();
       if (!nomFinal) { showToast('Nom requis'); return; }
@@ -5294,9 +5299,9 @@ function docsOpenDetail(id) {
 
         if (r.ok) {
           btnGcal.textContent = '✅ Google Calendar mis à jour !';
-          btnGcal.style.background = 'rgba(34,197,94,0.15)';
-          btnGcal.style.borderColor = '#22c55e';
-          btnGcal.style.color = '#22c55e';
+          btnGcal.style.background = 'rgba(111,168,106,0.15)';
+          btnGcal.style.borderColor = '#6FA86A';
+          btnGcal.style.color = '#6FA86A';
         } else {
           const err = await r.json().catch(()=>({}));
           btnGcal.textContent = '❌ Erreur ' + r.status;
@@ -5887,7 +5892,7 @@ function updateOnlineStatus() {
     if (!bar) {
       bar = document.createElement('div');
       bar.id = 'offline-bar';
-      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;text-align:center;font-size:12px;font-weight:700;padding:4px;z-index:9999;';
+      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#C2624C;color:#fff;text-align:center;font-size:12px;font-weight:700;padding:4px;z-index:9999;';
       bar.textContent = '📵 Mode hors ligne — données sauvegardées localement';
       document.body.prepend(bar);
     }
@@ -6078,7 +6083,7 @@ function heApplyDroits() {
     if (!existing) {
       const badge = document.createElement('div');
       badge.id = 'he-user-badge';
-      badge.style.cssText = 'position:fixed;top:0;right:0;background:rgba(245,166,35,0.15);border-bottom-left-radius:10px;padding:6px 10px;font-size:11px;color:#f5a623;z-index:500;cursor:pointer;';
+      badge.style.cssText = 'position:fixed;top:0;right:0;background:rgba(201,168,106,0.12);border-bottom-left-radius:10px;padding:6px 10px;font-size:11px;color:#C9A86A;z-index:500;cursor:pointer;';
       badge.textContent = '👤 ' + window.HE_USER.nom;
       badge.onclick = heDeconnecter;
       document.body.appendChild(badge);
@@ -6110,7 +6115,7 @@ async function heShowLogin() {
     <div style="width:100%;max-width:380px;">
       <div style="text-align:center;margin-bottom:32px;">
         <div style="font-size:40px;margin-bottom:8px;">⚡</div>
-        <div style="font-size:22px;font-weight:800;color:#f5a623;">Harmonie Électricité</div>
+        <div style="font-size:22px;font-weight:800;color:#C9A86A;">Harmonie Électricité</div>
         <div style="font-size:13px;color:#888;margin-top:4px;">Connexion</div>
       </div>
       <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;padding:20px;">
@@ -6125,10 +6130,10 @@ async function heShowLogin() {
           <label for="he-remember" style="font-size:13px;color:#888;cursor:pointer;">Mémoriser sur cet appareil</label>
         </div>
         <button id="he-login-btn" onclick="heLogin()"
-          style="width:100%;padding:14px;border-radius:10px;border:none;background:#f5a623;color:#000;font-size:15px;font-weight:800;cursor:pointer;">
+          style="width:100%;padding:14px;border-radius:10px;border:none;background:#C9A86A;color:#000;font-size:15px;font-weight:800;cursor:pointer;">
           Se connecter
         </button>
-        <div id="he-login-err" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;display:none;"></div>
+        <div id="he-login-err" style="color:#C2624C;font-size:13px;text-align:center;margin-top:10px;display:none;"></div>
         <div style="text-align:center;margin-top:14px;">
           <button onclick="heShowForgot()" style="background:none;border:none;color:#888;font-size:12px;cursor:pointer;text-decoration:underline;">
             Mot de passe oublié ?
@@ -6180,11 +6185,11 @@ async function heAccederParams() {
     </button>
     <div id="params-bio-btn" style="display:none;margin-bottom:8px;">
       <button onclick="heVerifParamsBio()"
-        style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--accent);background:rgba(245,166,35,0.08);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">
+        style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--accent);background:rgba(201,168,106,0.08);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">
         👤 Déverrouiller avec Face ID
       </button>
     </div>
-    <div id="params-auth-err" style="color:#ef4444;font-size:13px;text-align:center;display:none;"></div>`;
+    <div id="params-auth-err" style="color:#C2624C;font-size:13px;text-align:center;display:none;"></div>`;
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
@@ -6241,7 +6246,7 @@ async function heCheckBioLogin() {
   const bioUsers = users.filter(function(u){ return u.bioCredentialId; });
   if (!bioUsers.length) return;
 
-  zone.innerHTML = '<button onclick="heBioLogin()" style="width:100%;padding:12px;border-radius:10px;border:1px solid #f5a623;background:rgba(245,166,35,0.08);color:#f5a623;font-size:14px;font-weight:700;cursor:pointer;">👤 Connexion Face ID</button>';
+  zone.innerHTML = '<button onclick="heBioLogin()" style="width:100%;padding:12px;border-radius:10px;border:1px solid #C9A86A;background:rgba(201,168,106,0.08);color:#C9A86A;font-size:14px;font-weight:700;cursor:pointer;">👤 Connexion Face ID</button>';
 }
 
 async function heBioLogin() {
@@ -6308,7 +6313,7 @@ async function heSetupAdmin() {
     <div style="width:100%;max-width:380px;">
       <div style="text-align:center;margin-bottom:24px;">
         <div style="font-size:40px;margin-bottom:8px;">⚡</div>
-        <div style="font-size:20px;font-weight:800;color:#f5a623;">Premier lancement</div>
+        <div style="font-size:20px;font-weight:800;color:#C9A86A;">Premier lancement</div>
         <div style="font-size:13px;color:#888;margin-top:4px;">Créer le compte administrateur</div>
       </div>
       <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;padding:20px;">
@@ -6322,8 +6327,8 @@ async function heSetupAdmin() {
         <input id="sa-email" type="email" value="harmonie.electricite@gmail.com" placeholder="votre@email.com"
           style="width:100%;padding:12px;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#f0f0f0;font-size:15px;margin-bottom:4px;box-sizing:border-box;">
         <div style="font-size:11px;color:#888;margin-bottom:12px;">⚠️ Cet email sera utilisé pour réinitialiser votre mot de passe si oublié</div>
-        <button onclick="heCreateAdmin()" style="width:100%;padding:14px;border-radius:10px;border:none;background:#f5a623;color:#000;font-size:15px;font-weight:800;cursor:pointer;">Créer mon compte admin</button>
-        <div id="sa-err" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;display:none;"></div>
+        <button onclick="heCreateAdmin()" style="width:100%;padding:14px;border-radius:10px;border:none;background:#C9A86A;color:#000;font-size:15px;font-weight:800;cursor:pointer;">Créer mon compte admin</button>
+        <div id="sa-err" style="color:#C2624C;font-size:13px;text-align:center;margin-top:10px;display:none;"></div>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -6366,10 +6371,10 @@ function heShowForgot() {
     <input id="fp-id" type="text" placeholder="votre identifiant"
       style="width:100%;padding:12px;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#f0f0f0;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
     <button onclick="heEnvoyerCodeReset()"
-      style="width:100%;padding:14px;border-radius:10px;border:none;background:#f5a623;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">
+      style="width:100%;padding:14px;border-radius:10px;border:none;background:#C9A86A;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">
       📧 Envoyer le code par email
     </button>
-    <div id="fp-err" style="color:#ef4444;font-size:13px;text-align:center;margin-bottom:10px;display:none;"></div>
+    <div id="fp-err" style="color:#C2624C;font-size:13px;text-align:center;margin-bottom:10px;display:none;"></div>
     <button onclick="location.reload()" style="width:100%;padding:11px;border-radius:10px;border:1px solid #2a2a2a;background:transparent;color:#888;font-size:13px;cursor:pointer;">← Retour</button>`;
 }
 
@@ -6410,11 +6415,11 @@ async function heEnvoyerCodeReset() {
         html: `
           <div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:24px;background:#0f0f0f;color:#f0f0f0;border-radius:12px;">
             <div style="font-size:32px;text-align:center;margin-bottom:16px;">⚡</div>
-            <h2 style="color:#f5a623;text-align:center;margin-bottom:8px;">Harmonie Électricité</h2>
+            <h2 style="color:#C9A86A;text-align:center;margin-bottom:8px;">Harmonie Électricité</h2>
             <p>Bonjour ${user.nom},</p>
             <p>Voici votre code de réinitialisation du mot de passe :</p>
-            <div style="background:#1a1a1a;border:2px solid #f5a623;border-radius:12px;padding:20px;text-align:center;margin:20px 0;">
-              <div style="font-size:36px;font-weight:900;letter-spacing:8px;color:#f5a623;">${code}</div>
+            <div style="background:#1a1a1a;border:2px solid #C9A86A;border-radius:12px;padding:20px;text-align:center;margin:20px 0;">
+              <div style="font-size:36px;font-weight:900;letter-spacing:8px;color:#C9A86A;">${code}</div>
               <div style="font-size:12px;color:#888;margin-top:8px;">Valable 15 minutes</div>
             </div>
             <p style="color:#888;font-size:12px;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
@@ -6435,10 +6440,10 @@ async function heEnvoyerCodeReset() {
   if (card) {
     card.innerHTML = `
       <div style="font-size:15px;font-weight:800;margin-bottom:12px;">🔑 Entrez le code reçu</div>
-      <p style="font-size:13px;color:#888;margin-bottom:14px;">Un code à 6 chiffres a été envoyé à <strong style="color:#f5a623;">${emailMask}</strong>. Vérifiez vos emails (et spams).</p>
+      <p style="font-size:13px;color:#888;margin-bottom:14px;">Un code à 6 chiffres a été envoyé à <strong style="color:#C9A86A;">${emailMask}</strong>. Vérifiez vos emails (et spams).</p>
       <label style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px;">Code de vérification</label>
       <input id="fp-code" type="number" placeholder="123456" maxlength="6"
-        style="width:100%;padding:14px;background:#111;border:2px solid #f5a623;border-radius:8px;color:#f0f0f0;font-size:24px;font-weight:800;text-align:center;letter-spacing:4px;margin-bottom:12px;box-sizing:border-box;">
+        style="width:100%;padding:14px;background:#111;border:2px solid #C9A86A;border-radius:8px;color:#f0f0f0;font-size:24px;font-weight:800;text-align:center;letter-spacing:4px;margin-bottom:12px;box-sizing:border-box;">
       <label style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px;">Nouveau mot de passe</label>
       <input id="fp-newpwd" type="password" placeholder="Nouveau mot de passe"
         style="width:100%;padding:12px;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#f0f0f0;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
@@ -6446,10 +6451,10 @@ async function heEnvoyerCodeReset() {
       <input id="fp-confirmpwd" type="password" placeholder="Confirmer"
         style="width:100%;padding:12px;background:#111;border:1px solid #2a2a2a;border-radius:8px;color:#f0f0f0;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
       <button onclick="heValiderReset()"
-        style="width:100%;padding:14px;border-radius:10px;border:none;background:#22c55e;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#6FA86A;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">
         ✅ Réinitialiser le mot de passe
       </button>
-      <div id="fp-err2" style="color:#ef4444;font-size:13px;text-align:center;margin-bottom:10px;display:none;"></div>
+      <div id="fp-err2" style="color:#C2624C;font-size:13px;text-align:center;margin-bottom:10px;display:none;"></div>
       <button onclick="location.reload()" style="width:100%;padding:11px;border-radius:10px;border:1px solid #2a2a2a;background:transparent;color:#888;font-size:13px;cursor:pointer;">← Retour connexion</button>`;
   }
 }
@@ -6497,7 +6502,7 @@ function heUpdateBioStatusUser() {
   const supported = !!window.PublicKeyCredential;
   if (!supported) { statusEl.textContent = '⚠️ Face ID non supporté sur cet appareil'; return; }
   if (hasBio) {
-    statusEl.innerHTML = '✅ <span style="color:#22c55e;">Face ID activé sur cet appareil</span>';
+    statusEl.innerHTML = '✅ <span style="color:#6FA86A;">Face ID activé sur cet appareil</span>';
     if (btnActiv) btnActiv.style.display = 'none';
     if (btnDisab) btnDisab.style.display = 'block';
   } else {
@@ -6574,7 +6579,7 @@ function heUpdateBioStatus() {
   const supported  = !!window.PublicKeyCredential;
   if (!supported) { statusEl.textContent = '⚠️ Face ID non supporté sur cet appareil'; return; }
   if (hasBio) {
-    statusEl.innerHTML = '✅ <span style="color:#22c55e;">Face ID activé</span>';
+    statusEl.innerHTML = '✅ <span style="color:#6FA86A;">Face ID activé</span>';
     if (btnActiv) btnActiv.style.display = 'none';
     if (btnDisab) btnDisab.style.display = 'block';
   } else {
@@ -6659,7 +6664,7 @@ function heOpenAdminUsers() {
       <div style="font-size:16px;font-weight:800;">👥 Gestion des accès</div>
       <button onclick="document.getElementById('he-admin-overlay').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
     </div>
-    <button onclick="heNewUserForm()" style="width:100%;padding:12px;border-radius:10px;border:none;background:#f5a623;color:#000;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:16px;">
+    <button onclick="heNewUserForm()" style="width:100%;padding:12px;border-radius:10px;border:none;background:#C9A86A;color:#000;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:16px;">
       + Créer un utilisateur
     </button>
     <div id="he-users-list"></div>`;
@@ -6680,12 +6685,12 @@ function heRenderUsersList() {
     return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div>
-          <div style="font-weight:700;font-size:15px;">${escHtml(u.nom)} ${isMe?'<span style="font-size:10px;color:#f5a623;">(vous)</span>':''}</div>
-          <div style="font-size:12px;color:var(--muted);">@${escHtml(u.identifiant)} · ${u.role==='admin'?'<span style="color:#f5a623;font-weight:700;">Admin</span>':'Utilisateur · '+nbDroits+' droits'}</div>
+          <div style="font-weight:700;font-size:15px;">${escHtml(u.nom)} ${isMe?'<span style="font-size:10px;color:#C9A86A;">(vous)</span>':''}</div>
+          <div style="font-size:12px;color:var(--muted);">@${escHtml(u.identifiant)} · ${u.role==='admin'?'<span style="color:#C9A86A;font-weight:700;">Admin</span>':'Utilisateur · '+nbDroits+' droits'}</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button onclick="heEditUser(${i})" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:12px;cursor:pointer;">✏️</button>
-          ${!isMe?`<button onclick="heDeleteUser(${i})" style="padding:6px 10px;border-radius:8px;border:none;background:#ef4444;color:#fff;font-size:12px;cursor:pointer;">🗑</button>`:''}
+          ${!isMe?`<button onclick="heDeleteUser(${i})" style="padding:6px 10px;border-radius:8px;border:none;background:#C2624C;color:#fff;font-size:12px;cursor:pointer;">🗑</button>`:''}
         </div>
       </div>
       ${u.lastLogin?`<div style="font-size:11px;color:var(--muted);">Dernière connexion : ${new Date(u.lastLogin).toLocaleDateString('fr-FR')}</div>`:''}
@@ -6706,7 +6711,7 @@ function heNewUserForm(editIndex) {
     const checked = editing ? !!(editing.droits&&editing.droits[d.id]) : d.default;
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
       <label for="dr-${d.id}" style="font-size:13px;cursor:pointer;">${d.label}</label>
-      <input type="checkbox" id="dr-${d.id}" ${checked?'checked':''} style="width:20px;height:20px;accent-color:#f5a623;cursor:pointer;">
+      <input type="checkbox" id="dr-${d.id}" ${checked?'checked':''} style="width:20px;height:20px;accent-color:#C9A86A;cursor:pointer;">
     </div>`;
   }).join('');
 
@@ -6738,8 +6743,8 @@ function heNewUserForm(editIndex) {
         <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Droits d'accès</div>
         ${droitsHtml}
       </div>
-      <div id="uf-err" style="color:#ef4444;font-size:13px;margin:10px 0;display:none;"></div>
-      <button onclick="heSaveUser(${editIndex})" style="width:100%;padding:14px;border-radius:10px;border:none;background:#f5a623;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px;">
+      <div id="uf-err" style="color:#C2624C;font-size:13px;margin:10px 0;display:none;"></div>
+      <button onclick="heSaveUser(${editIndex})" style="width:100%;padding:14px;border-radius:10px;border:none;background:#C9A86A;color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px;">
         ${editing?'💾 Enregistrer les modifications':'✅ Créer l\'utilisateur'}
       </button>
     </div>`;
@@ -7365,11 +7370,11 @@ function ccDotPos(i){ const col=(i-1)%3, row=Math.floor((i-1)/3); return {x:40+c
 function ccSchemaSVG(seq,interactive){
   seq=(seq||[]).map(Number).filter(function(n){ return n>=1&&n<=9; });
   let pts=''; for(let i=0;i<seq.length;i++){ const p=ccDotPos(seq[i]); pts+=p.x+','+p.y+' '; }
-  const line=seq.length>1?'<polyline points="'+pts.trim()+'" fill="none" stroke="#f5a623" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>':'';
+  const line=seq.length>1?'<polyline points="'+pts.trim()+'" fill="none" stroke="#C9A86A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>':'';
   let dots='';
   for(let i=1;i<=9;i++){
     const p=ccDotPos(i); const order=seq.indexOf(i); const used=order>=0;
-    const fill=used?'#f5a623':'#222'; const stroke=used?'#f5a623':'#2a2a2a'; const tc=used?'#000':'#888';
+    const fill=used?'#C9A86A':'#222'; const stroke=used?'#C9A86A':'#2a2a2a'; const tc=used?'#000':'#888';
     const tap=interactive?' style="cursor:pointer" onclick="ccSchemaTap('+i+')"':'';
     dots+='<g'+tap+'><circle cx="'+p.x+'" cy="'+p.y+'" r="22" fill="'+fill+'" stroke="'+stroke+'" stroke-width="2"/>'
       +'<text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" font-size="14" font-weight="700" fill="'+tc+'" font-family="-apple-system,sans-serif">'+(used?(order+1):i)+'</text></g>';
@@ -7465,10 +7470,10 @@ function ccRenderAgenda(){
   <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;">
     <div>
       <span style="font-weight:800;font-size:14px;">📦 Sortie de stock</span>
-      <span id="stock-session-count" style="margin-left:8px;background:rgba(239,68,68,0.2);color:#ef4444;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;display:none;">0</span>
+      <span id="stock-session-count" style="margin-left:8px;background:rgba(194,98,76,0.18);color:#C2624C;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;display:none;">0</span>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <button onclick="validerStockSession()" id="btn-valider-stock" style="background:#22c55e;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer;display:none;">✅ Valider</button>
+      <button onclick="validerStockSession()" id="btn-valider-stock" style="background:#6FA86A;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer;display:none;">✅ Valider</button>
       <button onclick="toggleStockSortie()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">×</button>
     </div>
   </div>
@@ -7495,7 +7500,7 @@ function ccRenderAgenda(){
     </div>
     <div style="display:flex;gap:6px;margin-top:8px;">
       <button onclick="stockAjouter('camion')"
-        style="flex:1;padding:8px;border-radius:8px;border:none;background:#ef4444;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">
+        style="flex:1;padding:8px;border-radius:8px;border:none;background:#C2624C;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">
         🚐 Camion
       </button>
       <button onclick="stockAjouter('atelier')"
@@ -7586,7 +7591,7 @@ function ccRenderAgenda(){
         + '<div><div style="font-size:12px;font-weight:600;">' + (a.nom||'').substring(0,40) + '</div>'
         + '<div style="font-size:10px;color:var(--muted);">' + (a.ref||'') + '</div></div>'
         + '<div style="text-align:right;flex-shrink:0;font-size:11px;">'
-        + '<span style="color:#22c55e;">🚐' + stockC + '</span> '
+        + '<span style="color:#6FA86A;">🚐' + stockC + '</span> '
         + '<span style="color:#888;">🏭' + stockA + '</span>'
         + '</div></div>';
     }).join('');
@@ -7674,7 +7679,7 @@ function ccRenderAgenda(){
           + '<div style="font-size:10px;color:var(--muted);">' + emoji + ' ' + s.emplacement + ' · stock avant: ' + (s.emplacement==='camion'?s.stockCamion:s.stockAtelier) + '</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
-          + '<span style="font-size:15px;font-weight:800;color:#ef4444;">−' + s.qty + '</span>'
+          + '<span style="font-size:15px;font-weight:800;color:#C2624C;">−' + s.qty + '</span>'
           + '<button onclick="stockSupprimer(' + i + ')" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;">✕</button>'
           + '</div>'
           + '</div>';
@@ -7766,7 +7771,7 @@ function ccRenderAgenda(){
 
     <!-- Onglet Calculatrice -->
     <button id="calc-tab" onclick="toggleCalculatrice()"
-      style="width:36px;height:72px;border-radius:10px 0 0 10px;background:#f5a623;border:none;cursor:pointer;box-shadow:-3px 0 12px rgba(245,166,35,0.4);display:flex;align-items:center;justify-content:center;padding:4px;"
+      style="width:36px;height:72px;border-radius:10px 0 0 10px;background:linear-gradient(160deg,#E4CD93,#C9A86A);border:none;cursor:pointer;box-shadow:-3px 0 12px rgba(201,168,106,0.35);display:flex;align-items:center;justify-content:center;padding:4px;"
       title="Calculatrice">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 90" width="22" height="28">
         <rect x="0" y="0" width="72" height="90" rx="12" fill="rgba(0,0,0,0.25)"/>
@@ -7784,7 +7789,7 @@ function ccRenderAgenda(){
 
     <!-- Onglet Stock -->
     <button id="stock-tab" onclick="toggleStockSortie()"
-      style="width:36px;height:72px;border-radius:10px 0 0 10px;background:#ef4444;border:none;cursor:pointer;box-shadow:-3px 0 12px rgba(239,68,68,0.4);display:flex;align-items:center;justify-content:center;padding:3px;"
+      style="width:36px;height:72px;border-radius:10px 0 0 10px;background:#C2624C;border:none;cursor:pointer;box-shadow:-3px 0 12px rgba(194,98,76,0.4);display:flex;align-items:center;justify-content:center;padding:3px;"
       title="Sortie de stock">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="26" height="28">
         <line x1="15" y1="38" x2="105" y2="38" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
@@ -7845,7 +7850,7 @@ function ccRenderAgenda(){
   </div>
   <!-- Résultat copié -->
   <div id="calc-copy-bar" style="display:none;padding:6px 16px 10px;text-align:center;">
-    <button onclick="calcCopier()" style="width:100%;padding:8px;background:rgba(34,197,94,0.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
+    <button onclick="calcCopier()" style="width:100%;padding:8px;background:rgba(111,168,106,0.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
       📋 Copier le résultat
     </button>
   </div>
@@ -7867,7 +7872,7 @@ function ccRenderAgenda(){
 }
 .calc-btn:active { opacity: 0.7; transform: scale(.95); }
 .calc-fn  { background: var(--surface2); color: var(--muted); font-size: 14px; }
-.calc-op  { background: rgba(245,166,35,0.15); color: var(--accent); font-weight: 800; }
+.calc-op  { background: rgba(201,168,106,0.12); color: var(--accent); font-weight: 800; }
 .calc-eq  { background: var(--accent); color: #000; font-weight: 800; }
 </style>
 
