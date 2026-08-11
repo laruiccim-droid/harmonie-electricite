@@ -202,8 +202,9 @@ async function postGoogle(imageUrl, text, tokenRow) {
     accessToken = await refreshGoogleToken(tokenRow);
   }
 
+  // API Business Profile v1 (mybusiness v4 est fermée depuis 2023)
   const res = await fetch(
-    `https://mybusiness.googleapis.com/v4/accounts/${accountId}/locations/${locationId}/localPosts`,
+    `https://mybusinesslocalposts.googleapis.com/v1/locations/${locationId}/localPosts`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },

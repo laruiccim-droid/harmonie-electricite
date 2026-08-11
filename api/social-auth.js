@@ -20,7 +20,7 @@ const CFGS = {
   linkedin: {
     authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
     tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
-    scope: 'w_member_social',
+    scope: 'openid profile w_member_social',
     id: () => '78zyiprnm4225w',
     secret: () => process.env.LI_CLIENT_SECRET,
   },
@@ -179,13 +179,14 @@ async function linkedinCallback(code, platform) {
   const d1 = await r1.json();
   if (d1.error) throw new Error(d1.error_description || d1.error);
 
-  // 2. Get member ID (w_member_social ne donne pas accÃ¨s aux champs de nom)
-  const r2 = await fetch('https://api.linkedin.com/v2/me?projection=(id)', {
-    headers: { Authorization: `Bearer ${d1.access_token}`, 'X-Restli-Protocol-Version': '2.0.0' },
+  // 2. Get member ID via OpenID Connect userinfo (compatible openid profile scope)
+  const r2 = await fetch('https://api.linkedin.com/v2/userinfo', {
+    headers: { Authorization: `Bearer ${d1.access_token}` },
   });
   const d2 = await r2.json();
-  const memberId = d2.id || 'inconnu';
-  const name = `Harmonie Ã‰lectricitÃ© (LinkedIn)`;
+  const memberId = d2.sub || d2.id || null;
+  if (!memberId) throw new Error('Impossible de récupérer le member ID LinkedIn — vérifiez les scopes de votre app.');
+  const name = d2.name || 'Harmonie Électricité (LinkedIn)';
 
   await sbUpsert('linkedin', {
     access_token: d1.access_token,
