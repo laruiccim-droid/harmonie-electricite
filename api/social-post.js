@@ -216,8 +216,12 @@ async function postGoogle(imageUrl, text, tokenRow) {
       }),
     }
   );
-  const d = await res.json();
-  if (d.error) throw new Error(d.error.message);
+  const raw = await res.text();
+  let d;
+  try { d = JSON.parse(raw); } catch(e) {
+    throw new Error(`Google HTTP ${res.status}: ${raw.substring(0, 300)}`);
+  }
+  if (d.error) throw new Error(`Google ${res.status}: ${d.error.message} (${d.error.status})`);
   return { post_id: d.name };
 }
 
