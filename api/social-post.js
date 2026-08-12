@@ -106,7 +106,7 @@ async function uploadLinkedInImage(imageUrl, authorUrn, authHeader) {
 
 async function postLinkedIn(imageUrls, text, tokenRow) {
   const authorUrn = tokenRow.extra?.author_urn || `urn:li:person:${tokenRow.page_id}`;
-  const authHeader = { Authorization: `Bearer ${tokenRow.access_token}`, 'LinkedIn-Version': '202209', 'X-Restli-Protocol-Version': '2.0.0' };
+  const authHeader = { Authorization: `Bearer ${tokenRow.access_token}`, 'LinkedIn-Version': '202412', 'X-Restli-Protocol-Version': '2.0.0' };
 
   // Upload toutes les images
   const imageUrns = await Promise.all(imageUrls.map(url => uploadLinkedInImage(url, authorUrn, authHeader)));
@@ -219,7 +219,7 @@ async function postGoogle(imageUrl, text, tokenRow) {
   const raw = await res.text();
   let d;
   try { d = JSON.parse(raw); } catch(e) {
-    throw new Error(`Google HTTP ${res.status}: ${raw.substring(0, 300)}`);
+    throw new Error(`Google HTTP ${res.status} [account=${accountId} loc=${locationId}]: ${raw.substring(0, 200)}`);
   }
   if (d.error) throw new Error(`Google ${res.status}: ${d.error.message} (${d.error.status})`);
   return { post_id: d.name };
