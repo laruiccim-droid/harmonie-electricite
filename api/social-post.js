@@ -106,7 +106,7 @@ async function uploadLinkedInImage(imageUrl, authorUrn, authHeader) {
 
 async function postLinkedIn(imageUrls, text, tokenRow) {
   const authorUrn = tokenRow.extra?.author_urn || `urn:li:person:${tokenRow.page_id}`;
-  const authHeader = { Authorization: `Bearer ${tokenRow.access_token}`, 'LinkedIn-Version': '202406', 'X-Restli-Protocol-Version': '2.0.0' };
+  const authHeader = { Authorization: `Bearer ${tokenRow.access_token}`, 'LinkedIn-Version': '202302', 'X-Restli-Protocol-Version': '2.0.0' };
 
   // Upload toutes les images
   const imageUrns = await Promise.all(imageUrls.map(url => uploadLinkedInImage(url, authorUrn, authHeader)));
