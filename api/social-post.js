@@ -80,60 +80,77 @@ async function postFacebook(imageUrls, text, tokenRow) {
   return { post_id: dFeed.id };
 }
 
-// ── LinkedIn ──────────────────────────────────────────────────────────────────
+// ── LinkedIn (v2/ugcPosts — pas de LinkedIn-Version requis) ───────────────────
 
-async function uploadLinkedInImage(imageUrl, authorUrn, authHeader) {
-  const r1 = await fetch('https://api.linkedin.com/rest/images?action=initializeUpload', {
+async function uploadLinkedInImageV2(imageUrl, authorUrn, token) {
+  const baseHeaders = { Authorization: `Bearer ${token}`, 'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json' };
+
+  // 1. Register upload
+  const r1 = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
     method: 'POST',
-    headers: { ...authHeader, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initializeUploadRequest: { owner: authorUrn } }),
+    headers: baseHeaders,
+    body: JSON.stringify({
+      registerUploadRequest: {
+        recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+        owner: authorUrn,
+        serviceRelationships: [{ relationshipType: 'OWNER', identifier: 'urn:li:userGeneratedContent' }],
+      },
+    }),
   });
   const d1 = await r1.json();
-  if (!r1.ok) throw new Error('LinkedIn init upload: ' + JSON.stringify(d1));
+  if (!r1.ok) throw new Error('LinkedIn registerUpload: ' + JSON.stringify(d1));
 
+  const uploadUrl = d1.value.uploadMechanism['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'].uploadUrl;
+  const asset = d1.value.asset;
+
+  // 2. Upload image
   const imgRes = await fetch(imageUrl);
   if (!imgRes.ok) throw new Error('Impossible de télécharger l\'image depuis Supabase');
-
-  const r2 = await fetch(d1.value.uploadUrl, {
+  const r2 = await fetch(uploadUrl, {
     method: 'PUT',
-    headers: { 'Content-Type': 'image/jpeg' },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'image/jpeg' },
     body: await imgRes.arrayBuffer(),
   });
   if (!r2.ok) throw new Error('LinkedIn upload image: ' + r2.status);
 
-  return d1.value.image;
+  return asset;
 }
 
 async function postLinkedIn(imageUrls, text, tokenRow) {
   const authorUrn = tokenRow.extra?.author_urn || `urn:li:person:${tokenRow.page_id}`;
-  const authHeader = { Authorization: `Bearer ${tokenRow.access_token}`, 'LinkedIn-Version': '202412', 'X-Restli-Protocol-Version': '2.0.0' };
+  const token = tokenRow.access_token;
 
   // Upload toutes les images
-  const imageUrns = await Promise.all(imageUrls.map(url => uploadLinkedInImage(url, authorUrn, authHeader)));
+  const assets = await Promise.all(imageUrls.map(url => uploadLinkedInImageV2(url, authorUrn, token)));
 
-  // Construire le contenu : media unique ou multiImage
-  const content = imageUrns.length === 1
-    ? { media: { title: text.substring(0, 70), id: imageUrns[0] } }
-    : { multiImage: { images: imageUrns.map(id => ({ id, altText: text.substring(0, 120) })) } };
-
-  const r3 = await fetch('https://api.linkedin.com/rest/posts', {
+  // Créer le post via ugcPosts
+  const r3 = await fetch('https://api.linkedin.com/v2/ugcPosts', {
     method: 'POST',
-    headers: { ...authHeader, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Restli-Protocol-Version': '2.0.0' },
     body: JSON.stringify({
       author: authorUrn,
-      commentary: text,
-      visibility: 'PUBLIC',
-      distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] },
-      content,
       lifecycleState: 'PUBLISHED',
-      isReshareDisabledByAuthor: false,
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text },
+          shareMediaCategory: 'IMAGE',
+          media: assets.map(asset => ({
+            status: 'READY',
+            description: { text: text.substring(0, 200) },
+            media: asset,
+            title: { text: text.substring(0, 70) },
+          })),
+        },
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
     }),
   });
   if (!r3.ok) {
     const err = await r3.text();
-    throw new Error('LinkedIn post: ' + err);
+    throw new Error('LinkedIn ugcPost: ' + err);
   }
-  return { post_id: r3.headers.get('x-restli-id') };
+  const d3 = await r3.json();
+  return { post_id: d3.id };
 }
 
 // ── Instagram ────────────────────────────────────────────────────────────────
@@ -204,7 +221,7 @@ async function postGoogle(imageUrl, text, tokenRow) {
 
   // API Business Profile v1 (mybusiness v4 est fermée depuis 2023)
   const res = await fetch(
-    `https://mybusinesslocalposts.googleapis.com/v1/accounts/${accountId}/locations/${locationId}/localPosts`,
+    `https://mybusiness.googleapis.com/v1/accounts/${accountId}/locations/${locationId}/localPosts`,
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
