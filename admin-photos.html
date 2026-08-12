@@ -597,7 +597,8 @@ async function doUpload() {
       const fail = platforms.filter(p => d.results?.[p]?.error);
       if (ok.length) toast(`✅ Publié sur ${ok.join(', ')} !`);
       if (fail.length) {
-        for (const p of fail) toast(`❌ ${p}: ${d.results[p].error}`, true);
+        const msgs = fail.map(p => `❌ ${p}: ${d.results[p].error}`).join('\n');
+        alert(msgs);
       }
     } catch(e) {
       toast('Erreur publication réseaux : ' + e.message, true);
