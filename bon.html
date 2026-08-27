@@ -161,7 +161,8 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
     <div><label>Email client</label><input type="email" id="f-email" placeholder="client@..."></div>
   </div>
   <label>Motif / description du problème</label>
-  <textarea id="f-motif" rows="3" placeholder="Ex. Le portail ne s'ouvre plus..."></textarea>
+  <textarea id="f-motif" rows="3" placeholder="Ex. Le portail ne s'ouvre plus..." oninput="updateMotifLinks()"></textarea>
+  <div id="motif-links" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:8px;font-size:12px;"></div>
   <label>N° d'OS / référence chantier <span style="font-size:10px;color:var(--muted);font-weight:400;">(transmise par le syndic, si applicable)</span></label>
   <input type="text" id="f-reference" placeholder="Ex. OS-2026-0123">
 </div>
@@ -292,6 +293,17 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
     Notes internes <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(non visibles sur le document client)</span>
   </label>
   <textarea id="f-notes-internes" rows="3" placeholder="Remarques pour l'assistante, matériel à commander, suite à donner..."></textarea>
+</div>
+
+<!-- DEVIS À SUIVRE -->
+<div class="card" id="devis-suivre-card" style="margin-top:8px;">
+  <label for="f-devis-suivre" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;margin:0;">
+    <input type="checkbox" id="f-devis-suivre" style="width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;">
+    <div>
+      <div style="font-weight:700;font-size:14px;">📄 Devis à suivre</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:400;">Après validation, proposer de créer un devis pré-rempli</div>
+    </div>
+  </label>
 </div>
 
 <!-- LIEN RDV AGENDA (caché, pour debug/correction) -->
@@ -964,11 +976,21 @@ window.addEventListener('load', async function() {
     if (document.getElementById('f-adresse-fact')) document.getElementById('f-adresse-fact').value = data.clientAdresseFacturation || data.adresseFacturation || data.clientAdresse || '';
     document.getElementById('f-tel').value      = data.clientTel || '';
     document.getElementById('f-email').value    = data.clientEmail || '';
-    document.getElementById('f-motif').value    = data.description || data.motif || '';
+    // Nettoyer le HTML (balises <p><b> etc.) venant de la dictée IA
+    const stripHtml = function(s) {
+      if (!s) return '';
+      return s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+    };
+    // Tout le contenu va dans motif — rapport reste vide par défaut
+    const motifBase = stripHtml(data.description || data.motif || '');
+    const rapportExtra = stripHtml(data.rapport || '');
+    document.getElementById('f-motif').value = rapportExtra && rapportExtra !== motifBase
+      ? (motifBase ? motifBase + '\n\n' + rapportExtra : rapportExtra)
+      : motifBase;
     document.getElementById('f-reference').value = data.reference || '';
-    if (document.getElementById('f-rapport') && data.rapport) {
-      document.getElementById('f-rapport').value = data.rapport;
-    }
+    // Afficher les liens détectés dans le motif
+    updateMotifLinks();
+    // f-rapport laissé vide intentionnellement (tout dans motif)
     document.getElementById('f-date').value     = data.date || new Date().toLocaleDateString('fr-FR');
     document.getElementById('f-rapport').placeholder = isBon
       ? 'Décris ici ce qui a été fait...'
@@ -1005,9 +1027,11 @@ window.addEventListener('load', async function() {
     document.getElementById('f-date').value = new Date().toLocaleDateString('fr-FR');
   }
 
-  // Calcul durée auto si heures remplies
+  // Calcul durée auto si heures remplies (change + input pour réactivité immédiate)
   document.getElementById('f-heure-debut').addEventListener('change', calcDuree);
   document.getElementById('f-heure-fin').addEventListener('change', calcDuree);
+  document.getElementById('f-heure-debut').addEventListener('input', calcDuree);
+  document.getElementById('f-heure-fin').addEventListener('input', calcDuree);
 
   // Démarrer l'auto-save
   demarrerAutoSave();
@@ -1015,6 +1039,19 @@ window.addEventListener('load', async function() {
 
   loadCatalogue();
 });
+
+function updateMotifLinks() {
+  const text = document.getElementById('f-motif').value;
+  const container = document.getElementById('motif-links');
+  const urlRegex = /https?:\/\/[^\s\]>)"]+/g;
+  const urls = text.match(urlRegex);
+  if (!urls || !urls.length) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  container.innerHTML = '<span style="color:var(--muted);font-weight:600;">🔗 Liens :</span> '
+    + [...new Set(urls)].map(function(u) {
+        return '<a href="' + u + '" target="_blank" rel="noopener" style="color:#3b82f6;word-break:break-all;">' + u + '</a>';
+      }).join(' &nbsp;·&nbsp; ');
+}
 
 function genNumero(prefix) {
   // Utiliser Supabase comme source de vérité — localStorage comme fallback rapide
@@ -1147,9 +1184,13 @@ function restaurerAutoSave() {
 function calcDuree() {
   const d = document.getElementById('f-heure-debut').value;
   const f = document.getElementById('f-heure-fin').value;
-  const mins = (fh*60+fm) - (dh*60+dm);
+  if (!d || !f) return;
+  const [dh, dm] = d.split(':').map(Number);
+  const [fh, fm] = f.split(':').map(Number);
+  if (isNaN(dh) || isNaN(dm) || isNaN(fh) || isNaN(fm)) return;
+  const mins = (fh * 60 + fm) - (dh * 60 + dm);
   if (mins > 0) {
-    document.getElementById('f-duree').value = Math.floor(mins/60) + 'h' + String(mins%60).padStart(2,'0') + 'min';
+    document.getElementById('f-duree').value = Math.floor(mins / 60) + 'h' + String(mins % 60).padStart(2, '0') + 'min';
   }
 }
 
@@ -1239,6 +1280,9 @@ function pickerSelect(i) {
   if (item && cb) cb(item);
 }
 function addLibre() {
+  // Cacher la calculatrice pour ne pas bloquer le bouton Valider
+  const calcModal = document.getElementById('calc-modal-bon');
+  if (calcModal) calcModal.style.display = 'none';
   // Supprimer modal existant
   document.getElementById('libre-modal')?.remove();
 
@@ -1431,6 +1475,9 @@ async function loadCatalogue() {
 }
 
 function openCatalogue() {
+  // Cacher la calculatrice pour ne pas bloquer le bouton Ajouter
+  const calcModal = document.getElementById('calc-modal-bon');
+  if (calcModal) calcModal.style.display = 'none';
   document.getElementById('cat-modal').style.display = 'flex';
   document.getElementById('cat-q').value = '';
   document.getElementById('cat-results').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>';
@@ -1891,6 +1938,27 @@ async function validerDoc() {
 
   // Afficher résumé
   afficherResume(doc);
+
+  // Proposer de créer un devis si la case est cochée
+  if (DOC_TYPE === 'bon' && document.getElementById('f-devis-suivre')?.checked) {
+    setTimeout(function() {
+      if (confirm('📄 Créer un devis pour ' + (doc.client || 'ce client') + ' ?\n\nLe devis sera pré-rempli avec le motif de l\'intervention.')) {
+        const devisData = {
+          type: 'devis',
+          clientNom: doc.client || '',
+          clientAdresse: doc.adresse || '',
+          clientTel: doc.tel || '',
+          clientEmail: doc.email || '',
+          description: doc.motif || '',
+          motif: doc.motif || '',
+          reference: doc.reference || '',
+          bonLie: doc.numero || ''
+        };
+        sessionStorage.setItem('he_bon_data', JSON.stringify(devisData));
+        window.open('bon.html', '_blank');
+      }
+    }, 600);
+  }
 }
 
 // ── Mettre à jour la description du RDV Google Calendar ──
@@ -2985,7 +3053,7 @@ function toast(msg) {
   (function() {
     // Bouton flottant
     const fab = document.createElement('button');
-
+    fab.id = 'calc-fab-bon';
     fab.title = 'Calculatrice';
     fab.style.cssText = 'position:fixed;bottom:20px;right:16px;width:54px;height:54px;border-radius:14px;background:#f5a623;border:none;cursor:pointer;z-index:10000;box-shadow:0 4px 16px rgba(245,166,35,0.5);padding:6px;display:flex;align-items:center;justify-content:center;';
     fab.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 90" width="36" height="36">
