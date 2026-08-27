@@ -2883,6 +2883,7 @@ function timerStopFromBanner() {
           eventData?.summary || '',
           stripGcalDesc(eventData?.description || '')
         ].filter(function(s){ return s.length > 0; }).join('\n\n'),
+        reference: extractRefFromTitle(eventData?.summary || ''),
         adresse: client?.addressChantier || client?.address || eventData?.location || '',
         eventId: eventData?.id || ''
       };
@@ -3595,6 +3596,17 @@ function ouvrirVisiteMaintenance(contrat, event, timerResult) {
 
 // ── Nettoyer la description GCal avant injection dans le bon ──
 // Supprime HTML, emojis de navigation du bon précédent, et normalise les sauts de ligne
+function extractRefFromTitle(title) {
+  if (!title) return '';
+  // Réf. 2156635 ou Réf 7615410
+  const m1 = title.match(/R[ée]f\.?\s*(\d{4,})/i);
+  if (m1) return 'Réf. ' + m1[1];
+  // n°OSTW61343 ou n°OS-2026-0123
+  const m2 = title.match(/n°\s*(\S+)/i);
+  if (m2) return 'n°' + m2[1];
+  return '';
+}
+
 function stripGcalDesc(s) {
   if (!s) return '';
   return s
@@ -3654,6 +3666,7 @@ function openBon(event, client, timerResult, type) {
     dureeMin: dur,
     // Motif = titre + description complète (HTML nettoyé) → tout dans f-motif, f-rapport vide
     description: [event.summary || '', stripGcalDesc(event.description || '')].filter(function(s){ return s.length > 0; }).join('\n\n'),
+    reference: extractRefFromTitle(event.summary || ''),
     clientNom: client ? client.name : '',
     clientTel: client ? (client.phone || '') : '',
     clientEmail: client ? (client.email || '') : '',

@@ -25,7 +25,39 @@ Les données sont passées à bon.html via `sessionStorage.setItem('he_bon_data'
 | Heure arrivée | `f-heure-debut` | `data.heureDebut` | Timer start → `event.start.dateTime` |
 | Heure départ | `f-heure-fin` | `data.heureFin` | Timer end → `event.end.dateTime` |
 | Durée | `f-duree` | Calculé par `calcDuree()` | — |
-| Référence OS | `f-reference` | `data.reference` | — |
+| **Référence OS** | `f-reference` | `data.reference` | Extraite du titre via `extractRefFromTitle(event.summary)` |
+
+## Extraction de la référence
+
+La référence est **toujours dans le titre du RDV** (`event.summary`), jamais dans la description. Patterns reconnus :
+
+| Pattern dans le titre | Exemple | Résultat dans f-reference |
+|---|---|---|
+| `Réf. XXXXXXX` | `PARADIS - Réf. 2156635 - DYSFONCTIONNEMENT` | `Réf. 2156635` |
+| `Réf XXXXXXX` (sans point) | `Aix - Réf 7615410 - TRAVAUX` | `Réf. 7615410` |
+| `n°OSTXXXXXXXX` | `badges -AVAL-Ordre de Service n°OSTW61343` | `n°OSTW61343` |
+
+Fonction utilisée (dans `index.html` et `training.html`) :
+```js
+function extractRefFromTitle(title) {
+  if (!title) return '';
+  const m1 = title.match(/R[ée]f\.?\s*(\d{4,})/i);
+  if (m1) return 'Réf. ' + m1[1];
+  const m2 = title.match(/n°\s*(\S+)/i);
+  if (m2) return 'n°' + m2[1];
+  return '';
+}
+```
+
+**Exemples validés le 27/08/2026** (source : training.html) :
+- `PARADIS QUAI DE VERDUN - Réf. 2156635 - DYSFONCTIONNEMENT INTERPHONE` → `Réf. 2156635` ✅
+- `Chambé- LE COLISEE - Réf. 2178212 - CHANGER NEON CLIGNOTANT` → `Réf. 2178212` ✅
+- `cde badges - 146 RUE CROIX D OR - Réf. 2167652` → `Réf. 2167652` ✅
+- `badges -AVAL-BUREAUX-Ordre de Service n°OSTW61343` → `n°OSTW61343` ✅
+- `Aix -EXCEPTION - Réf. 7615410 - ELE - DIVERS TRAVAUX` → `Réf. 7615410` ✅
+- `bourget - L OREE DU LAC - Réf. 7534714` → `Réf. 7534714` ✅
+- `PARC ST JEAN - Réf. 7660493 - INT - INTERPHONE` → `Réf. 7660493` ✅
+- `Bassens - LES SENIORIALES - Réf. 7509253` → `Réf. 7509253` ✅
 
 ---
 

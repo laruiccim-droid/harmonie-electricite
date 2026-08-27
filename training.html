@@ -121,6 +121,16 @@ const SUPA_KEY  = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
 let EVENTS = [];   // événements bruts GCal
 let RESULTS = {};  // { eventId: { status:'ok'|'edited'|'rejected', fields:{...}, original:{...} } }
 
+// ── Extraction référence depuis titre (copie de index.html) ──
+function extractRefFromTitle(title) {
+  if (!title) return '';
+  const m1 = title.match(/R[ée]f\.?\s*(\d{4,})/i);
+  if (m1) return 'Réf. ' + m1[1];
+  const m2 = title.match(/n°\s*(\S+)/i);
+  if (m2) return 'n°' + m2[1];
+  return '';
+}
+
 // ── Nettoyage HTML (copie exacte de index.html) ──────────────
 function stripGcalDesc(s) {
   if (!s) return '';
@@ -165,7 +175,7 @@ function mapperEvenement(e) {
     heureDebut: heureDebut,
     heureFin:   heureFin,
     adresse:    e.location || '',
-    reference:  '',
+    reference:  extractRefFromTitle(e.summary || ''),
   };
 }
 
