@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entraînement mapping GCal → Bon</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1c1f2e; --surface2: #252839;
+    --border: #2e3148; --accent: #f0c040; --text: #e8eaf0;
+    --muted: #8b90a8; --green: #22c55e; --red: #ef4444;
+    --blue: #3b82f6; --orange: #f97316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 18px; font-weight: 800; }
+  .header .badge { background: var(--accent); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+  .btn { padding: 10px 18px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: .85; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-red { background: var(--red); color: #fff; }
+  input[type=number] { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; width: 70px; }
+  .status { font-size: 13px; color: var(--muted); }
+
+  .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 24px; overflow: hidden; }
+  .event-card.validated { border-color: var(--green); }
+  .event-card.rejected { border-color: var(--red); opacity: .6; }
+  .event-header { background: var(--surface2); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .event-title { font-weight: 800; font-size: 15px; }
+  .event-date { font-size: 12px; color: var(--muted); }
+  .event-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+  .pane { padding: 16px; }
+  .pane + .pane { border-left: 1px solid var(--border); }
+  .pane-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+  .raw-block { background: var(--bg); border-radius: 8px; padding: 10px 12px; font-size: 12px; font-family: monospace; white-space: pre-wrap; word-break: break-word; color: #adb5c8; max-height: 200px; overflow-y: auto; }
+  .field-row { margin-bottom: 10px; }
+  .field-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+  .field-value { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 13px; min-height: 36px; white-space: pre-wrap; word-break: break-word; border: 1px solid var(--border); }
+  .field-value.empty { color: var(--muted); font-style: italic; }
+  .field-editable { width: 100%; background: var(--bg); border: 1px solid var(--blue); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: inherit; resize: vertical; min-height: 60px; }
+  .field-editable:focus { outline: none; border-color: var(--accent); }
+  .diff-hint { font-size: 11px; color: var(--orange); margin-top: 3px; }
+  .badge-ok { background: rgba(34,197,94,.15); color: var(--green); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .badge-ko { background: rgba(239,68,68,.15); color: var(--red); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .badge-edit { background: rgba(249,115,22,.15); color: var(--orange); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .export-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-top: 24px; }
+  .export-box h2 { font-size: 15px; margin-bottom: 12px; }
+  textarea.export-ta { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; height: 300px; }
+  .counter { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .counter-item { background: var(--surface2); border-radius: 10px; padding: 10px 16px; text-align: center; }
+  .counter-item .num { font-size: 24px; font-weight: 800; }
+  .counter-item .lbl { font-size: 11px; color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 15px; }
+  .loading { text-align: center; color: var(--muted); padding: 40px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+  .token-warn { background: rgba(239,68,68,.1); border: 1px solid var(--red); border-radius: 10px; padding: 14px 16px; color: var(--red); margin-bottom: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🎓 Entraînement mapping</h1>
+  </div>
+  <div class="badge">GCal → Bon</div>
+  <div style="margin-left:auto;font-size:12px;color:var(--muted);">Valide ou corrige la transcription de chaque RDV</div>
+</div>
+
+<div class="container">
+
+  <div id="token-warn" class="token-warn" style="display:none;">
+    ⚠️ Token Google Calendar non trouvé. Ouvre d'abord l'app principale et connecte ton agenda, puis reviens ici.
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="chargerEvenements()">🔄 Charger les RDV</button>
+    <label style="color:var(--muted);font-size:13px;">Nombre :
+      <input type="number" id="nb-events" value="10" min="1" max="50">
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);">
+      <input type="checkbox" id="incl-past" checked> Inclure les passés
+    </label>
+    <div class="status" id="status-txt"></div>
+    <button class="btn btn-secondary" onclick="exporterResultats()" style="margin-left:auto;">📥 Exporter corrections</button>
+  </div>
+
+  <div class="counter" id="counter" style="display:none;">
+    <div class="counter-item"><div class="num" id="cnt-total">0</div><div class="lbl">RDV chargés</div></div>
+    <div class="counter-item"><div class="num" id="cnt-ok" style="color:var(--green)">0</div><div class="lbl">✅ Validés</div></div>
+    <div class="counter-item"><div class="num" id="cnt-edit" style="color:var(--orange)">0</div><div class="lbl">✏️ Corrigés</div></div>
+    <div class="counter-item"><div class="num" id="cnt-ko" style="color:var(--red)">0</div><div class="lbl">❌ Rejetés</div></div>
+    <div class="counter-item"><div class="num" id="cnt-pending" style="color:var(--muted)">0</div><div class="lbl">En attente</div></div>
+  </div>
+
+  <div id="events-container">
+    <div class="empty">Clique sur « Charger les RDV » pour commencer</div>
+  </div>
+
+  <div class="export-box" id="export-box" style="display:none;">
+    <h2>📋 Corrections exportées — à coller dans CLAUDE.md</h2>
+    <textarea class="export-ta" id="export-ta" readonly></textarea>
+    <button class="btn btn-primary" style="margin-top:10px;" onclick="copierExport()">📋 Copier</button>
+  </div>
+
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────
+const GCAL_BASE = 'https://gcal-harmonie.harmonie-electricite.workers.dev';
+const SUPA_URL  = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY  = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+
+// ── État ─────────────────────────────────────────────────────
+let EVENTS = [];   // événements bruts GCal
+let RESULTS = {};  // { eventId: { status:'ok'|'edited'|'rejected', fields:{...}, original:{...} } }
+
+// ── Nettoyage HTML (copie exacte de index.html) ──────────────
+function stripGcalDesc(s) {
+  if (!s) return '';
+  return s
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n').replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/✅ BON D'INTERVENTION[^\n]*\n?(━+\n?)?/g, '')
+    .replace(/📄 DEVIS[^\n]*\n?(━+\n?)?/g, '')
+    .replace(/📄 PDF[^\n]*/g, '')
+    .replace(/💶 Total TTC[^\n]*/g, '')
+    .replace(/📦 Fournitures[^\n]*[\s\S]*?(?=\n\n|\n👤|\n⏱|\n🔧|\n🔒|$)/g, '')
+    .replace(/👤 Client[^\n]*/g, '')
+    .replace(/⏱[^\n]*/g, '')
+    .replace(/🔧 Motif[^\n]*/g, '')
+    .replace(/🔒 Notes[^\n]*/g, '')
+    .replace(/━+/g, '')
+    .replace(/\[.*?\]:[^\[\n]*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+// ── Mapping GCal → champs bon (copie de openBon dans index.html) ──
+function mapperEvenement(e) {
+  const description = [e.summary || '', stripGcalDesc(e.description || '')]
+    .filter(function(s){ return s.length > 0; })
+    .join('\n\n');
+
+  const dt = e.start && e.start.dateTime;
+  const date = dt
+    ? new Date(dt).toLocaleDateString('fr-FR')
+    : (e.start && e.start.date ? new Date(e.start.date + 'T12:00:00').toLocaleDateString('fr-FR') : '');
+
+  const heureDebut = dt ? new Date(e.start.dateTime).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+  const heureFin   = e.end && e.end.dateTime ? new Date(e.end.dateTime).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+
+  return {
+    motif:      description,
+    rapport:    '',  // toujours vide
+    date:       date,
+    heureDebut: heureDebut,
+    heureFin:   heureFin,
+    adresse:    e.location || '',
+    reference:  '',
+  };
+}
+
+// ── Authentification GCal ─────────────────────────────────────
+async function getToken() {
+  let tok = localStorage.getItem('gcal_access_token');
+  const ref = localStorage.getItem('gcal_refresh_token');
+  if (!tok && !ref) return null;
+  if (!tok && ref) {
+    try {
+      const r = await fetch(GCAL_BASE + '/refresh', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({refresh_token: ref})
+      });
+      const d = await r.json();
+      if (d.access_token) {
+        tok = d.access_token;
+        localStorage.setItem('gcal_access_token', tok);
+      }
+    } catch(e) { return null; }
+  }
+  // Essayer aussi depuis Supabase
+  if (!tok) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/notes?id=eq.he_gcal_refresh&select=payload', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      const rows = await r.json();
+      const refreshSupa = rows && rows[0] && rows[0].payload && rows[0].payload.refresh_token;
+      if (refreshSupa) {
+        const r2 = await fetch(GCAL_BASE + '/refresh', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({refresh_token: refreshSupa})
+        });
+        const d2 = await r2.json();
+        if (d2.access_token) { tok = d2.access_token; localStorage.setItem('gcal_access_token', tok); }
+      }
+    } catch(e) {}
+  }
+  return tok;
+}
+
+// ── Chargement des événements ─────────────────────────────────
+async function chargerEvenements() {
+  const nb = parseInt(document.getElementById('nb-events').value) || 10;
+  const inclPast = document.getElementById('incl-past').checked;
+  document.getElementById('events-container').innerHTML = '<div class="loading">⏳ Chargement des RDV…</div>';
+  document.getElementById('status-txt').textContent = '';
+  document.getElementById('counter').style.display = 'none';
+
+  const tok = await getToken();
+  if (!tok) {
+    document.getElementById('token-warn').style.display = 'block';
+    document.getElementById('events-container').innerHTML = '<div class="empty">Token GCal manquant — connecte l\'agenda dans l\'app principale.</div>';
+    return;
+  }
+  document.getElementById('token-warn').style.display = 'none';
+
+  const tMax = new Date(); tMax.setMonth(tMax.getMonth() + 3);
+  const tMin = inclPast ? (function(){ const d = new Date(); d.setMonth(d.getMonth()-3); return d; })() : new Date();
+
+  const url = GCAL_BASE + '/events?timeMin=' + encodeURIComponent(tMin.toISOString())
+    + '&timeMax=' + encodeURIComponent(tMax.toISOString())
+    + '&maxResults=' + nb + '&singleEvents=true&orderBy=startTime';
+
+  try {
+    const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + tok } });
+    if (r.status === 401) {
+      localStorage.removeItem('gcal_access_token');
+      document.getElementById('events-container').innerHTML = '<div class="empty">Token expiré — recharge la page et réessaie.</div>';
+      return;
+    }
+    const data = await r.json();
+    EVENTS = (data.items || []).filter(function(e){ return e.summary || e.description; });
+    if (!EVENTS.length) {
+      document.getElementById('events-container').innerHTML = '<div class="empty">Aucun RDV trouvé sur cette période.</div>';
+      return;
+    }
+    RESULTS = {};
+    afficherEvenements();
+    majCompteurs();
+    document.getElementById('counter').style.display = 'flex';
+    document.getElementById('status-txt').textContent = EVENTS.length + ' RDV chargés';
+  } catch(err) {
+    document.getElementById('events-container').innerHTML = '<div class="empty">Erreur : ' + escHtml(err.message) + '</div>';
+  }
+}
+
+// ── Affichage ─────────────────────────────────────────────────
+function afficherEvenements() {
+  const container = document.getElementById('events-container');
+  container.innerHTML = '';
+
+  EVENTS.forEach(function(e, idx) {
+    const id = e.id || ('ev_' + idx);
+    const mapped = mapperEvenement(e);
+    const dt = e.start && (e.start.dateTime || e.start.date);
+    const dateLabel = dt ? new Date(dt.length === 10 ? dt + 'T12:00:00' : dt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '';
+    const timeLabel = e.start && e.start.dateTime
+      ? new Date(e.start.dateTime).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
+        + ' – ' + (e.end && e.end.dateTime ? new Date(e.end.dateTime).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '')
+      : 'Journée entière';
+
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    card.id = 'card-' + id;
+
+    const rawDesc = e.description || '';
+    const cleanDesc = stripGcalDesc(e.description || '');
+
+    card.innerHTML = `
+      <div class="event-header">
+        <div>
+          <div class="event-title">${escHtml(e.summary || '(sans titre)')}</div>
+          <div class="event-date">${escHtml(dateLabel)} · ${escHtml(timeLabel)}</div>
+        </div>
+        <div class="event-actions">
+          <span id="badge-${id}" class="badge-edit" style="display:none;">✏️ Corrigé</span>
+          <button class="btn btn-green" style="padding:8px 14px;font-size:12px;" onclick="valider('${id}', ${idx})">✅ Correct</button>
+          <button class="btn btn-secondary" style="padding:8px 14px;font-size:12px;" onclick="afficherCorrection('${id}', ${idx})">✏️ Corriger</button>
+          <button class="btn btn-red" style="padding:8px 14px;font-size:12px;" onclick="rejeter('${id}', ${idx})">❌ Mauvais</button>
+        </div>
+      </div>
+      <div class="split">
+        <div class="pane">
+          <div class="pane-title">📅 Données brutes Google Calendar</div>
+          <div class="field-row"><div class="field-label">Titre du RDV</div><div class="field-value">${escHtml(e.summary||'—')}</div></div>
+          <div class="field-row"><div class="field-label">Description brute (HTML)</div><div class="raw-block">${escHtml(rawDesc || '(vide)')}</div></div>
+          <div class="field-row"><div class="field-label">Lieu</div><div class="field-value">${escHtml(e.location||'—')}</div></div>
+          <div class="field-row"><div class="field-label">Description nettoyée (après stripGcalDesc)</div><div class="raw-block">${escHtml(cleanDesc || '(vide)')}</div></div>
+        </div>
+        <div class="pane">
+          <div class="pane-title">📋 Transcription automatique dans le bon</div>
+          ${champBon('motif', 'Motif / Description', mapped.motif)}
+          ${champBon('rapport', 'Rapport', mapped.rapport, true)}
+          ${champBon('date', 'Date', mapped.date)}
+          ${champBon('heureDebut', 'Heure début', mapped.heureDebut)}
+          ${champBon('heureFin', 'Heure fin', mapped.heureFin)}
+          ${champBon('adresse', 'Adresse chantier', mapped.adresse)}
+          ${champBon('reference', 'Référence OS', mapped.reference, true)}
+        </div>
+      </div>
+      <div id="correction-${id}" style="display:none;padding:16px;border-top:1px solid var(--border);background:rgba(59,130,246,.05);">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:12px;">✏️ Corrige les champs mal remplis ci-dessous</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          ${champEditable(id, 'motif', 'Motif / Description', mapped.motif)}
+          ${champEditable(id, 'rapport', 'Rapport', mapped.rapport)}
+          ${champEditable(id, 'adresse', 'Adresse chantier', mapped.adresse)}
+          ${champEditable(id, 'reference', 'Référence OS', mapped.reference)}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-green" onclick="sauvegarderCorrection('${id}', ${idx})">💾 Sauvegarder la correction</button>
+          <button class="btn btn-secondary" onclick="fermerCorrection('${id}')">Annuler</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+    // Stocker mapped initial
+    RESULTS[id] = { status: 'pending', original: mapped, fields: Object.assign({}, mapped), eventTitle: e.summary||'', eventId: id };
+  });
+}
+
+function champBon(key, label, val, isEmpty) {
+  const v = (val || '').trim();
+  const isVide = !v || isEmpty;
+  return `<div class="field-row">
+    <div class="field-label">${label}</div>
+    <div class="field-value${isVide && !v ? ' empty' : ''}">${v ? escHtml(v) : '(vide — normal)'}</div>
+  </div>`;
+}
+
+function champEditable(id, key, label, val) {
+  return `<div>
+    <div class="field-label" style="margin-bottom:4px;">${label}</div>
+    <textarea class="field-editable" id="edit-${id}-${key}" rows="3">${escHtml(val||'')}</textarea>
+  </div>`;
+}
+
+// ── Actions ───────────────────────────────────────────────────
+function valider(id, idx) {
+  RESULTS[id].status = 'ok';
+  const card = document.getElementById('card-' + id);
+  card.className = 'event-card validated';
+  document.getElementById('badge-' + id).style.display = 'none';
+  majCompteurs();
+}
+
+function rejeter(id, idx) {
+  RESULTS[id].status = 'rejected';
+  const card = document.getElementById('card-' + id);
+  card.className = 'event-card rejected';
+  document.getElementById('badge-' + id).style.display = 'none';
+  majCompteurs();
+}
+
+function afficherCorrection(id, idx) {
+  const el = document.getElementById('correction-' + id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function fermerCorrection(id) {
+  document.getElementById('correction-' + id).style.display = 'none';
+}
+
+function sauvegarderCorrection(id, idx) {
+  const keys = ['motif','rapport','adresse','reference'];
+  const corrected = {};
+  keys.forEach(function(k) {
+    const el = document.getElementById('edit-' + id + '-' + k);
+    if (el) corrected[k] = el.value;
+  });
+  RESULTS[id].fields = Object.assign({}, RESULTS[id].fields, corrected);
+  RESULTS[id].status = 'edited';
+  const card = document.getElementById('card-' + id);
+  card.className = 'event-card';
+  card.style.borderColor = 'var(--orange)';
+  document.getElementById('badge-' + id).style.display = 'inline';
+  document.getElementById('correction-' + id).style.display = 'none';
+  majCompteurs();
+}
+
+// ── Compteurs ─────────────────────────────────────────────────
+function majCompteurs() {
+  const vals = Object.values(RESULTS);
+  document.getElementById('cnt-total').textContent   = EVENTS.length;
+  document.getElementById('cnt-ok').textContent      = vals.filter(function(r){ return r.status==='ok'; }).length;
+  document.getElementById('cnt-edit').textContent    = vals.filter(function(r){ return r.status==='edited'; }).length;
+  document.getElementById('cnt-ko').textContent      = vals.filter(function(r){ return r.status==='rejected'; }).length;
+  document.getElementById('cnt-pending').textContent = vals.filter(function(r){ return r.status==='pending'; }).length;
+}
+
+// ── Export ────────────────────────────────────────────────────
+function exporterResultats() {
+  const edites = Object.values(RESULTS).filter(function(r){ return r.status === 'edited'; });
+  const valides = Object.values(RESULTS).filter(function(r){ return r.status === 'ok'; });
+
+  if (!edites.length && !valides.length) {
+    alert('Aucune correction ou validation à exporter.');
+    return;
+  }
+
+  let md = '## Exemples de mapping GCal → Bon (validés le ' + new Date().toLocaleDateString('fr-FR') + ')\n\n';
+
+  if (edites.length) {
+    md += '### ✏️ Corrections (mapping à améliorer)\n\n';
+    edites.forEach(function(r) {
+      md += '#### RDV : ' + r.eventTitle + '\n';
+      md += '| Champ | Valeur automatique | Valeur correcte |\n';
+      md += '|---|---|---|\n';
+      const keys = ['motif','rapport','adresse','reference','date','heureDebut','heureFin'];
+      keys.forEach(function(k) {
+        const orig = (r.original[k]||'').replace(/\n/g,' ').substring(0,80);
+        const corr = (r.fields[k]||'').replace(/\n/g,' ').substring(0,80);
+        if (orig !== corr) {
+          md += '| `' + k + '` | `' + orig + '` | `' + corr + '` |\n';
+        }
+      });
+      md += '\n';
+    });
+  }
+
+  if (valides.length) {
+    md += '### ✅ Validés (mapping correct)\n\n';
+    valides.forEach(function(r) {
+      md += '- **' + r.eventTitle + '** : motif = `' + (r.original.motif||'').replace(/\n/g,' ').substring(0,60) + '…`\n';
+    });
+    md += '\n';
+  }
+
+  md += '\n---\n*Généré par training.html — à coller dans CLAUDE.md section "Cas validés"*\n';
+
+  document.getElementById('export-box').style.display = 'block';
+  document.getElementById('export-ta').value = md;
+  document.getElementById('export-box').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copierExport() {
+  const ta = document.getElementById('export-ta');
+  ta.select();
+  document.execCommand('copy');
+  alert('✅ Copié ! Colle-le dans CLAUDE.md.');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
