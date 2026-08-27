@@ -2881,7 +2881,7 @@ function timerStopFromBanner() {
         clientAdresseFacturation: client?.address || '',
         description: [
           eventData?.summary || '',
-          (eventData?.description||'').replace(/\[.*?\]:[^\[\n]*/g,'').replace(/✅.*?\n?/g,'').replace(/📄.*?\n?/g,'').trim()
+          stripGcalDesc(eventData?.description || '')
         ].filter(function(s){ return s.length > 0; }).join('\n\n'),
         adresse: client?.addressChantier || client?.address || eventData?.location || '',
         eventId: eventData?.id || ''
@@ -3593,6 +3593,31 @@ function ouvrirVisiteMaintenance(contrat, event, timerResult) {
   window.open('https://laruiccim-droid.github.io/harmonie-electricite/maintenance.html', '_blank');
 }
 
+// ── Nettoyer la description GCal avant injection dans le bon ──
+// Supprime HTML, emojis de navigation du bon précédent, et normalise les sauts de ligne
+function stripGcalDesc(s) {
+  if (!s) return '';
+  return s
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n').replace(/<\/div>/gi, '\n').replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    // Supprimer le résumé du bon précédent injecté par mettreAJourRDVGcal()
+    .replace(/✅ BON D'INTERVENTION[^\n]*\n?(━+\n?)?/g, '')
+    .replace(/📄 DEVIS[^\n]*\n?(━+\n?)?/g, '')
+    .replace(/📄 PDF[^\n]*/g, '')
+    .replace(/💶 Total TTC[^\n]*/g, '')
+    .replace(/📦 Fournitures[^\n]*[\s\S]*?(?=\n\n|\n👤|\n⏱|\n🔧|\n🔒|$)/g, '')
+    .replace(/👤 Client[^\n]*/g, '')
+    .replace(/⏱[^\n]*/g, '')
+    .replace(/🔧 Motif[^\n]*/g, '')
+    .replace(/🔒 Notes[^\n]*/g, '')
+    .replace(/━+/g, '')
+    .replace(/\[.*?\]:[^\[\n]*/g, '')  // [KEY]: value (ancienne notation)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // ── Ouvrir bon.html avec données pré-remplies ──
 function openBon(event, client, timerResult, type) {
   // timerResult peut être un objet {duration, startTime, endTime} ou un nombre (legacy)
@@ -3627,9 +3652,8 @@ function openBon(event, client, timerResult, type) {
     heureDebut: realHeureDebut,
     heureFin: realHeureFin,
     dureeMin: dur,
-    // Motif = titre du RDV uniquement
-    description: event.summary || '',
-    rapport: (event.description || '').replace(/✅ BON.*?\n(━+\n)?/gs,'').replace(/📄 PDF.*?\n/g,'').replace(/💶.*?\n/g,'').replace(/📦.*?\n[\s\S]*?(?=\n\n|\n[👤⏱🔧]|$)/g,'').trim(),
+    // Motif = titre + description complète (HTML nettoyé) → tout dans f-motif, f-rapport vide
+    description: [event.summary || '', stripGcalDesc(event.description || '')].filter(function(s){ return s.length > 0; }).join('\n\n'),
     clientNom: client ? client.name : '',
     clientTel: client ? (client.phone || '') : '',
     clientEmail: client ? (client.email || '') : '',
