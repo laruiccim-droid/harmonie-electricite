@@ -1280,11 +1280,11 @@ function pickerSelect(i) {
   if (item && cb) cb(item);
 }
 function addLibre() {
-  // Cacher le FAB et la modale calculatrice pour ne pas bloquer le bouton Valider
-  const calcModal = document.getElementById('calc-modal-bon');
-  if (calcModal) calcModal.style.display = 'none';
+  // Déplacer le FAB en haut pour ne pas bloquer le bouton Valider
   const calcFab = document.getElementById('calc-fab-bon');
-  if (calcFab) calcFab.style.display = 'none';
+  if (calcFab) { calcFab.style.bottom = 'auto'; calcFab.style.top = '16px'; }
+  const calcModal = document.getElementById('calc-modal-bon');
+  if (calcModal) { calcModal.style.bottom = 'auto'; calcModal.style.top = '80px'; }
   // Supprimer modal existant
   document.getElementById('libre-modal')?.remove();
 
@@ -1295,7 +1295,7 @@ function addLibre() {
     <div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px 40px;max-height:90vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div style="font-size:16px;font-weight:800;">Ligne libre</div>
-        <button onclick="document.getElementById('libre-modal').remove();var f=document.getElementById('calc-fab-bon');if(f)f.style.display='flex';" style="background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;">×</button>
+        <button onclick="document.getElementById('libre-modal').remove();var f=document.getElementById('calc-fab-bon');if(f){f.style.top='auto';f.style.bottom='20px';}var m=document.getElementById('calc-modal-bon');if(m){m.style.top='auto';m.style.bottom='80px';}" style="background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;">×</button>
       </div>
       <label>Référence <span style="font-size:10px;color:var(--muted);">(optionnel)</span></label>
       <input type="text" id="ll-ref" placeholder="ex: REX-DJ20A" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:10px;box-sizing:border-box;">
@@ -1477,11 +1477,11 @@ async function loadCatalogue() {
 }
 
 function openCatalogue() {
-  // Cacher le FAB et la modale calculatrice pour ne pas bloquer le bouton Ajouter
-  const calcModal = document.getElementById('calc-modal-bon');
-  if (calcModal) calcModal.style.display = 'none';
+  // Déplacer le FAB en haut pour ne pas bloquer le bouton Ajouter
   const calcFab = document.getElementById('calc-fab-bon');
-  if (calcFab) calcFab.style.display = 'none';
+  if (calcFab) { calcFab.style.bottom = 'auto'; calcFab.style.top = '16px'; }
+  const calcModal = document.getElementById('calc-modal-bon');
+  if (calcModal) { calcModal.style.bottom = 'auto'; calcModal.style.top = '80px'; }
   document.getElementById('cat-modal').style.display = 'flex';
   document.getElementById('cat-q').value = '';
   document.getElementById('cat-results').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px;text-align:center;">Tapez pour rechercher (min. 2 caractères)</div>';
@@ -1490,8 +1490,11 @@ function openCatalogue() {
 }
 function closeCatalogue() {
   document.getElementById('cat-modal').style.display = 'none';
+  // Remettre le FAB en bas
   const calcFab = document.getElementById('calc-fab-bon');
-  if (calcFab) calcFab.style.display = 'flex';
+  if (calcFab) { calcFab.style.top = 'auto'; calcFab.style.bottom = '20px'; }
+  const calcModal = document.getElementById('calc-modal-bon');
+  if (calcModal) { calcModal.style.top = 'auto'; calcModal.style.bottom = '80px'; }
 }
 
 // Résultats de recherche catalogue (indexés pour éviter les problèmes de quotes)
