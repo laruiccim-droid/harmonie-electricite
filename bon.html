@@ -218,6 +218,17 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
   </div>
 </div>
 
+<!-- SOUS GARANTIE GLOBALE -->
+<div class="card" style="margin-bottom:8px;border:1px solid rgba(34,197,94,0.3);" id="garantie-globale-card">
+  <label for="f-garantie-globale" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;margin:0;">
+    <input type="checkbox" id="f-garantie-globale" style="width:20px;height:20px;accent-color:#22c55e;flex-shrink:0;" onchange="toggleGarantieGlobale(this.checked)">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#22c55e;">🛡 Intervention sous garantie</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:400;">MO, déplacement et matériel — tout déduit du total</div>
+    </div>
+  </label>
+</div>
+
 <!-- TVA & TOTAUX -->
 <div class="card">
   <label>Taux TVA</label>
@@ -1040,6 +1051,14 @@ window.addEventListener('load', async function() {
 
   loadCatalogue();
 });
+
+function toggleGarantieGlobale(checked) {
+  LIGNES.forEach(function(l) { l.garantie = checked; });
+  renderLignes();
+  // Resynchroniser la coche globale après renderLignes (qui recrée les checkboxes individuelles)
+  const chk = document.getElementById('f-garantie-globale');
+  if (chk) chk.checked = checked;
+}
 
 function updateMotifLinks() {
   const text = document.getElementById('f-motif').value;
