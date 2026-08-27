@@ -260,7 +260,7 @@ function afficherEvenements() {
   container.innerHTML = '';
 
   EVENTS.forEach(function(e, idx) {
-    const id = e.id || ('ev_' + idx);
+    const id = 'ev' + idx; // index simple pour éviter les caractères spéciaux des IDs GCal
     const mapped = mapperEvenement(e);
     const dt = e.start && (e.start.dateTime || e.start.date);
     const dateLabel = dt ? new Date(dt.length === 10 ? dt + 'T12:00:00' : dt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '';
@@ -363,7 +363,9 @@ function rejeter(id, idx) {
 
 function afficherCorrection(id, idx) {
   const el = document.getElementById('correction-' + id);
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (!el) return;
+  const hidden = el.style.display === '' || el.style.display === 'none';
+  el.style.display = hidden ? 'block' : 'none';
 }
 
 function fermerCorrection(id) {
