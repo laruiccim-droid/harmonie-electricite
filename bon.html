@@ -1215,15 +1215,7 @@ function restaurerAutoSave() {
     if (saved.adresse)   document.getElementById('f-adresse').value   = saved.adresse;
     if (saved.tel)       document.getElementById('f-tel').value       = saved.tel;
     if (saved.email)     document.getElementById('f-email').value     = saved.email;
-    if (saved.motif) {
-      // Nettoyer le HTML au cas où le brouillon aurait été sauvegardé avant le correctif
-      const cleanMotif = function(s) {
-        if (!s) return '';
-        return s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
-      };
-      document.getElementById('f-motif').value = cleanMotif(saved.motif);
-      updateMotifLinks();
-    }
+    if (saved.motif)     document.getElementById('f-motif').value     = saved.motif;
     if (saved.reference) document.getElementById('f-reference').value = saved.reference;
     if (saved.rapport)   document.getElementById('f-rapport').value   = saved.rapport;
     if (saved.date)      document.getElementById('f-date').value      = saved.date;
