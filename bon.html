@@ -1950,6 +1950,36 @@ async function validerDoc() {
   // Afficher résumé
   afficherResume(doc);
 
+  // Proposer d'enregistrer le client s'il n'existe pas encore dans la liste
+  const clientSaisi = client;
+  const norm = function(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,' ').trim(); };
+  const clientExiste = CLIENTS_BON.some(function(c){
+    const cn = norm(c.name);
+    const parts = norm(clientSaisi).split(/\s+/).filter(function(p){ return p.length > 2; });
+    return parts.length > 0 && parts.every(function(p){ return cn.includes(p); });
+  });
+  if (!clientExiste && clientSaisi) {
+    setTimeout(function() {
+      if (confirm('👤 "' + clientSaisi + '" n\'est pas dans ta liste de clients.\n\nL\'enregistrer pour le retrouver facilement ?')) {
+        const adresse = document.getElementById('f-adresse')?.value || '';
+        const tel     = document.getElementById('f-tel')?.value || '';
+        const email   = document.getElementById('f-email')?.value || '';
+        const newId   = 'C_' + Date.now();
+        const payload = { name: clientSaisi, address: adresse, addressChantier: adresse, phone: tel, email: email, createdAt: Date.now() };
+        fetch(SUPA_URL + '/rest/v1/clients', {
+          method: 'POST',
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ id: newId, payload: payload })
+        }).then(function(r){
+          if (r.ok || r.status === 201) {
+            CLIENTS_BON.unshift(Object.assign({ id: newId }, payload));
+            toast('✅ Client enregistré : ' + clientSaisi);
+          } else { toast('Erreur enregistrement client'); }
+        }).catch(function(){ toast('Hors ligne — client non enregistré'); });
+      }
+    }, 700);
+  }
+
   // Proposer de créer un devis si la case est cochée
   if (DOC_TYPE === 'bon' && document.getElementById('f-devis-suivre')?.checked) {
     setTimeout(function() {
