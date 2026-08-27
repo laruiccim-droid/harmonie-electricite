@@ -269,80 +269,88 @@ function afficherEvenements() {
         + ' – ' + (e.end && e.end.dateTime ? new Date(e.end.dateTime).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '')
       : 'Journée entière';
 
+    const rawDesc   = e.description || '';
+    const cleanDesc = stripGcalDesc(e.description || '');
+
+    // Construction DOM sans template literal pour éviter les bugs avec les backticks dans les données GCal
     const card = document.createElement('div');
     card.className = 'event-card';
     card.id = 'card-' + id;
 
-    const rawDesc = e.description || '';
-    const cleanDesc = stripGcalDesc(e.description || '');
+    // Header
+    const header = document.createElement('div');
+    header.className = 'event-header';
+    header.innerHTML = '<div><div class="event-title">' + escHtml(e.summary||'(sans titre)') + '</div>'
+      + '<div class="event-date">' + escHtml(dateLabel) + ' · ' + escHtml(timeLabel) + '</div></div>';
+    const actions = document.createElement('div');
+    actions.className = 'event-actions';
+    actions.innerHTML = '<span id="badge-' + id + '" class="badge-edit" style="display:none;">✏️ Corrigé</span>';
+    const btnOk  = document.createElement('button'); btnOk.className  = 'btn btn-green';   btnOk.style.cssText  = 'padding:8px 14px;font-size:12px;'; btnOk.textContent  = '✅ Correct';   btnOk.onclick = function(){ valider(id, idx); };
+    const btnEd  = document.createElement('button'); btnEd.className  = 'btn btn-secondary'; btnEd.style.cssText = 'padding:8px 14px;font-size:12px;'; btnEd.textContent = '✏️ Corriger'; btnEd.onclick = function(){ afficherCorrection(id, idx); };
+    const btnKo  = document.createElement('button'); btnKo.className  = 'btn btn-red';     btnKo.style.cssText  = 'padding:8px 14px;font-size:12px;'; btnKo.textContent  = '❌ Mauvais';  btnKo.onclick = function(){ rejeter(id, idx); };
+    actions.appendChild(btnOk); actions.appendChild(btnEd); actions.appendChild(btnKo);
+    header.appendChild(actions);
+    card.appendChild(header);
 
-    card.innerHTML = `
-      <div class="event-header">
-        <div>
-          <div class="event-title">${escHtml(e.summary || '(sans titre)')}</div>
-          <div class="event-date">${escHtml(dateLabel)} · ${escHtml(timeLabel)}</div>
-        </div>
-        <div class="event-actions">
-          <span id="badge-${id}" class="badge-edit" style="display:none;">✏️ Corrigé</span>
-          <button class="btn btn-green" style="padding:8px 14px;font-size:12px;" onclick="valider('${id}', ${idx})">✅ Correct</button>
-          <button class="btn btn-secondary" style="padding:8px 14px;font-size:12px;" onclick="afficherCorrection('${id}', ${idx})">✏️ Corriger</button>
-          <button class="btn btn-red" style="padding:8px 14px;font-size:12px;" onclick="rejeter('${id}', ${idx})">❌ Mauvais</button>
-        </div>
-      </div>
-      <div class="split">
-        <div class="pane">
-          <div class="pane-title">📅 Données brutes Google Calendar</div>
-          <div class="field-row"><div class="field-label">Titre du RDV</div><div class="field-value">${escHtml(e.summary||'—')}</div></div>
-          <div class="field-row"><div class="field-label">Description brute (HTML)</div><div class="raw-block">${escHtml(rawDesc || '(vide)')}</div></div>
-          <div class="field-row"><div class="field-label">Lieu</div><div class="field-value">${escHtml(e.location||'—')}</div></div>
-          <div class="field-row"><div class="field-label">Description nettoyée (après stripGcalDesc)</div><div class="raw-block">${escHtml(cleanDesc || '(vide)')}</div></div>
-        </div>
-        <div class="pane">
-          <div class="pane-title">📋 Transcription automatique dans le bon</div>
-          ${champBon('motif', 'Motif / Description', mapped.motif)}
-          ${champBon('rapport', 'Rapport', mapped.rapport, true)}
-          ${champBon('date', 'Date', mapped.date)}
-          ${champBon('heureDebut', 'Heure début', mapped.heureDebut)}
-          ${champBon('heureFin', 'Heure fin', mapped.heureFin)}
-          ${champBon('adresse', 'Adresse chantier', mapped.adresse)}
-          ${champBon('reference', 'Référence OS', mapped.reference, true)}
-        </div>
-      </div>
-      <div id="correction-${id}" style="display:none;padding:16px;border-top:1px solid var(--border);background:rgba(59,130,246,.05);">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:12px;">✏️ Corrige les champs mal remplis ci-dessous</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          ${champEditable(id, 'motif', 'Motif / Description', mapped.motif)}
-          ${champEditable(id, 'rapport', 'Rapport', mapped.rapport)}
-          ${champEditable(id, 'adresse', 'Adresse chantier', mapped.adresse)}
-          ${champEditable(id, 'reference', 'Référence OS', mapped.reference)}
-        </div>
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <button class="btn btn-green" onclick="sauvegarderCorrection('${id}', ${idx})">💾 Sauvegarder la correction</button>
-          <button class="btn btn-secondary" onclick="fermerCorrection('${id}')">Annuler</button>
-        </div>
-      </div>
-    `;
+    // Split : brut / mappé
+    const split = document.createElement('div'); split.className = 'split';
+
+    const paneL = document.createElement('div'); paneL.className = 'pane';
+    paneL.innerHTML = '<div class="pane-title">📅 Données brutes Google Calendar</div>'
+      + fieldRow('Titre du RDV', e.summary||'—')
+      + fieldRowPre('Description brute (HTML)', rawDesc||'(vide)')
+      + fieldRow('Lieu', e.location||'—')
+      + fieldRowPre('Description nettoyée', cleanDesc||'(vide)');
+
+    const paneR = document.createElement('div'); paneR.className = 'pane'; paneR.style.borderLeft = '1px solid var(--border)';
+    paneR.innerHTML = '<div class="pane-title">📋 Transcription automatique dans le bon</div>'
+      + fieldRow('Motif / Description', mapped.motif)
+      + fieldRow('Rapport', mapped.rapport, true)
+      + fieldRow('Date', mapped.date)
+      + fieldRow('Heure début', mapped.heureDebut)
+      + fieldRow('Heure fin', mapped.heureFin)
+      + fieldRow('Adresse chantier', mapped.adresse)
+      + fieldRow('Référence OS', mapped.reference, true);
+
+    split.appendChild(paneL); split.appendChild(paneR);
+    card.appendChild(split);
+
+    // Panneau correction
+    const corrDiv = document.createElement('div');
+    corrDiv.id = 'correction-' + id;
+    corrDiv.style.cssText = 'display:none;padding:16px;border-top:1px solid var(--border);background:rgba(59,130,246,.05);';
+    corrDiv.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:12px;">✏️ Corrige les champs mal remplis ci-dessous</div>';
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;';
+    [['motif','Motif / Description'],['rapport','Rapport'],['adresse','Adresse chantier'],['reference','Référence OS']].forEach(function(pair) {
+      const wrap = document.createElement('div');
+      const lbl  = document.createElement('div'); lbl.className = 'field-label'; lbl.style.marginBottom = '4px'; lbl.textContent = pair[1];
+      const ta   = document.createElement('textarea'); ta.className = 'field-editable'; ta.id = 'edit-' + id + '-' + pair[0]; ta.rows = 3; ta.value = mapped[pair[0]] || '';
+      wrap.appendChild(lbl); wrap.appendChild(ta); grid.appendChild(wrap);
+    });
+    corrDiv.appendChild(grid);
+    const corrBtns = document.createElement('div'); corrBtns.style.cssText = 'display:flex;gap:8px;margin-top:12px;';
+    const btnSave  = document.createElement('button'); btnSave.className = 'btn btn-green'; btnSave.textContent = '💾 Sauvegarder la correction'; btnSave.onclick = function(){ sauvegarderCorrection(id, idx); };
+    const btnCancel= document.createElement('button'); btnCancel.className = 'btn btn-secondary'; btnCancel.textContent = 'Annuler'; btnCancel.onclick = function(){ fermerCorrection(id); };
+    corrBtns.appendChild(btnSave); corrBtns.appendChild(btnCancel);
+    corrDiv.appendChild(corrBtns);
+    card.appendChild(corrDiv);
     container.appendChild(card);
     // Stocker mapped initial
     RESULTS[id] = { status: 'pending', original: mapped, fields: Object.assign({}, mapped), eventTitle: e.summary||'', eventId: id };
   });
 }
 
-function champBon(key, label, val, isEmpty) {
+function fieldRow(label, val, isEmpty) {
   const v = (val || '').trim();
-  const isVide = !v || isEmpty;
-  return `<div class="field-row">
-    <div class="field-label">${label}</div>
-    <div class="field-value${isVide && !v ? ' empty' : ''}">${v ? escHtml(v) : '(vide — normal)'}</div>
-  </div>`;
+  return '<div class="field-row"><div class="field-label">' + escHtml(label) + '</div>'
+    + '<div class="field-value' + (!v ? ' empty' : '') + '">' + (v ? escHtml(v) : '(vide — normal)') + '</div></div>';
+}
+function fieldRowPre(label, val) {
+  return '<div class="field-row"><div class="field-label">' + escHtml(label) + '</div>'
+    + '<div class="raw-block">' + escHtml(val || '(vide)') + '</div></div>';
 }
 
-function champEditable(id, key, label, val) {
-  return `<div>
-    <div class="field-label" style="margin-bottom:4px;">${label}</div>
-    <textarea class="field-editable" id="edit-${id}-${key}" rows="3">${escHtml(val||'')}</textarea>
-  </div>`;
-}
 
 // ── Actions ───────────────────────────────────────────────────
 function valider(id, idx) {
@@ -452,7 +460,7 @@ function copierExport() {
 }
 
 function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/`/g,'&#96;');
 }
 </script>
 </body>
