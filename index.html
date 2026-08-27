@@ -586,7 +586,7 @@
     transition: background 0.15s;
   }
   .gcal-event:active { background: var(--surface); }
-  .gcal-event.past { opacity: 0.5; border-left-color: var(--muted); }
+  .gcal-event.past { /* pas de grisé — un RDV passé non réalisé reste visible */ }
   .gcal-event-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 2px; }
   .gcal-event-title { font-weight: 600; font-size: 14px; }
   .gcal-event-loc { font-size: 12px; color: var(--muted); margin-top: 2px; }
