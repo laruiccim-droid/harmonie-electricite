@@ -37,6 +37,11 @@ textarea{resize:none;line-height:1.5;}
 .ligne-row:last-child{border-bottom:none;}
 .ligne-nom{font-size:12px;line-height:1.3;}
 .ligne-ref{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.qty-spinner{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;height:44px;}
+.qty-spinner button{width:44px;height:44px;border:none;background:var(--surface2);color:var(--text);font-size:22px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.qty-spinner button:active{background:var(--accent);color:#000;}
+.qty-spinner input{flex:1;border:none;background:transparent;text-align:center;font-size:18px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;min-width:0;padding:0;-moz-appearance:textfield;}
+.qty-spinner input::-webkit-outer-spin-button,.qty-spinner input::-webkit-inner-spin-button{-webkit-appearance:none;}
 .ligne-input{padding:5px 6px;font-size:12px;text-align:center;}
 .ligne-total{font-size:12px;font-weight:700;color:var(--accent);text-align:right;}
 .ligne-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;width:28px;text-align:center;}
@@ -384,7 +389,13 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
     <div id="cat-add-row" style="display:none;margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px;">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px;" id="cat-selected-nom"></div>
       <div class="row3">
-        <div><label>Quantité</label><input type="number" id="cat-qty" value="1" min="0.1" step="1"></div>
+        <div><label>Quantité</label>
+          <div class="qty-spinner">
+            <button type="button" onclick="qtyStep('cat-qty',-1)">−</button>
+            <input type="number" id="cat-qty" value="1" min="0.1" step="1">
+            <button type="button" onclick="qtyStep('cat-qty',1)">+</button>
+          </div>
+        </div>
         <div><label>PU HT (€)</label><input type="number" id="cat-pu" step="0.01" min="0"></div>
         <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="catConfirm()" style="width:100%;">Ajouter</button></div>
       </div>
@@ -1052,6 +1063,20 @@ window.addEventListener('load', async function() {
   loadCatalogue();
 });
 
+function qtyStep(inputId, dir) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  // Step selon l'unité si dispo (ligne libre)
+  const unite = document.getElementById('ll-unite')?.value || 'U';
+  const stepMap = { h: 0.5, km: 5, m: 0.5, m2: 0.5, kg: 0.5, L: 0.5 };
+  const step = stepMap[unite] || 1;
+  const current = parseFloat(el.value) || 0;
+  const next = Math.max(parseFloat(el.min) || 0.1, Math.round((current + dir * step) * 100) / 100);
+  el.value = next;
+  // Déclencher onchange si présent (ex: llCalculerPV)
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 function toggleGarantieGlobale(checked) {
   LIGNES.forEach(function(l) { l.garantie = checked; });
   renderLignes();
@@ -1324,7 +1349,11 @@ function addLibre() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div>
           <label>Quantité *</label>
-          <input type="number" id="ll-qty" value="1" min="0.01" step="0.01" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;box-sizing:border-box;">
+          <div class="qty-spinner">
+            <button type="button" onclick="qtyStep('ll-qty',-1)">−</button>
+            <input type="number" id="ll-qty" value="1" min="0.01" step="1">
+            <button type="button" onclick="qtyStep('ll-qty',1)">+</button>
+          </div>
         </div>
         <div>
           <label>Unité</label>
