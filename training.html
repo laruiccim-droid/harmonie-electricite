@@ -374,6 +374,7 @@ function afficherCorrection(id, idx) {
   if (!el) return;
   const hidden = el.style.display === '' || el.style.display === 'none';
   el.style.display = hidden ? 'block' : 'none';
+  if (hidden) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function fermerCorrection(id) {
