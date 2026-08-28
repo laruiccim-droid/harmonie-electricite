@@ -392,7 +392,7 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
         <div><label>Quantité</label>
           <div class="qty-spinner">
             <button type="button" onclick="qtyStep('cat-qty',-1)">−</button>
-            <input type="number" id="cat-qty" value="1" min="0.1" step="1">
+            <input type="number" id="cat-qty" value="1" min="0.1" step="1" readonly onclick="openQtyDrum('cat-qty')" style="cursor:pointer;">
             <button type="button" onclick="qtyStep('cat-qty',1)">+</button>
           </div>
         </div>
@@ -1063,6 +1063,66 @@ window.addEventListener('load', async function() {
   loadCatalogue();
 });
 
+function openQtyDrum(inputId) {
+  const inp = document.getElementById(inputId);
+  const current = parseFloat(inp.value) || 1;
+  const vals = [0.25,0.5,0.75,1,1.5,2,3,4,5,6,7,8,9,10,12,15,20,25,30,40,50];
+
+  const overlay = document.createElement('div');
+  overlay.id = 'qty-drum-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-end;';
+
+  overlay.innerHTML = `
+    <div style="width:100%;background:var(--surface);border-radius:18px 18px 0 0;padding:16px;box-sizing:border-box;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:700;">Quantité</span>
+        <button onclick="document.getElementById('qty-drum-overlay').remove()" style="background:none;border:none;color:#888;font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <div style="position:relative;height:160px;overflow:hidden;">
+        <div style="position:absolute;top:50%;left:0;right:0;height:44px;transform:translateY(-50%);background:rgba(255,255,255,.07);border-radius:8px;pointer-events:none;border:1px solid rgba(255,255,255,.12);z-index:1;"></div>
+        <div id="qty-drum-scroll" style="height:160px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+          <div style="height:58px;flex-shrink:0;"></div>
+          ${vals.map(v=>`<div class="qty-drum-item" data-val="${v}" style="height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:22px;font-weight:600;cursor:pointer;" onclick="selectQtyDrum(${v})">${v % 1 === 0 ? v : v}</div>`).join('')}
+          <div style="height:58px;flex-shrink:0;"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
+        <input id="qty-drum-manual" type="number" placeholder="Saisie manuelle" step="0.25" min="0.1"
+          style="flex:1;padding:12px;border-radius:10px;border:1px solid #444;background:var(--surface2);color:var(--text);font-size:16px;"
+          oninput="document.getElementById('${inputId}').value=this.value">
+        <button onclick="confirmQtyDrum('${inputId}')" style="padding:12px 20px;border-radius:10px;border:none;background:var(--accent);color:#000;font-weight:800;font-size:15px;cursor:pointer;">OK</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+  // Scroll vers la valeur courante
+  const drum = document.getElementById('qty-drum-scroll');
+  const idx = vals.findIndex(v => v >= current);
+  const scrollTo = Math.max(0, (idx < 0 ? vals.length-1 : idx)) * 44;
+  setTimeout(() => { drum.scrollTop = scrollTo; }, 50);
+
+  // Mettre à jour l'input cible au scroll
+  drum.addEventListener('scroll', () => {
+    const i = Math.round(drum.scrollTop / 44);
+    if (vals[i] !== undefined) {
+      document.getElementById(inputId).value = vals[i];
+      document.getElementById('qty-drum-manual').value = '';
+    }
+  });
+}
+
+function selectQtyDrum(v) {
+  document.getElementById('qty-drum-overlay')?.remove();
+}
+
+function confirmQtyDrum(inputId) {
+  const manual = document.getElementById('qty-drum-manual').value;
+  if (manual) document.getElementById(inputId).value = parseFloat(manual);
+  document.getElementById('qty-drum-overlay').remove();
+}
+
 function qtyStep(inputId, dir) {
   const el = document.getElementById(inputId);
   if (!el) return;
@@ -1358,7 +1418,7 @@ function addLibre() {
           <label>Quantité *</label>
           <div class="qty-spinner">
             <button type="button" onclick="qtyStep('ll-qty',-1)">−</button>
-            <input type="number" id="ll-qty" value="1" min="0.01" step="1">
+            <input type="number" id="ll-qty" value="1" min="0.01" step="1" readonly onclick="openQtyDrum('ll-qty')" style="cursor:pointer;">
             <button type="button" onclick="qtyStep('ll-qty',1)">+</button>
           </div>
         </div>
