@@ -206,6 +206,10 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
 <h2 id="rapport-label">Rapport d'intervention</h2>
 <div class="card">
   <textarea id="f-rapport" rows="5" placeholder="Décris ici ce qui a été fait, les observations, les préconisations..."></textarea>
+  <button id="btn-analyse-rapport" onclick="analyserRapport()" style="margin-top:10px;width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;padding:11px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+    🤖 Analyser le rapport (IA)
+  </button>
+  <div id="analyse-status" style="display:none;margin-top:8px;font-size:13px;color:var(--text-secondary);text-align:center;"></div>
 </div>
 
 <!-- FOURNITURES / MO -->
@@ -1121,6 +1125,164 @@ function confirmQtyDrum(inputId) {
   const manual = document.getElementById('qty-drum-manual').value;
   if (manual) document.getElementById(inputId).value = parseFloat(manual);
   document.getElementById('qty-drum-overlay').remove();
+}
+
+// ---- ANALYSE DU RAPPORT (100% local, sans API payante) ----
+async function analyserRapport() {
+  const rapport = document.getElementById('f-rapport').value.trim();
+  if (!rapport || rapport.length < 10) {
+    alert('Merci de saisir un rapport avant d\'analyser.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-analyse-rapport');
+  const statusEl = document.getElementById('analyse-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyse…';
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Analyse du rapport…';
+
+  if (!CAT_CACHE) await loadCatalogue();
+
+  const adresse = (document.getElementById('f-adresse')?.value || '').toLowerCase();
+  const txt = rapport.toLowerCase();
+  const lignesSugg = [];
+
+  // --- 1. ZONE DE DEPLACEMENT selon adresse ---
+  const ZONES = [
+    { ref:'DEPLA1', pv:40, nom:'Déplacement zone 1', mots:['chambéry','chambery','aix-les-bains','aix les bains','barberaz','jacob','viviers','tresserve','cognin','la motte servolex','la ravoire','voglans','mouxy','bourdeau','chanaz','yenne','saint genix','belley'] },
+    { ref:'DEPLA2', pv:45, nom:'Déplacement zone 2', mots:['bourget-du-lac','bourget du lac','méry','mery','brison','drumettaz','trévignin','trevignin','grésy','gresy','entrelacs','cessens','albens','sévrier','sevrier','annecy-le-vieux','cran-gevrier','meythet'] },
+    { ref:'DEPLA3', pv:60, nom:'Déplacement zone 3', mots:['rumilly','alby','alby-sur-chéran','faverges','ugine','ugines','albertville','moutiers','bourg-en-bresse','oyonnax'] },
+    { ref:'DEPLA4', pv:78, nom:'Déplacement zone 4', mots:['annecy','thônes','thones','saint-jorioz','doussard','la clusaz','grenoble','voiron'] },
+    { ref:'DEPLA5', pv:122, nom:'Déplacement zone 5', mots:['lyon','genève','geneve','paris','marseille','nice'] },
+  ];
+  let zoneChoisie = ZONES[0]; // défaut zone 1
+  if (adresse) {
+    for (const z of ZONES) {
+      if (z.mots.some(m => adresse.includes(m))) { zoneChoisie = z; break; }
+    }
+  }
+  lignesSugg.push({ ref: zoneChoisie.ref, nom: zoneChoisie.nom, qty: 1, pu: zoneChoisie.pv, unite: 'U' });
+
+  // --- 2. TEMPS MO estimé selon complexité ---
+  const complexite = [
+    { mots:['carte','board','pcb','électronique','microprocesseur','faac','came','bft','bea','roger','beninca','nice'], mo: 2 },
+    { mots:['moteur','motorisation','armoire','coffret','programmation','centrale','alarme','caméra','vidéo'], mo: 2 },
+    { mots:['tableau','disjoncteur','différentiel','câblage','câble','fil','gaine','cheminage'], mo: 3 },
+    { mots:['vantail','bras','vérin','bras articulé','coulissant','portail'], mo: 1.5 },
+    { mots:['télécommande','badge','clavier','digicode','clé'], mo: 0.5 },
+    { mots:['remplac','changement','dépose','pose'], mo: 1 },
+    { mots:['recherche','diagnostic','test','vérif'], mo: 1 },
+  ];
+  let moTotal = 1; // minimum 1h
+  for (const c of complexite) {
+    if (c.mots.some(m => txt.includes(m))) moTotal = Math.max(moTotal, c.mo);
+  }
+  // Urgence nuit/weekend
+  const moRef = /après 20|nuit|dimanche|samedi|week.end|urgence/i.test(rapport) ? 'MOD2' : 'MO';
+  const moPv  = moRef === 'MOD2' ? 90 : 57;
+  lignesSugg.push({ ref: moRef, nom: moRef === 'MOD2' ? "Main d'œuvre urgence (>20h)" : "Main d'œuvre", qty: moTotal, pu: moPv, unite: 'h' });
+
+  // --- 3. RECHERCHE CATALOGUE par mots du rapport ---
+  // Extraire tous les tokens significatifs (>3 lettres) du rapport
+  const tokens = rapport
+    .replace(/[^a-zA-Z0-9\s\-\.]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length >= 3)
+    .map(t => t.toLowerCase());
+
+  // Références explicites (ex: "FAAC 455", "came bx-78") → chercher dans catalogue
+  const refPattern = /\b([A-Z]{2,}[\s\-]?[\dA-Z]{2,})\b/g;
+  const refsExplicites = [];
+  let m;
+  while ((m = refPattern.exec(rapport)) !== null) refsExplicites.push(m[1].replace(/\s/g,'').toUpperCase());
+
+  const catalogue = CAT_CACHE || [];
+  const dejaTrouve = new Set();
+
+  // Chercher par référence explicite d'abord
+  for (const refEx of refsExplicites) {
+    const found = catalogue.find(a => a.ref && a.ref.toUpperCase().replace(/[\s\-]/g,'') === refEx);
+    if (found && !dejaTrouve.has(found.ref)) {
+      lignesSugg.push({ ref: found.ref, nom: found.nom, qty: 1, pu: found.pv || 0, unite: found.unite || 'U' });
+      dejaTrouve.add(found.ref);
+    }
+  }
+
+  // Chercher par mots-clés dans nom du catalogue
+  for (const token of tokens) {
+    if (token.length < 4) continue;
+    const matches = catalogue.filter(a =>
+      a.nom && a.nom.toLowerCase().includes(token) && !dejaTrouve.has(a.ref)
+    );
+    // Prendre le meilleur match (le plus court nom = le plus spécifique)
+    if (matches.length) {
+      const best = matches.sort((a,b) => a.nom.length - b.nom.length)[0];
+      if (!dejaTrouve.has(best.ref)) {
+        lignesSugg.push({ ref: best.ref, nom: best.nom, qty: 1, pu: best.pv || 0, unite: best.unite || 'U' });
+        dejaTrouve.add(best.ref);
+      }
+    }
+    if (lignesSugg.length > 12) break; // limiter à ~10 fournitures
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🤖 Analyser le rapport';
+
+  if (lignesSugg.length <= 2) {
+    // Seulement zone + MO, pas de fourniture trouvée
+    statusEl.textContent = 'Aucune fourniture reconnue dans le catalogue. Zone et MO suggérés.';
+  } else {
+    statusEl.textContent = '';
+  }
+
+  // Afficher un bottom-sheet de confirmation
+  const existing = document.getElementById('analyse-sheet');
+  if (existing) existing.remove();
+
+  const sheet = document.createElement('div');
+  sheet.id = 'analyse-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-end;';
+  sheet.innerHTML = `
+    <div style="width:100%;max-height:80vh;background:var(--surface);border-radius:18px 18px 0 0;padding:16px;box-sizing:border-box;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-weight:800;font-size:16px;">Lignes suggérées</span>
+        <button onclick="document.getElementById('analyse-sheet').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text);">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Vérifie et ajuste les quantités avant de valider.</div>
+      ${lignesSugg.map((l, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <input type="checkbox" id="asl-chk-${i}" checked style="width:18px;height:18px;flex-shrink:0;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.nom}</div>
+            <div style="font-size:11px;color:var(--text-secondary);">${l.ref} · ${l.pu}€/${l.unite}</div>
+          </div>
+          <input type="number" id="asl-qty-${i}" value="${l.qty}" min="0.1" step="${l.unite==='h'?0.5:1}" style="width:52px;text-align:center;border:1px solid var(--border);border-radius:7px;padding:4px;font-size:13px;background:var(--surface);">
+        </div>
+      `).join('')}
+      <button onclick="confirmerAnalyse(${JSON.stringify(lignesSugg).replace(/"/g,'&quot;')})" style="margin-top:14px;width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;">
+        ✅ Ajouter les lignes cochées
+      </button>
+    </div>`;
+  document.body.appendChild(sheet);
+}
+
+function confirmerAnalyse(lignesSugg) {
+  const sheet = document.getElementById('analyse-sheet');
+  let count = 0;
+  lignesSugg.forEach((l, i) => {
+    const chk = document.getElementById('asl-chk-' + i);
+    const qtyEl = document.getElementById('asl-qty-' + i);
+    if (!chk || !chk.checked) return;
+    const qty = parseFloat(qtyEl?.value) || l.qty;
+    LIGNES.push({ ref: l.ref, nom: l.nom, qty, pu: l.pu, unite: l.unite, commander: false });
+    count++;
+  });
+  if (sheet) sheet.remove();
+  renderLignes();
+  const statusEl = document.getElementById('analyse-status');
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = `✅ ${count} ligne(s) ajoutée(s).`; }
+  toast('✅ ' + count + ' ligne(s) ajoutée(s)');
 }
 
 function qtyStep(inputId, dir) {
