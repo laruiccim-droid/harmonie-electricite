@@ -1065,6 +1065,7 @@ window.addEventListener('load', async function() {
   if (window._bonMode === 'nouveau') setTimeout(verifierAutoSave, 800);
 
   loadCatalogue();
+  chargerClientsBon(); // précharger pour que la vérification à la validation soit fiable
 });
 
 function openQtyDrum(inputId) {
@@ -2252,6 +2253,8 @@ async function validerDoc() {
   // Proposer d'enregistrer le client s'il n'existe pas encore dans la liste
   const clientSaisi = client;
   const norm = function(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,' ').trim(); };
+  // S'assurer que la liste clients est chargée avant de vérifier
+  chargerClientsBon().then(function() {
   const clientExiste = CLIENTS_BON.some(function(c){
     const cn = norm(c.name);
     const parts = norm(clientSaisi).split(/\s+/).filter(function(p){ return p.length > 2; });
@@ -2278,6 +2281,7 @@ async function validerDoc() {
       }
     }, 700);
   }
+  }); // fin chargerClientsBon().then
 
   // Proposer de créer un devis si la case est cochée
   if (DOC_TYPE === 'bon' && document.getElementById('f-devis-suivre')?.checked) {
