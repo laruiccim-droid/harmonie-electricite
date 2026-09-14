@@ -3019,6 +3019,10 @@ async function _genererPDFInner(docData) {
 
     // Session unique — afficher motif + rapport + tableau normalement
     if (motif) {
+      const PAGE_H = 297;
+      const SAFE_BOTTOM = PAGE_H - 20;
+      const LINE_H = 4.5;
+      if (y + 14 > SAFE_BOTTOM) { doc.addPage(); y = 14; }
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...ORANGE);
@@ -3028,8 +3032,15 @@ async function _genererPDFInner(docData) {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...DARK);
       const motifLines = doc.splitTextToSize(motif, W - 2*M);
-      doc.text(motifLines, M, y);
-      y += motifLines.length * 4.5 + 4;
+      motifLines.forEach(function(line) {
+        if (y + LINE_H > SAFE_BOTTOM) {
+          doc.addPage(); y = 14;
+          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK);
+        }
+        doc.text(line, M, y);
+        y += LINE_H;
+      });
+      y += 4;
     }
 
     // ── Multi-sessions : afficher détail par session ───────
@@ -3058,8 +3069,12 @@ async function _genererPDFInner(docData) {
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(...GREY);
           const rapLines = doc.splitTextToSize(s.rapport, W - 2*M - 4);
-          doc.text(rapLines, M + 2, y);
-          y += rapLines.length * 4 + 2;
+          rapLines.forEach(function(line) {
+            if (y + 4 > 277) { doc.addPage(); y = 14; doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY); }
+            doc.text(line, M + 2, y);
+            y += 4;
+          });
+          y += 2;
         }
 
         // Lignes spécifiques à cette session (pas fusionnées)
@@ -3100,6 +3115,14 @@ async function _genererPDFInner(docData) {
         }
       }
     } else if (rapport && isBon) {
+      const PAGE_H = 297;
+      const FOOTER_H = 20; // espace réservé pour le pied de page
+      const SAFE_BOTTOM = PAGE_H - FOOTER_H;
+      const LINE_H = 4.5;
+
+      // Saut de page si le titre ne rentre plus
+      if (y + 14 > SAFE_BOTTOM) { doc.addPage(); y = 14; }
+
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...ORANGE);
@@ -3109,8 +3132,20 @@ async function _genererPDFInner(docData) {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...DARK);
       const rapLines = doc.splitTextToSize(rapport, W - 2*M);
-      doc.text(rapLines, M, y);
-      y += rapLines.length * 4.5 + 4;
+
+      // Imprimer ligne par ligne avec saut de page si nécessaire
+      rapLines.forEach(function(line) {
+        if (y + LINE_H > SAFE_BOTTOM) {
+          doc.addPage();
+          y = 14;
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...DARK);
+        }
+        doc.text(line, M, y);
+        y += LINE_H;
+      });
+      y += 4;
     }
     y += 2;
 
@@ -3142,16 +3177,39 @@ async function _genererPDFInner(docData) {
 
   // Lignes tableau
   doc.setFont('helvetica', 'normal');
+  let rowIndex = 0;
   lignesPDF.forEach(function(l, i) {
     // Hauteur adaptative selon le contenu (max 5 lignes)
     const nomLines = doc.splitTextToSize(l.nom || '', 90);
     const nbLignes = Math.min(nomLines.length, 5);
     const rowH = Math.max(7, nbLignes * 4.5 + 2);
 
-    if (i % 2 === 0) {
+    // Saut de page si la ligne ne rentre plus
+    if (y + rowH > 277) {
+      doc.addPage();
+      y = 14;
+      // Ré-afficher l'en-tête tableau sur la nouvelle page
+      doc.setFillColor(...DARK);
+      doc.rect(M, y, W - 2*M, 7, 'F');
+      doc.setTextColor(...WHITE);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Réf.', M + 2, y + 5);
+      doc.text('Désignation', M + 20, y + 5);
+      doc.text('Qté', M + 115, y + 5, { align:'right' });
+      doc.text('Unité', M + 130, y + 5, { align:'right' });
+      if (showPU)    doc.text('PU HT', M + 152, y + 5, { align:'right' });
+      if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
+      y += 7;
+      rowIndex = 0;
+      doc.setFont('helvetica', 'normal');
+    }
+
+    if (rowIndex % 2 === 0) {
       doc.setFillColor(248, 248, 248);
       doc.rect(M, y, W - 2*M, rowH, 'F');
     }
+    rowIndex++;
     doc.setDrawColor(230, 230, 230);
     doc.rect(M, y, W - 2*M, rowH, 'S');
     doc.setTextColor(...DARK);
