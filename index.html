@@ -2399,7 +2399,7 @@ async function loadAgenda() {
   // Précharger les bons Supabase pour colorer en vert sans ouvrir chaque RDV
   if (!window._bonExistantLoaded) {
     try {
-      const br = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload', { headers: SB_HEADERS });
+      const br = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200', { headers: SB_HEADERS });
       if (br.ok) {
         const bons = await br.json();
         window._bonExistant = window._bonExistant || {};
@@ -3044,7 +3044,7 @@ async function gcalViewEvent(e) {
   if (e.id) {
     try {
       const r = await fetch(
-        SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc',
+        SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200',
         { headers: SB_HEADERS }
       );
       if (r.ok) {
