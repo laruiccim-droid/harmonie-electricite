@@ -2332,8 +2332,6 @@ async function loadAgenda() {
   }
   authBar && (authBar.style.display = 'none');
 
-  el.innerHTML = '<div class="empty-state">Chargement…</div>';
-
   // Fetch 5 days (Mon→Fri) using local midnight times
   const tMinDate = new Date(gcalWeekStart.getFullYear(), gcalWeekStart.getMonth(), gcalWeekStart.getDate());
   const tMaxDate = new Date(gcalWeekStart.getFullYear(), gcalWeekStart.getMonth(), gcalWeekStart.getDate() + 7); // lundi → dimanche inclus
@@ -2344,39 +2342,70 @@ async function loadAgenda() {
 
   console.log('[Agenda] Chargement semaine:', tMin.slice(0,10), '→', tMax.slice(0,10));
 
-  const r = await gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`);
+  // ── Cache-first : lire IndexedDB avant de toucher le réseau ──
+  let cachedEvents = [];
+  if (typeof HE !== 'undefined') {
+    try {
+      const all = await HE.getAll('agenda');
+      if (all && all.length) {
+        cachedEvents = all.filter(function(ev) {
+          const start = ev.start && (ev.start.dateTime || ev.start.date);
+          return start >= tMin && start < tMax;
+        });
+      }
+    } catch(err) {}
+  }
 
   let events = [];
   let isOfflineData = false;
 
-  if (!r || !r.ok) {
-    // Réseau indisponible — essayer le cache IndexedDB
-    if (typeof HE !== 'undefined') {
-      try {
-        const cached = await HE.getAll('agenda');
-        if (cached && cached.length) {
-          // Filtrer les events dans la plage de dates
-          events = cached.filter(function(e) {
-            const start = e.start && (e.start.dateTime || e.start.date);
-            return start >= tMin && start < tMax;
-          });
-          isOfflineData = true;
-          console.log('[Offline] Agenda from IndexedDB:', events.length, 'events');
-        }
-      } catch(err) {}
-    }
-    if (!isOfflineData) {
+  if (!navigator.onLine) {
+    // Hors ligne — utiliser uniquement le cache
+    if (cachedEvents.length) {
+      events = cachedEvents;
+      isOfflineData = true;
+      console.log('[Offline] Agenda from IndexedDB:', events.length, 'events');
+    } else {
       el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
       authBar && (authBar.style.display = 'block');
       clearTimeout(window._agendaLockTimer);
       window._agendaLoading = false;
       return;
     }
-  } else {
-    const data = await r.json();
-    events = (data.items || []);
+  } else if (cachedEvents.length) {
+    // En ligne avec cache : afficher le cache MAINTENANT, réseau en arrière-plan
+    events = cachedEvents;
+    console.log('[Agenda] Cache immédiat:', events.length, 'events — réseau en arrière-plan');
 
-    // Mettre en cache dans IndexedDB
+    // Mise à jour silencieuse depuis le réseau (sans bloquer l'affichage)
+    gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`)
+      .then(async function(r) {
+        if (!r || !r.ok) return;
+        const data = await r.json();
+        const freshEvents = data.items || [];
+        if (typeof HE !== 'undefined' && freshEvents.length) {
+          await HE.putMany('agenda', freshEvents);
+          await HE.meta('agenda_synced', Date.now());
+        }
+        // Re-rendre seulement si le nombre de RDV a changé (nouveau RDV ou annulation)
+        if (freshEvents.length !== cachedEvents.length) {
+          console.log('[Agenda] Mise à jour réseau:', freshEvents.length, 'events');
+          loadAgenda();
+        }
+      }).catch(function() {});
+  } else {
+    // Pas de cache — attendre le réseau
+    el.innerHTML = '<div class="empty-state">Chargement…</div>';
+    const r = await gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`);
+    if (!r || !r.ok) {
+      el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
+      authBar && (authBar.style.display = 'block');
+      clearTimeout(window._agendaLockTimer);
+      window._agendaLoading = false;
+      return;
+    }
+    const data = await r.json();
+    events = data.items || [];
     if (typeof HE !== 'undefined' && events.length) {
       try {
         await HE.putMany('agenda', events);
