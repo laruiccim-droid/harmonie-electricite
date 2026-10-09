@@ -1401,12 +1401,11 @@ footer{padding:0;border-top:1px solid var(--he-hairline);}
       <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--he-grey-700);margin-bottom:20px;">Demande de devis</div>
       <div class="form-row">
         <div><label class="form-label">Nom</label><input class="form-inp" type="text" name="nom" placeholder="Dupont" required></div>
-        <div><label class="form-label">Téléphone</label><input class="form-inp" id="inp-telephone" type="tel" name="telephone" placeholder="06 …" oninput="updateContactRequired()"></div>
+        <div><label class="form-label">Téléphone</label><input class="form-inp" id="inp-telephone" type="tel" name="telephone" placeholder="06 …" required></div>
       </div>
       <div class="form-group">
         <label class="form-label">Adresse e-mail</label>
-        <input class="form-inp" id="inp-email" type="email" name="email" placeholder="votre@email.com" oninput="updateContactRequired()">
-        <div id="contact-hint" style="font-size:11px;color:var(--he-grey-500);margin-top:5px;">Renseignez au moins un moyen de contact (téléphone ou e-mail)</div>
+        <input class="form-inp" id="inp-email" type="email" name="email" placeholder="votre@email.com" required>
       </div>
       <div class="form-group">
         <label class="form-label">Type de projet</label>
@@ -2023,35 +2022,13 @@ function showPage(page) {
     showPage(hash);
   }
 })();
-function updateContactRequired() {
-  const tel   = document.getElementById('inp-telephone');
-  const email = document.getElementById('inp-email');
-  const hint  = document.getElementById('contact-hint');
-  if (!tel || !email) return;
-  const hasTel   = tel.value.trim().length > 0;
-  const hasEmail = email.value.trim().length > 0;
-  // L'un des deux suffit — on rend l'autre non-required quand l'un est rempli
-  tel.required   = !hasEmail;
-  email.required = !hasTel;
-  if (hint) hint.style.display = (hasTel || hasEmail) ? 'none' : 'block';
-}
-// Init au chargement
-document.addEventListener('DOMContentLoaded', updateContactRequired);
-
 async function handleFormSubmit(e) {
   e.preventDefault();
   const form = e.target;
   const btn  = form.querySelector("button[type=submit]");
   const data = new FormData(form);
-  // Vérification : téléphone ou email obligatoire
   const tel   = (data.get('telephone') || '').trim();
   const email = (data.get('email') || '').trim();
-  if (!tel && !email) {
-    document.getElementById('contact-hint').style.color = '#e35d5d';
-    document.getElementById('contact-hint').style.display = 'block';
-    document.getElementById('inp-telephone').focus();
-    return;
-  }
   btn.disabled = true;
   btn.textContent = "Envoi en cours…";
   try {
