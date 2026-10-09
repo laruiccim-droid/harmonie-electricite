@@ -1404,6 +1404,10 @@ footer{padding:0;border-top:1px solid var(--he-hairline);}
         <div><label class="form-label">Téléphone</label><input class="form-inp" type="tel" name="telephone" placeholder="06 …" required></div>
       </div>
       <div class="form-group">
+        <label class="form-label">Adresse e-mail</label>
+        <input class="form-inp" type="email" name="email" placeholder="votre@email.com">
+      </div>
+      <div class="form-group">
         <label class="form-label">Type de projet</label>
         <select class="form-inp" name="type_projet">
           <option value="" disabled selected>Sélectionner…</option>
@@ -2032,6 +2036,7 @@ async function handleFormSubmit(e) {
       body: JSON.stringify({
         nom:          data.get('nom')         || '',
         telephone:    data.get('telephone')   || '',
+        email:        data.get('email')       || '',
         type_projet:  data.get('type_projet') || '',
         commune:      data.get('commune')     || '',
         message:      data.get('message')     || '',

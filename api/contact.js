@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { nom, telephone, type_projet, commune, message } = req.body || {};
+  const { nom, telephone, email, type_projet, commune, message } = req.body || {};
 
   if (!nom || !message) {
     return res.status(400).json({ success: false, error: 'Champs manquants' });
@@ -23,7 +23,8 @@ export default async function handler(req, res) {
       <table style="width:100%;border-collapse:collapse;margin-top:20px;">
         <tr><td style="padding:10px 0;color:#555;width:140px;font-weight:600;">Nom</td><td style="padding:10px 0;color:#222;">${nom}</td></tr>
         <tr style="background:#fff;"><td style="padding:10px 8px;color:#555;font-weight:600;">Téléphone</td><td style="padding:10px 8px;color:#222;"><a href="tel:${telephone}" style="color:#C9A86A;">${telephone}</a></td></tr>
-        <tr><td style="padding:10px 0;color:#555;font-weight:600;">Type de projet</td><td style="padding:10px 0;color:#222;">${type_projet || '—'}</td></tr>
+        <tr><td style="padding:10px 0;color:#555;font-weight:600;">E-mail</td><td style="padding:10px 0;color:#222;">${email ? `<a href="mailto:${email}" style="color:#C9A86A;">${email}</a>` : '—'}</td></tr>
+        <tr style="background:#fff;"><td style="padding:10px 8px;color:#555;font-weight:600;">Type de projet</td><td style="padding:10px 8px;color:#222;">${type_projet || '—'}</td></tr>
         <tr style="background:#fff;"><td style="padding:10px 8px;color:#555;font-weight:600;">Commune</td><td style="padding:10px 8px;color:#222;">${commune || '—'}</td></tr>
       </table>
       <div style="margin-top:20px;background:#fff;padding:16px;border-radius:6px;border-left:3px solid #C9A86A;">
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from: 'Harmonie Électricité <contact@harmonie-electricite.com>',
         to: ['contact@harmonie-electricite.com'],
-        reply_to: telephone ? undefined : undefined,
+        reply_to: email || undefined,
         subject: `Message de ${nom} — Site Harmonie Électricité`,
         html,
       }),
