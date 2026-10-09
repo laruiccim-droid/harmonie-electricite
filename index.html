@@ -1400,11 +1400,11 @@ footer{padding:0;border-top:1px solid var(--he-hairline);}
     <form id="form-wrapper" onsubmit="handleFormSubmit(event)">
       <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--he-grey-700);margin-bottom:20px;">Demande de devis</div>
       <div class="form-row">
-        <div><label class="form-label">Nom</label><input class="form-inp" type="text" name="nom" placeholder="Dupont" required></div>
-        <div><label class="form-label">Téléphone</label><input class="form-inp" id="inp-telephone" type="tel" name="telephone" placeholder="06 …" required></div>
+        <div><label class="form-label">Nom <span style="color:var(--he-gold)">*</span></label><input class="form-inp" type="text" name="nom" placeholder="Dupont" required></div>
+        <div><label class="form-label">Téléphone <span style="color:var(--he-gold)">*</span></label><input class="form-inp" id="inp-telephone" type="tel" name="telephone" placeholder="06 …" required></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Adresse e-mail</label>
+        <label class="form-label">Adresse e-mail <span style="color:var(--he-gold)">*</span></label>
         <input class="form-inp" id="inp-email" type="email" name="email" placeholder="votre@email.com" required>
       </div>
       <div class="form-group">
@@ -1425,7 +1425,7 @@ footer{padding:0;border-top:1px solid var(--he-hairline);}
         <input class="form-inp" type="text" name="commune" placeholder="Chambéry, Yenne, Belley…">
       </div>
       <div class="form-group">
-        <label class="form-label">Votre besoin</label>
+        <label class="form-label">Votre besoin <span style="color:var(--he-gold)">*</span></label>
         <textarea class="form-inp" name="message" style="height:88px;resize:vertical;line-height:1.6" placeholder="Décrivez votre projet…" required></textarea>
       </div>
       <button class="form-submit" type="submit">Envoyer la demande — réponse rapide</button>
