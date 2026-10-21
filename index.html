@@ -4284,10 +4284,27 @@ async function devisLoad() {
         return;
       }
     }
-    const r = await fetch(SUPA_DEVIS + '?select=id,payload&order=id.desc&limit=300', { headers: SB_HEADERS });
+    // Sélectionner uniquement les champs nécessaires à la liste (exclut les signatures base64 ~50KB chacune)
+    const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId';
+    const r = await fetch(SUPA_DEVIS + '?select=' + fields + '&order=id.desc&limit=300', { headers: SB_HEADERS });
     if (!r.ok) return;
     const rows = await r.json();
-    DEVIS_LIST = rows.map(r => ({ id: r.id, ...r.payload }));
+    DEVIS_LIST = rows.map(function(r) {
+      return {
+        id: r.id,
+        numero: r.numero,
+        statut: r.statut,
+        type: r.type,
+        client: r.client,
+        date: r.date,
+        adresse: r.adresse,
+        totalTTC: r.totalTTC != null ? parseFloat(r.totalTTC) : null,
+        motif: r.motif,
+        createdAt: r.createdAt != null ? parseInt(r.createdAt) : 0,
+        lignes: r.lignes || [],
+        eventId: r.eventId
+      };
+    });
   } catch(e) {}
 }
 
@@ -5021,10 +5038,11 @@ async function renderDocsList() {
       const prevLen = DEVIS_LIST.length;
       const prevIds = DEVIS_LIST.map(function(d){ return d.id; }).join(',');
       try {
-        const r = await fetch(SUPA_DEVIS + '?select=id,payload&order=id.desc&limit=200', { headers: SB_HEADERS });
+        const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId';
+        const r = await fetch(SUPA_DEVIS + '?select=' + fields + '&order=id.desc&limit=300', { headers: SB_HEADERS });
         if (!r.ok) return;
         const rows = await r.json();
-        const fresh = rows.map(function(r){ return { id: r.id, ...r.payload }; });
+        const fresh = rows.map(function(r){ return { id: r.id, numero: r.numero, statut: r.statut, type: r.type, client: r.client, date: r.date, adresse: r.adresse, totalTTC: r.totalTTC!=null?parseFloat(r.totalTTC):null, motif: r.motif, createdAt: r.createdAt!=null?parseInt(r.createdAt):0, lignes: r.lignes||[], eventId: r.eventId }; });
         const freshIds = fresh.map(function(d){ return d.id; }).join(',');
         if (freshIds !== prevIds || fresh.length !== prevLen) {
           DEVIS_LIST = fresh;
