@@ -2431,25 +2431,76 @@ async function loadAgenda() {
         if (dot) dot.remove();
       });
   } else {
-    // Pas de cache — attendre le réseau
-    el.innerHTML = '<div class="empty-state">Chargement…</div>';
-    const r = await gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`);
-    if (!r || !r.ok) {
-      el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
-      authBar && (authBar.style.display = 'block');
+    // Pas de cache localStorage — 2e chance : IndexedDB (peut être prêt maintenant)
+    if (typeof HE !== 'undefined') {
+      try {
+        const all = await HE.getAll('agenda');
+        if (all && all.length) {
+          const idbEvents = all.filter(function(ev) {
+            const start = ev.start && (ev.start.dateTime || ev.start.date);
+            return start >= tMin && start < tMax;
+          });
+          if (idbEvents.length) {
+            // Données trouvées en IndexedDB — afficher immédiatement
+            cachedEvents = idbEvents;
+            _agendaCacheWrite(tMin, idbEvents);
+            events = idbEvents;
+          }
+        }
+      } catch(err) {}
+    }
+
+    if (events.length) {
+      // Afficher le cache IndexedDB ET lancer la synchro en arrière-plan
+      var syncDot = document.createElement('div');
+      syncDot.id = 'agenda-sync-dot';
+      syncDot.style.cssText = 'position:fixed;top:12px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--accent,#C9A86A);opacity:0.7;z-index:999;animation:pulse 1s infinite;';
+      document.body.appendChild(syncDot);
+      var cachedFP = _agendaFingerprint(events);
+      gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`)
+        .then(async function(r) {
+          var dot = document.getElementById('agenda-sync-dot');
+          if (dot) dot.remove();
+          if (!r || !r.ok) return;
+          const data = await r.json();
+          const freshEvents = data.items || [];
+          _agendaCacheWrite(tMin, freshEvents);
+          if (typeof HE !== 'undefined' && freshEvents.length) {
+            HE.putMany('agenda', freshEvents).catch(function(){});
+            HE.meta('agenda_synced', Date.now()).catch(function(){});
+          }
+          if (_agendaFingerprint(freshEvents) !== cachedFP) { loadAgenda(); }
+        }).catch(function() {
+          var dot = document.getElementById('agenda-sync-dot');
+          if (dot) dot.remove();
+        });
+    } else {
+      // Aucune donnée en cache — afficher "Chargement" et lancer réseau sans bloquer
+      el.innerHTML = '<div class="empty-state" style="opacity:0.6;">⏳ Chargement…</div>';
       clearTimeout(window._agendaLockTimer);
       window._agendaLoading = false;
+      gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`)
+        .then(async function(r) {
+          if (!r || !r.ok) {
+            el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
+            authBar && (authBar.style.display = 'block');
+            return;
+          }
+          const data = await r.json();
+          const freshEvents = data.items || [];
+          if (freshEvents.length) {
+            _agendaCacheWrite(tMin, freshEvents);
+            if (typeof HE !== 'undefined') {
+              HE.putMany('agenda', freshEvents).catch(function(){});
+              HE.meta('agenda_synced', Date.now()).catch(function(){});
+            }
+          }
+          loadAgenda();
+        }).catch(function() {
+          el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
+          authBar && (authBar.style.display = 'block');
+        });
       return;
-    }
-    const data = await r.json();
-    events = data.items || [];
-    // Mettre en cache localStorage + IndexedDB pour la prochaine fois
-    if (events.length) {
-      _agendaCacheWrite(tMin, events);
-      if (typeof HE !== 'undefined') {
-        HE.putMany('agenda', events).catch(function(){});
-        HE.meta('agenda_synced', Date.now()).catch(function(){});
-      }
     }
   }
 
