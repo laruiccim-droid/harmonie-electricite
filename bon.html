@@ -2345,6 +2345,17 @@ async function validerDoc() {
   const client = document.getElementById('f-client').value.trim();
   if (!client) { toast('Le nom du client est obligatoire'); return; }
 
+  // ── Attendre la fin des uploads photos en cours ──
+  if (PHOTOS.some(function(p){ return p._uploading; })) {
+    toast('⏳ Upload photos en cours, patientez…');
+    await new Promise(function(resolve) {
+      var check = setInterval(function() {
+        if (!PHOTOS.some(function(p){ return p._uploading; })) { clearInterval(check); resolve(); }
+      }, 300);
+      setTimeout(function() { clearInterval(check); resolve(); }, 15000);
+    });
+  }
+
   // ── Arrêter le timer automatiquement si en cours ──
   arreterTimerSiActif();
 
@@ -2379,6 +2390,7 @@ async function validerDoc() {
         duree:              document.getElementById('f-duree').value,
         lignes:             LIGNES.slice(), // ← UNIQUEMENT les lignes du formulaire
         sessions:           window._bonExistant.sessions || [], // garder les sessions passées
+        photos:             PHOTOS.map(function(p){ return p.url ? {url:p.url,caption:p.caption||'',_id:p._id} : {dataUrl:p.dataUrl,caption:p.caption||'',_id:p._id}; }),
         tvaRate:            tvaRate,
         totalHT:            ht,
         totalTVA:           tva,
@@ -2420,10 +2432,16 @@ async function validerDoc() {
     const htTotal  = lignesFusionnees.reduce(function(s,l){ return s + (l.qty||0)*(parseFloat(l.pu)||0); }, 0);
     const tvaTotal = htTotal * (bonBase.tvaRate || 20) / 100;
 
+    // Fusionner les photos : existantes + nouvelles de cette session
+    const photosExistantes = bonBase.photos || [];
+    const photosNouvelles = PHOTOS.filter(function(p){ return !photosExistantes.find(function(e){ return e._id === p._id; }); });
+    const photosFusionnees = photosExistantes.concat(photosNouvelles.map(function(p){ return p.url ? {url:p.url,caption:p.caption||'',_id:p._id} : {dataUrl:p.dataUrl,caption:p.caption||'',_id:p._id}; }));
+
     doc = Object.assign(bonBase, {
       statut:            'valide',
       reference:         document.getElementById('f-reference').value.trim() || bonBase.reference,
       lignes:            lignesFusionnees,
+      photos:            photosFusionnees,
       totalHT:           htTotal,
       totalTVA:          tvaTotal,
       totalTTC:          htTotal + tvaTotal,
