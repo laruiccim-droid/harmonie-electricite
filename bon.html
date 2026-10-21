@@ -3166,7 +3166,7 @@ async function _genererPDFInner(docData) {
   const ttc = ht + tva;
 
   // Couleurs
-  const ORANGE  = [245, 166, 35];
+  const ORANGE  = [185, 148, 62];  // doré design system
   const DARK    = [15, 15, 15];
   const GREY    = [100, 100, 100];
   const LGREY   = [240, 240, 240];
@@ -3179,50 +3179,53 @@ async function _genererPDFInner(docData) {
   const MR = W - M; // marge droite
 
   // ── EN-TÊTE ──────────────────────────────────────────────
-  // Fond noir en-tête (couleur du logo)
-  doc.setFillColor(10, 10, 10);
-  doc.rect(0, 0, W, 40, 'F');
-  doc.setFillColor(180, 145, 60);
-  doc.rect(0, 39, W, 1.5, 'F');
+  // Barre orange fine en haut
+  doc.setFillColor(...ORANGE);
+  doc.rect(0, 0, W, 3, 'F');
 
   // Picto rond (gauche)
   try {
-    doc.addImage(PICTO_HE_B64, 'PNG', M, 4, 28, 28);
+    doc.addImage(PICTO_HE_B64, 'PNG', M, 5, 26, 26);
   } catch(e) {}
 
-  // Logo texte ELECTRICITE (centre-gauche)
+  // Logo texte HARMONIE ÉLECTRICITÉ
   try {
-    doc.addImage(LOGO_HE_B64, 'PNG', M + 32, 10, 55, 16);
+    doc.addImage(LOGO_HE_B64, 'PNG', M + 30, 10, 52, 15);
   } catch(e) {
-    // Fallback texte
-    doc.setTextColor(200, 165, 90);
+    doc.setTextColor(...ORANGE);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('HARMONIE', M + 32, 20);
+    doc.text('HARMONIE', M + 30, 19);
     doc.setFontSize(9);
-    doc.text('ÉLECTRICITÉ', M + 32, 27);
+    doc.text('ÉLECTRICITÉ', M + 30, 26);
   }
 
-  // Nom artisan sous le logo
-  doc.setTextColor(180, 145, 60);
+  // Nom sous le logo
+  doc.setTextColor(...GREY);
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text('Mathieu LARUICCI — Électricien artisan', M, 36);
+  doc.text('Mathieu LARUICCI', M, 35);
 
   // Coordonnées en haut à droite
   doc.setFontSize(7.5);
-  doc.setTextColor(220, 220, 220);
+  doc.setTextColor(...DARK);
   doc.setFont('helvetica', 'normal');
-  doc.text('225 Chemin des Bochets — 73170 Yenne', MR, 12, { align:'right' });
-  doc.text('06 31 13 47 01', MR, 18, { align:'right' });
-  doc.text('contact@harmonie-electricite.com', MR, 24, { align:'right' });
-  doc.text('www.harmonie-electricite.com', MR, 30, { align:'right' });
+  doc.text('225 Chemin des Bochets — 73170 Yenne', MR, 11, { align:'right' });
+  doc.text('06 31 13 47 01', MR, 17, { align:'right' });
+  doc.text('contact@harmonie-electricite.com', MR, 23, { align:'right' });
+  doc.text('www.harmonie-electricite.com', MR, 29, { align:'right' });
   // Spécialités
   doc.setFontSize(6.5);
-  doc.setTextColor(160, 130, 70);
-  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Borne IRVE · Automatisme', MR, 36, { align:'right' });
+  doc.setTextColor(...GREY);
+  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Borne IRVE · Automatisme', MR, 35, { align:'right' });
 
-  y = 46;
+  // Ligne séparatrice orange sous l'en-tête
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.6);
+  doc.line(M, 38.5, W - M, 38.5);
+  doc.setLineWidth(0.2);
+
+  y = 44;
 
   // ── TITRE DOCUMENT ───────────────────────────────────────
   doc.setFillColor(...LGREY);
@@ -3352,6 +3355,7 @@ async function _genererPDFInner(docData) {
     // ── Multi-sessions : afficher détail par session ───────
     const sessions = d ? (d.sessions || []) : [];
     if (sessions.length > 0 && isBon) {
+      if (y + MIN_SECTION > SAFE_PDF) { doc.addPage(); y = 14; }
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...ORANGE);
@@ -3360,6 +3364,7 @@ async function _genererPDFInner(docData) {
 
       // Toutes les sessions sont dans sessions[] — la session 1 y est maintenant incluse
       sessions.forEach(function(s, idx) {
+        if (y + 14 > SAFE_PDF) { doc.addPage(); y = 14; }
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...DARK);
@@ -3376,7 +3381,7 @@ async function _genererPDFInner(docData) {
           doc.setTextColor(...GREY);
           const rapLines = doc.splitTextToSize(s.rapport, W - 2*M - 4);
           rapLines.forEach(function(line) {
-            if (y + 4 > 277) { doc.addPage(); y = 14; doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY); }
+            if (y + 4 > SAFE_PDF) { doc.addPage(); y = 14; doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY); }
             doc.text(line, M + 2, y);
             y += 4;
           });
@@ -3392,6 +3397,7 @@ async function _genererPDFInner(docData) {
             doc.setTextColor(...DARK);
             const ligneText = '  • ' + (l.ref ? '['+l.ref+'] ' : '') + (l.nom||'') + ' — ' + (l.qty||1) + ' ' + (l.unite||'U') + ' × ' + (parseFloat(l.pu)||0).toFixed(2) + '€ = ' + ((l.qty||1)*(parseFloat(l.pu)||0)).toFixed(2) + '€ HT';
             const ll = doc.splitTextToSize(ligneText, W - 2*M - 4);
+            if (y + ll.length * 4 + 1 > SAFE_PDF) { doc.addPage(); y = 14; doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DARK); }
             doc.text(ll, M + 2, y);
             y += ll.length * 4 + 1;
           });
@@ -3412,6 +3418,7 @@ async function _genererPDFInner(docData) {
           }
         });
         if (totalMin > 0) {
+          if (y + 6 > SAFE_PDF) { doc.addPage(); y = 14; }
           const th = Math.floor(totalMin/60), tm = totalMin%60;
           doc.setFontSize(8);
           doc.setFont('helvetica', 'bold');
@@ -3572,6 +3579,7 @@ async function _genererPDFInner(docData) {
           if (y + photoHp > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); y = 20; pxp = M; }
           doc.addImage(photoSrcp, 'JPEG', pxp, y, photoWp, photoHp);
           doc.setDrawColor(200,200,200); doc.rect(pxp, y, photoWp, photoHp, 'S');
+          if (photop.url) doc.link(pxp, y, photoWp, photoHp, { url: photop.url });
           if (photop.caption) {
             doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(...GREY);
             doc.text(photop.caption.slice(0,25), pxp + photoWp/2, y + photoHp + 4, { align:'center' });
@@ -3690,6 +3698,7 @@ async function _genererPDFInner(docData) {
     const tvaCumul = htCumul * tvaRate / 100;
 
     const boxH = bonLieData ? 30 : 22;
+    if (y + boxH + 14 > SAFE_PDF) { doc.addPage(); y = 14; }
     doc.setFillColor(250, 250, 250);
     doc.rect(totX, y, totW, boxH, 'F');
     doc.setDrawColor(220, 220, 220);
@@ -3814,7 +3823,7 @@ async function _genererPDFInner(docData) {
 
   // ── PHOTOS ───────────────────────────────────────────────
   if (photos && photos.length > 0) {
-    if (y > 200) { doc.addPage(); y = 20; }
+    if (y + MIN_SECTION > SAFE_PDF) { doc.addPage(); y = 14; }
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...ORANGE);
@@ -3859,13 +3868,14 @@ async function _genererPDFInner(docData) {
           px = M;
           y += photoH + photoMargin + 8;
         }
-        if (y + photoH > doc.internal.pageSize.getHeight() - 20) {
-          doc.addPage(); y = 20; px = M;
+        if (y + photoH > SAFE_PDF) {
+          doc.addPage(); y = 14; px = M;
         }
 
         doc.addImage(photoSrc, 'JPEG', px, y, photoW, photoH);
         doc.setDrawColor(200, 200, 200);
         doc.rect(px, y, photoW, photoH, 'S');
+        if (photo.url) doc.link(px, y, photoW, photoH, { url: photo.url });
 
         // Légende
         if (photo.caption) {
@@ -3883,18 +3893,21 @@ async function _genererPDFInner(docData) {
 
   // ── PIED DE PAGE ─────────────────────────────────────────
   const pageH = doc.internal.pageSize.getHeight();
-  doc.setFillColor(15, 15, 15);
-  doc.rect(0, pageH - 14, W, 14, 'F');
+  // Ligne orange séparatrice
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.6);
+  doc.line(M, pageH - 14, W - M, pageH - 14);
+  doc.setLineWidth(0.2);
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(200, 165, 90);
+  doc.setTextColor(...DARK);
   doc.text(
     'Harmonie Électricité · 225 Chemin des Bochets, 73170 Yenne · 06 31 13 47 01 · contact@harmonie-electricite.com · www.harmonie-electricite.com',
-    W/2, pageH - 7, { align:'center' }
+    W/2, pageH - 8, { align:'center' }
   );
-  doc.setTextColor(120, 100, 50);
+  doc.setTextColor(...GREY);
   doc.setFontSize(6);
-  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Automatisme · Borne de recharge IRVE', W/2, pageH - 3, { align:'center' });
+  doc.text('Alarme · Vidéosurveillance · Contrôle d\'accès · Automatisme · Borne de recharge IRVE', W/2, pageH - 3.5, { align:'center' });
 
   // ── TÉLÉCHARGEMENT ou retour base64 ──────────────────────
   const filename = (isBon ? 'BI' : 'Devis') + '_' + docNum + '_' + client.replace(/\s+/g,'_') + '.pdf';
