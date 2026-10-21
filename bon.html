@@ -755,6 +755,7 @@ async function ouvrirPickerBonLie() {
           duree:      p.duree || '',
           lignes:     p.lignes || [],
           rapport:    p.rapport || '',
+          photos:     p.photos || [],
           totalHT:    p.totalHT || 0,
           totalTTC:   p.totalTTC || 0,
           tvaRate:    p.tvaRate || 20
@@ -788,6 +789,7 @@ async function ouvrirPickerBonLie() {
         heureDebut: row.heureDebut || '', heureFin: row.heureFin || '', duree: row.duree || '',
         lignes: Array.isArray(row.lignes) ? row.lignes : [],
         rapport: row.rapport || '',
+        photos: Array.isArray(row.photos) ? row.photos : [],
         totalHT: parseFloat(row.totalHT) || 0,
         totalTTC: parseFloat(row.totalTTC) || 0,
         tvaRate: parseFloat(row.tvaRate) || 20
@@ -818,6 +820,7 @@ function selectionnerBonLie(row) {
     duree:      row.duree || '',
     lignes:     row.lignes || [],
     rapport:    row.rapport || '',
+    photos:     Array.isArray(row.photos) ? row.photos : [],
     totalHT:    parseFloat(row.totalHT) || 0,
     totalTTC:   parseFloat(row.totalTTC) || 0,
     tvaRate:    parseFloat(row.tvaRate) || 20,
@@ -3478,6 +3481,66 @@ async function _genererPDFInner(docData) {
       }
       y += rowH2;
     });
+
+    // Rapport intervention précédente
+    if (bonLieData.rapport) {
+      y += 3;
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+      doc.text('RAPPORT D\'INTERVENTION PRÉCÉDENTE', M, y + 4);
+      y += 7;
+      doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DARK);
+      const rapLinesPrev = doc.splitTextToSize(bonLieData.rapport, W - 2*M);
+      rapLinesPrev.forEach(function(line) {
+        if (y + 5 > 277) { doc.addPage(); y = 14; doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DARK); }
+        doc.text(line, M, y); y += 5;
+      });
+      y += 2;
+    }
+
+    // Photos intervention précédente
+    const photosPrev = bonLieData.photos || [];
+    if (photosPrev.length > 0) {
+      if (y > 200) { doc.addPage(); y = 20; }
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...ORANGE);
+      doc.text('PHOTOS — INTERVENTION PRÉCÉDENTE', M, y + 4);
+      y += 8;
+      const photoWp = 50; const photoMp = 6;
+      let pxp = M;
+      for (var pip = 0; pip < photosPrev.length; pip++) {
+        var photop = photosPrev[pip];
+        var photoSrcp = photop.dataUrl || null;
+        if (!photoSrcp && photop.url) {
+          await new Promise(function(resolve) {
+            var xhrp = new Image(); xhrp.crossOrigin = 'anonymous';
+            xhrp.onload = function() {
+              var cvp = document.createElement('canvas');
+              cvp.width = xhrp.naturalWidth; cvp.height = xhrp.naturalHeight;
+              cvp.getContext('2d').drawImage(xhrp, 0, 0);
+              photoSrcp = cvp.toDataURL('image/jpeg', 0.9); resolve();
+            };
+            xhrp.onerror = function() { photoSrcp = null; resolve(); };
+            xhrp.src = photop.url;
+          });
+        }
+        if (!photoSrcp) continue;
+        try {
+          var tmpIp = new Image(); tmpIp.src = photoSrcp;
+          var ratiop = tmpIp.naturalHeight > 0 ? tmpIp.naturalWidth / tmpIp.naturalHeight : 1;
+          var photoHp = Math.round(photoWp / ratiop);
+          if (photoHp > 60) photoHp = 60;
+          if (pxp + photoWp > W - M) { pxp = M; y += photoHp + photoMp + 8; }
+          if (y + photoHp > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); y = 20; pxp = M; }
+          doc.addImage(photoSrcp, 'JPEG', pxp, y, photoWp, photoHp);
+          doc.setDrawColor(200,200,200); doc.rect(pxp, y, photoWp, photoHp, 'S');
+          if (photop.caption) {
+            doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(...GREY);
+            doc.text(photop.caption.slice(0,25), pxp + photoWp/2, y + photoHp + 4, { align:'center' });
+          }
+          pxp += photoWp + photoMp;
+        } catch(e2) {}
+      }
+      y += 70;
+    }
 
     // Sous-total intervention précédente
     if (showTotal) {
