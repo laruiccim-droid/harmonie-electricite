@@ -1172,7 +1172,7 @@ async function sbGet(table) {
   const ctrl = new AbortController();
   const timeoutId = setTimeout(function(){ ctrl.abort(); }, 15000);
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?select=id,payload`, {
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?select=id,payload&limit=500&order=id.desc`, {
       headers: SB_HEADERS, signal: ctrl.signal
     });
     if (!r.ok) return null;
@@ -1286,65 +1286,69 @@ async function initSync() {
 
   setSyncState('syncing');
 
-  // Charger notes, checklist et interventions normalement
+  if (!navigator.onLine) {
+    // Hors ligne : charger clients depuis IndexedDB
+    try {
+      const cached = await HE.getAll('clients');
+      if (cached && cached.length) {
+        CLIENTS = cached.map(function(row){ return Object.assign({id: row.id}, row.payload); });
+        renderClients(); updateClientBadge();
+      }
+    } catch(e) {}
+    setSyncState('red');
+    return;
+  }
+
+  // Phase 1 : notes + checklist + interventions en parallèle (sans clients)
+  // Les clients sont lourds (limit=1000) — on les charge séparément en arrière-plan
   const [remoteNotes, remoteCheck, remoteInterventions] = await Promise.all([
     sbGet('notes'), sbGet('checklist'), sbGet('interventions')
   ]);
 
-  // Charger clients depuis Supabase directement (format EBP avec payload)
-  let remoteClients = null;
+  const anyOk = remoteNotes !== null || remoteCheck !== null || remoteInterventions !== null;
+  if (!anyOk) { setSyncState('red'); return; }
+
   try {
-    if (!navigator.onLine) {
-      // Offline — depuis IndexedDB
-      const cached = await HE.getAll('clients');
-      if (cached && cached.length) {
-        remoteClients = cached.map(function(row){ return Object.assign({id: row.id}, row.payload); });
-        console.log('[Offline] Clients from IndexedDB:', remoteClients.length);
-      }
-    } else {
+    if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
+    if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
+    if (remoteInterventions) INTERVENTIONS = mergeArrays(INTERVENTIONS, remoteInterventions);
+    try { saveLocal(); } catch(e) {}
+    renderNotes(); renderChecklist(); renderInterventions();
+    setSyncState('green');
+  } catch(e) {
+    console.error('[Sync] Erreur phase 1:', e);
+    setSyncState('red');
+    return;
+  }
+
+  // Phase 2 : clients en arrière-plan (ne bloque plus l'affichage)
+  setTimeout(async function() {
+    try {
       const ctrl = new AbortController();
       const timeoutId = setTimeout(function(){ ctrl.abort(); }, 15000);
       try {
         const r = await fetch(SUPA_URL + '/rest/v1/clients?select=id,payload&limit=1000', { headers: SB_HEADERS, signal: ctrl.signal });
         if (r.ok) {
           const rows = await r.json();
-          remoteClients = rows.map(function(row){ return Object.assign({id: row.id}, row.payload); });
+          const remoteClients = rows.map(function(row){ return Object.assign({id: row.id}, row.payload); });
+          const merged = mergeClients(CLIENTS, remoteClients);
+          CLIENTS = merged.result;
+          // Mettre en cache IndexedDB pour usage hors-ligne
+          if (typeof HE !== 'undefined') {
+            HE.putMany('clients', rows).catch(function(){});
+          }
+          try { saveLocal(); } catch(e) {}
+          renderClients(); updateClientBadge();
+          if (merged.changed) {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(pushAll, 500);
+          }
         }
       } finally {
         clearTimeout(timeoutId);
       }
-    }
-  } catch(e) {}
-
-  const anyOk = remoteNotes !== null || remoteCheck !== null || remoteClients !== null || remoteInterventions !== null;
-  if (!anyOk) { setSyncState('red'); return; }
-
-  try {
-    if (remoteNotes)   NOTES     = mergeArrays(NOTES,   remoteNotes);
-    if (remoteCheck)   CHECKLIST = mergeArrays(CHECKLIST, remoteCheck);
-    let localHadNewerClients = false;
-    if (remoteClients) {
-      const merged = mergeClients(CLIENTS, remoteClients);
-      localHadNewerClients = merged.changed;
-      CLIENTS = merged.result;
-    }
-    if (remoteInterventions) INTERVENTIONS = mergeArrays(INTERVENTIONS, remoteInterventions);
-
-    try { saveLocal(); } catch(e) { console.warn('[Sync] saveLocal a échoué:', e); }
-    renderNotes(); renderChecklist(); renderClients(); updateClientBadge(); renderInterventions();
-    setSyncState('green');
-
-    // Si des modifications locales (ex: site lié, espace client) n'avaient pas
-    // encore été remontées sur Supabase, on relance une synchro pour les pousser.
-    if (localHadNewerClients) {
-      clearTimeout(syncTimer);
-      syncTimer = setTimeout(pushAll, 500);
-    }
-  } catch(e) {
-    console.error('[Sync] Erreur lors de la mise à jour après synchronisation:', e);
-    setSyncState('red');
-    return;
-  }
+    } catch(e) { console.warn('[Sync] Clients fetch failed:', e); }
+  }, 0);
 
   // Synchroniser les documents créés hors-ligne
   try { syncOfflineDocsQueue(); } catch(e) { console.warn('[Sync] syncOfflineDocsQueue a échoué:', e); }
@@ -2246,6 +2250,7 @@ async function gcalRefreshToken() {
     if (d.access_token) {
       gcalToken = d.access_token;
       localStorage.setItem('gcal_access_token', gcalToken);
+      window._gcalTokenFetchedAt = Date.now();
       return true;
     }
     return false;
@@ -2323,12 +2328,13 @@ async function loadAgenda() {
     }
   }
 
-  // Rafraîchir proactivement le token si on a un refresh token
-  // (le token Google dure 1h — on le rafraîchit à chaque chargement pour éviter les surprises)
+  // Rafraîchir le token seulement s'il va expirer dans moins de 5 minutes
+  // (le token Google dure 1h — pas besoin de le rafraîchir à chaque loadAgenda)
   if (gcalRefresh && navigator.onLine) {
-    try {
-      await gcalRefreshToken();
-    } catch(e) {}
+    const tokenAge = Date.now() - (window._gcalTokenFetchedAt || 0);
+    if (tokenAge > 55 * 60 * 1000) { // > 55 minutes
+      try { await gcalRefreshToken(); } catch(e) {}
+    }
   }
   authBar && (authBar.style.display = 'none');
 
@@ -3913,12 +3919,12 @@ async function gcalMarkDone(eventId, colorId) {
   // Sync Google Calendar si connecté
   if (!gcalToken) return;
   try {
-    const r = await gcalFetch('/events/' + eventId, {
+    // Fire-and-forget : ne pas await, ne pas recharger l'agenda (couleur déjà mise à jour visuellement)
+    gcalFetch('/events/' + eventId, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ colorId: String(colorId) })
-    });
-    if (r && r.ok) setTimeout(loadAgenda, 1500);
+    }).catch(function(){});
   } catch(e) {}
 }
 
