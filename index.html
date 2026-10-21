@@ -2124,6 +2124,10 @@ function _agendaCacheRead(tMin) {
 function _agendaCacheWrite(tMin, events) {
   try { localStorage.setItem(_agendaCacheKey(tMin), JSON.stringify(events)); } catch(e) {}
 }
+// Fingerprint : détecte tout changement (ajout, suppression, modification)
+function _agendaFingerprint(events) {
+  return events.map(function(e) { return e.id + '|' + (e.updated || '') + '|' + (e.summary || ''); }).sort().join('§');
+}
 
 async function gcalDoSearch() {
   const el = document.getElementById('agendaContent');
@@ -2397,22 +2401,33 @@ async function loadAgenda() {
     events = cachedEvents;
 
     // Mise à jour silencieuse depuis le réseau (sans bloquer l'affichage)
+    // Indicateur discret de synchro en cours
+    var syncDot = document.createElement('div');
+    syncDot.id = 'agenda-sync-dot';
+    syncDot.style.cssText = 'position:fixed;top:12px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--accent,#C9A86A);opacity:0.7;z-index:999;animation:pulse 1s infinite;';
+    document.body.appendChild(syncDot);
+    var cachedFP = _agendaFingerprint(cachedEvents);
     gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`)
       .then(async function(r) {
+        var dot = document.getElementById('agenda-sync-dot');
+        if (dot) dot.remove();
         if (!r || !r.ok) return;
         const data = await r.json();
         const freshEvents = data.items || [];
         // Mettre à jour les deux caches
         _agendaCacheWrite(tMin, freshEvents);
         if (typeof HE !== 'undefined' && freshEvents.length) {
-          await HE.putMany('agenda', freshEvents);
-          await HE.meta('agenda_synced', Date.now());
+          HE.putMany('agenda', freshEvents).catch(function(){});
+          HE.meta('agenda_synced', Date.now()).catch(function(){});
         }
-        // Re-rendre seulement si le contenu a changé
-        if (freshEvents.length !== cachedEvents.length) {
+        // Re-rendre si le contenu a réellement changé (fingerprint complet)
+        if (_agendaFingerprint(freshEvents) !== cachedFP) {
           loadAgenda();
         }
-      }).catch(function() {});
+      }).catch(function() {
+        var dot = document.getElementById('agenda-sync-dot');
+        if (dot) dot.remove();
+      });
   } else {
     // Pas de cache — attendre le réseau
     el.innerHTML = '<div class="empty-state">Chargement…</div>';
