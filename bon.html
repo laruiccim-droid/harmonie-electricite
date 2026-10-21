@@ -733,10 +733,17 @@ async function ouvrirPickerBonLie() {
   list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Chargement…</div>';
   try {
     const fields = 'id,numero:payload->>numero,client:payload->>client,date:payload->>date,adresse:payload->>adresse,heureDebut:payload->>heureDebut,heureFin:payload->>heureFin,duree:payload->>duree,lignes:payload->lignes,rapport:payload->>rapport,totalHT:payload->totalHT,totalTTC:payload->totalTTC,tvaRate:payload->tvaRate,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos';
-    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=' + fields + '&payload->>suiviRequis=eq.true&payload->>suiviClos=neq.true&payload->>type=eq.bon&order=id.desc&limit=100', {
+    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=' + fields + '&payload->>suiviRequis=eq.true&payload->>type=eq.bon&order=id.desc&limit=100', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
-    const rows = r.ok ? await r.json() : [];
+    const allRows = r.ok ? await r.json() : [];
+    // Exclure les bons déjà clôturés (suiviClos peut être absent/null sur les anciens bons)
+    // Garder uniquement ceux où suiviRequis est bien true ET suiviClos absent/false
+    const rows = allRows.filter(function(row) {
+      const requis = row.suiviRequis === 'true' || row.suiviRequis === true;
+      const clos   = row.suiviClos === 'true' || row.suiviClos === true;
+      return requis && !clos;
+    });
     if (!rows.length) {
       list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun bon "à suivre" trouvé.<br><span style="font-size:11px;">Coche "Intervention à suivre" sur les bons concernés.</span></div>';
       return;
