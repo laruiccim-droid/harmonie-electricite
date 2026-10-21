@@ -764,9 +764,10 @@ async function ouvrirPickerBonLie() {
       list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun bon "à suivre" trouvé.<br><span style="font-size:11px;">Coche "Intervention à suivre" sur les bons concernés.</span></div>';
       return;
     }
-    list.innerHTML = rows.map(function(row) {
+    window._bonLieRows = rows; // stockage pour éviter JSON dans attribut HTML
+    list.innerHTML = rows.map(function(row, i) {
       const ttc = row.totalTTC != null ? parseFloat(row.totalTTC).toFixed(2) + ' €' : '';
-      return '<div onclick="selectionnerBonLie(' + JSON.stringify(JSON.stringify(row)).slice(1,-1) + ')" style="background:var(--surface2);border-radius:10px;padding:12px;cursor:pointer;border:1px solid var(--border);">'
+      return '<div onclick="selectionnerBonLieIdx(' + i + ')" style="background:var(--surface2);border-radius:10px;padding:12px;cursor:pointer;border:1px solid var(--border);">'
         + '<div style="font-weight:700;font-size:13px;">' + (row.numero||row.id) + ' — ' + (row.client||'') + '</div>'
         + '<div style="font-size:11px;color:var(--muted);margin-top:3px;">' + (row.date||'') + ' · ' + (row.adresse||'') + '</div>'
         + (ttc ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">' + ttc + ' TTC</div>' : '')
@@ -777,10 +778,15 @@ async function ouvrirPickerBonLie() {
   }
 }
 
-function selectionnerBonLie(rowJson) {
+function selectionnerBonLieIdx(i) {
+  var row = window._bonLieRows && window._bonLieRows[i];
+  if (!row) return;
+  selectionnerBonLie(row);
+}
+
+function selectionnerBonLie(row) {
   document.getElementById('modal-bon-lie').style.display = 'none';
-  var row;
-  try { row = JSON.parse(rowJson); } catch(e) { return; }
+  if (typeof row === 'string') { try { row = JSON.parse(row); } catch(e) { return; } }
   BON_LIE = {
     id:         row.id,
     numero:     row.numero || row.id,
