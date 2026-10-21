@@ -591,8 +591,11 @@ function ajouterPhoto(input) {
         var canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        PHOTOS.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.75), caption: '' });
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        var photoId = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        PHOTOS.push({ dataUrl: dataUrl, caption: '', _id: photoId, _uploading: navigator.onLine });
         renderPhotos();
+        if (navigator.onLine) _uploadPhoto(dataUrl, photoId);
       };
       img.src = ev.target.result;
     };
@@ -601,20 +604,66 @@ function ajouterPhoto(input) {
   input.value = '';
 }
 
+async function _uploadPhoto(dataUrl, photoId) {
+  try {
+    var blob = await fetch(dataUrl).then(function(r){ return r.blob(); });
+    var filename = photoId + '.jpg';
+    var r = await fetch(SUPA_URL + '/storage/v1/object/bon-photos/' + filename, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'image/jpeg', 'x-upsert': 'true' },
+      body: blob
+    });
+    if (r.ok) {
+      var publicUrl = SUPA_URL + '/storage/v1/object/public/bon-photos/' + filename;
+      var p = PHOTOS.find(function(p){ return p._id === photoId; });
+      if (p) { p.url = publicUrl; p.dataUrl = null; p._uploading = false; renderPhotos(); }
+    } else {
+      var p = PHOTOS.find(function(p){ return p._id === photoId; }); if (p) p._uploading = false;
+    }
+  } catch(e) {
+    var p = PHOTOS.find(function(p){ return p._id === photoId; }); if (p) p._uploading = false;
+  }
+}
+
 function renderPhotos() {
   var grid = document.getElementById('photos-grid');
   if (!grid) return;
   grid.innerHTML = PHOTOS.map(function(p, i) {
+    var src = p.url || p.dataUrl || '';
+    var badge = p._uploading ? '<div style="position:absolute;bottom:28px;left:0;right:0;text-align:center;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:2px;">\u23eb Envoi\u2026</div>' : '';
     return '<div style="position:relative;border-radius:8px;overflow:hidden;background:var(--surface2);">'
-      + '<img src="' + p.dataUrl + '" style="width:100%;height:120px;object-fit:cover;display:block;">'
+      + '<img src="' + src + '" style="width:100%;height:120px;object-fit:cover;display:block;">'
+      + badge
       + '<button onclick="supprimerPhoto(' + i + ')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:14px;cursor:pointer;">\u00d7</button>'
       + '<input type="text" placeholder="L\u00e9gende..." value="' + (p.caption||'') + '" oninput="PHOTOS[' + i + '].caption=this.value" style="width:100%;padding:5px 8px;border:none;background:rgba(0,0,0,0.5);color:#fff;font-size:11px;outline:none;">'
       + '</div>';
   }).join('');
 }
 
-function supprimerPhoto(i) { PHOTOS.splice(i, 1); renderPhotos(); }
+function supprimerPhoto(i) {
+  var photo = PHOTOS[i];
+  PHOTOS.splice(i, 1);
+  renderPhotos();
+  if (photo && photo.url) {
+    var filename = photo.url.split('/').pop();
+    fetch(SUPA_URL + '/storage/v1/object/bon-photos/' + filename, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    }).catch(function(){});
+  }
+}
 
+
+// Upload les photos qui n'ont pas encore de URL (ajoutées hors ligne)
+window.addEventListener('online', function() {
+  PHOTOS.forEach(function(p) {
+    if (p.dataUrl && !p.url && !p._uploading) {
+      p._uploading = true;
+      renderPhotos();
+      _uploadPhoto(p.dataUrl, p._id);
+    }
+  });
+});
 
 function setPDFMode(mode, btn) {
   PDF_MODE = mode;
@@ -2167,7 +2216,7 @@ async function validerDoc() {
       adresse: document.getElementById('f-adresse').value,
       adresseFacturation: document.getElementById('f-adresse-fact') ? document.getElementById('f-adresse-fact').value.trim() : '',
       showHeures: document.getElementById('f-show-heures') ? document.getElementById('f-show-heures').checked : true,
-      photos: PHOTOS.slice(),
+      photos: PHOTOS.map(function(p){ return p.url ? {url:p.url,caption:p.caption||'',_id:p._id} : {dataUrl:p.dataUrl,caption:p.caption||'',_id:p._id}; }),
       tel: document.getElementById('f-tel').value,
       email: document.getElementById('f-email').value,
       motif: document.getElementById('f-motif').value,
@@ -2537,7 +2586,7 @@ function docDepuisFormulaire() {
     adresse: document.getElementById('f-adresse').value.trim(),
     adresseFacturation: document.getElementById('f-adresse-fact') ? document.getElementById('f-adresse-fact').value.trim() : '',
     showHeures: document.getElementById('f-show-heures') ? document.getElementById('f-show-heures').checked : true,
-    photos: PHOTOS.slice(),
+    photos: PHOTOS.map(function(p){ return p.url ? {url:p.url,caption:p.caption||'',_id:p._id} : {dataUrl:p.dataUrl,caption:p.caption||'',_id:p._id}; }),
     tel: document.getElementById('f-tel').value.trim(),
     email: document.getElementById('f-email').value.trim(),
     motif: document.getElementById('f-motif').value.trim(),
@@ -3366,11 +3415,29 @@ async function _genererPDFInner(docData) {
 
     for (var pi = 0; pi < photos.length; pi++) {
       var photo = photos[pi];
-      if (!photo.dataUrl) continue;
+      var photoSrc = photo.dataUrl || photo.url || null;
+      if (!photoSrc) continue;
       try {
+        // Charger depuis URL si nécessaire (photo uploadée sur Storage)
+        if (!photo.dataUrl && photo.url) {
+          await new Promise(function(resolve) {
+            var xhr = new Image();
+            xhr.crossOrigin = 'anonymous';
+            xhr.onload = function() {
+              var cv = document.createElement('canvas');
+              cv.width = xhr.naturalWidth; cv.height = xhr.naturalHeight;
+              cv.getContext('2d').drawImage(xhr, 0, 0);
+              photoSrc = cv.toDataURL('image/jpeg', 0.9);
+              resolve();
+            };
+            xhr.onerror = function() { photoSrc = null; resolve(); };
+            xhr.src = photo.url;
+          });
+          if (!photoSrc) continue;
+        }
         // Calculer hauteur proportionnelle
         var tmpImg = new Image();
-        tmpImg.src = photo.dataUrl;
+        tmpImg.src = photoSrc;
         var ratio = tmpImg.naturalHeight > 0 ? tmpImg.naturalWidth / tmpImg.naturalHeight : 1;
         var photoH = Math.round(photoW / ratio);
         if (photoH > 60) photoH = 60; // max 6cm hauteur
@@ -3384,7 +3451,7 @@ async function _genererPDFInner(docData) {
           doc.addPage(); y = 20; px = M;
         }
 
-        doc.addImage(photo.dataUrl, 'JPEG', px, y, photoW, photoH);
+        doc.addImage(photoSrc, 'JPEG', px, y, photoW, photoH);
         doc.setDrawColor(200, 200, 200);
         doc.rect(px, y, photoW, photoH, 'S');
 
