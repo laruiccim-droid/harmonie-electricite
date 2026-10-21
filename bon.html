@@ -1065,7 +1065,8 @@ window.addEventListener('load', async function() {
   if (window._bonMode === 'nouveau') setTimeout(verifierAutoSave, 800);
 
   loadCatalogue();
-  chargerClientsBon(); // précharger pour que la vérification à la validation soit fiable
+  // Précharger les clients en différé (après 3s) pour ne pas bloquer le chargement initial
+  setTimeout(function() { chargerClientsBon(); }, 3000);
 });
 
 function openQtyDrum(inputId) {

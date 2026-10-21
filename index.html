@@ -2466,19 +2466,33 @@ async function loadAgenda() {
 
   // Précharger les bons Supabase pour colorer en vert sans ouvrir chaque RDV
   if (!window._bonExistantLoaded) {
+    // D'abord restaurer depuis localStorage (disponible hors-ligne)
     try {
-      const br = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200', { headers: SB_HEADERS });
-      if (br.ok) {
-        const bons = await br.json();
-        window._bonExistant = window._bonExistant || {};
-        bons.forEach(function(row) {
-          if (row.payload && row.payload.type === 'bon' && row.payload.eventId) {
-            window._bonExistant[row.payload.eventId] = row.payload;
-          }
-        });
+      var cachedBons = localStorage.getItem('he_bons_cache');
+      if (cachedBons) {
+        window._bonExistant = Object.assign(window._bonExistant || {}, JSON.parse(cachedBons));
         window._bonExistantLoaded = true;
       }
     } catch(e) {}
+    // Ensuite mettre à jour depuis Supabase en arrière-plan si en ligne
+    if (navigator.onLine) {
+      fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200', { headers: SB_HEADERS })
+        .then(function(br) { return br.ok ? br.json() : null; })
+        .then(function(bons) {
+          if (!bons) return;
+          window._bonExistant = window._bonExistant || {};
+          window._bonEnCours  = window._bonEnCours  || {};
+          bons.forEach(function(row) {
+            if (row.payload && row.payload.type === 'bon' && row.payload.eventId) {
+              if (row.payload.statut === 'valide')   window._bonExistant[row.payload.eventId] = row.payload;
+              if (row.payload.statut === 'en_cours') window._bonEnCours[row.payload.eventId]  = row.payload;
+            }
+          });
+          window._bonExistantLoaded = true;
+          // Persister pour usage hors-ligne
+          try { localStorage.setItem('he_bons_cache', JSON.stringify(window._bonExistant)); } catch(e) {}
+        }).catch(function() {});
+    }
   }
 
   // Group by LOCAL date — 7 jours (lundi → dimanche)
@@ -3110,35 +3124,26 @@ async function gcalViewEvent(e) {
   let bonEnCours  = null;
 
   if (e.id) {
-    try {
-      const r = await fetch(
-        SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200',
+    // Utiliser le cache immédiatement (disponible en ligne ET hors-ligne)
+    bonExistant = (window._bonExistant && window._bonExistant[e.id]) || null;
+    bonEnCours  = (window._bonEnCours  && window._bonEnCours[e.id])  || null;
+    // Si en ligne, rafraîchir en arrière-plan pour ce RDV spécifique
+    if (navigator.onLine) {
+      fetch(
+        SUPA_URL + '/rest/v1/devis?select=id,payload&filter=payload->eventId=eq.' + encodeURIComponent(e.id) + '&order=id.desc&limit=10',
         { headers: SB_HEADERS }
-      );
-      if (r.ok) {
-        const rows = await r.json();
-        const bonsLies = rows.filter(function(row){
-          return row.payload
-            && row.payload.type === 'bon'
-            && row.payload.eventId === e.id;
+      ).then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(rows) {
+        if (!rows) return;
+        window._bonExistant = window._bonExistant || {};
+        window._bonEnCours  = window._bonEnCours  || {};
+        rows.forEach(function(row) {
+          if (!row.payload || row.payload.type !== 'bon') return;
+          if (row.payload.statut === 'valide')   window._bonExistant[e.id] = row.payload;
+          if (row.payload.statut === 'en_cours') window._bonEnCours[e.id]  = row.payload;
         });
-        const bonPause  = bonsLies.find(function(b){ return b.payload.statut === 'en_cours'; });
-        const bonValide = bonsLies.find(function(b){ return b.payload.statut === 'valide'; });
-        if (bonValide) {
-          bonExistant = bonValide.payload;
-          window._bonExistant = window._bonExistant || {};
-          window._bonExistant[e.id] = bonExistant;
-        }
-        if (bonPause) {
-          bonEnCours = bonPause.payload;
-          window._bonEnCours = window._bonEnCours || {};
-          window._bonEnCours[e.id] = bonEnCours;
-        }
-      }
-    } catch(err) {
-      // Hors ligne — utiliser le cache
-      bonExistant = window._bonExistant && window._bonExistant[e.id];
-      bonEnCours  = window._bonEnCours  && window._bonEnCours[e.id];
+        try { localStorage.setItem('he_bons_cache', JSON.stringify(window._bonExistant)); } catch(ex) {}
+      }).catch(function() {});
     }
   }
 
