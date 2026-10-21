@@ -781,7 +781,17 @@ async function ouvrirPickerBonLie() {
       var row = window._bonLieRows && window._bonLieRows[idx];
       if (!row) return;
       document.getElementById('modal-bon-lie').style.display = 'none';
-      BON_LIE = row;
+      // Normaliser les types numériques pour éviter crash dans renderBonLie
+      BON_LIE = {
+        id: row.id, numero: row.numero || row.id, client: row.client || '',
+        date: row.date || '', adresse: row.adresse || '',
+        heureDebut: row.heureDebut || '', heureFin: row.heureFin || '', duree: row.duree || '',
+        lignes: Array.isArray(row.lignes) ? row.lignes : [],
+        rapport: row.rapport || '',
+        totalHT: parseFloat(row.totalHT) || 0,
+        totalTTC: parseFloat(row.totalTTC) || 0,
+        tvaRate: parseFloat(row.tvaRate) || 20
+      };
       document.getElementById('bon-lie-card').style.display = 'block';
       renderBonLie();
     };
