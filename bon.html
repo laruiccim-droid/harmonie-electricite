@@ -3467,7 +3467,8 @@ async function _genererPDFInner(docData) {
     const bonLieHT  = bonLieData.lignes.reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); }, 0);
     const bonLieTTC = bonLieData.totalTTC || bonLieHT * (1 + (bonLieData.tvaRate||20)/100);
 
-    if (y + 14 > 277) { doc.addPage(); y = 14; }
+    // Titre + heures + en-tête tableau = ~25mm min
+    if (y + 25 > 277) { doc.addPage(); y = 14; }
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...ORANGE);
@@ -3594,6 +3595,9 @@ async function _genererPDFInner(docData) {
     doc.line(M, y, W-M, y);
     y += 6;
   }
+
+  // Saut de page si le titre + en-tête tableau ne rentrent pas (titre 7 + entête 7 + 1ère ligne ~8 = 22mm min)
+  if (y + 22 > 277) { doc.addPage(); y = 14; }
 
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
