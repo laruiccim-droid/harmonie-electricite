@@ -316,6 +316,45 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
   <textarea id="f-notes-internes" rows="3" placeholder="Remarques pour l'assistante, matériel à commander, suite à donner..."></textarea>
 </div>
 
+<!-- INTERVENTION À SUIVRE -->
+<div class="card" id="suivi-requis-card" style="margin-top:8px;">
+  <label for="f-suivi-requis" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;margin:0;">
+    <input type="checkbox" id="f-suivi-requis" style="width:18px;height:18px;accent-color:#f59e0b;flex-shrink:0;">
+    <div>
+      <div style="font-weight:700;font-size:14px;">🔄 Intervention à suivre</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:400;">Cocher si une 2ème intervention est nécessaire (pièce à commander, etc.)</div>
+    </div>
+  </label>
+</div>
+
+<!-- SUITE D'UNE INTERVENTION -->
+<div class="card" id="bon-lie-card" style="margin-top:8px;display:none;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-weight:700;font-size:14px;">🔗 Suite d'une intervention</div>
+    <button type="button" onclick="document.getElementById('bon-lie-card').style.display='none';BON_LIE=null;renderBonLie();" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">×</button>
+  </div>
+  <div id="bon-lie-preview" style="display:none;background:var(--surface2);border-radius:9px;padding:10px;margin-bottom:10px;">
+    <!-- rempli par renderBonLie() -->
+  </div>
+  <button type="button" onclick="ouvrirPickerBonLie()" id="btn-choisir-bon-lie"
+    style="width:100%;padding:11px;border-radius:9px;border:1px dashed var(--border);background:transparent;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">
+    📋 Choisir le bon précédent…
+  </button>
+</div>
+
+<!-- MODAL PICKER BON LIE -->
+<div id="modal-bon-lie" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);overflow-y:auto;padding:16px;">
+  <div style="background:var(--surface);border-radius:14px;max-width:460px;margin:0 auto;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:700;font-size:15px;">Choisir le bon précédent</div>
+      <button onclick="document.getElementById('modal-bon-lie').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div id="modal-bon-lie-list" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="color:var(--muted);text-align:center;padding:20px;">Chargement…</div>
+    </div>
+  </div>
+</div>
+
 <!-- DEVIS À SUIVRE -->
 <div class="card" id="devis-suivre-card" style="margin-top:8px;">
   <label for="f-devis-suivre" style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;margin:0;">
@@ -362,6 +401,10 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
 <!-- ACTIONS -->
 <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;" id="actions-bar">
   <button class="btn btn-primary" id="btn-valider" onclick="validerDoc()">✅ Valider et enregistrer</button>
+  <button class="btn btn-secondary" id="btn-suite-intervention" onclick="toggleBonLieCard()"
+    style="display:none;border:1px solid #f59e0b;color:#f59e0b;background:rgba(245,158,11,0.08);">
+    🔗 Suite d'une intervention
+  </button>
   <button class="btn" id="btn-pause" onclick="mettreEnPause()"
     style="display:none;background:rgba(234,179,8,0.15);border:1px solid #eab308;color:#eab308;font-weight:700;">
     ⏸ Pause — Je reviens (garder le bon ouvert)
@@ -429,6 +472,7 @@ let DOC_VALIDE = false;
 let PDF_MODE = 'detail'; // 'detail' | 'semi' | 'sansprix'
 let PHOTOS = []; // [{dataUrl, caption}]
 let CLIENTS_BON = [];
+let BON_LIE = null; // {id, numero, date, heureDebut, heureFin, duree, lignes, totalHT, totalTTC, tvaRate, client, adresse, rapport}
 
 // ── Recherche client depuis bon.html ──
 async function chargerClientsBon() {
@@ -672,6 +716,110 @@ function setPDFMode(mode, btn) {
 }
 
 
+// ============================================================
+//  BON LIÉ — Suite d'intervention
+// ============================================================
+function toggleBonLieCard() {
+  const card = document.getElementById('bon-lie-card');
+  const visible = card.style.display !== 'none';
+  card.style.display = visible ? 'none' : 'block';
+  if (!visible && !BON_LIE) ouvrirPickerBonLie();
+}
+
+async function ouvrirPickerBonLie() {
+  const modal = document.getElementById('modal-bon-lie');
+  const list  = document.getElementById('modal-bon-lie-list');
+  modal.style.display = 'block';
+  list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Chargement…</div>';
+  try {
+    const fields = 'id,numero:payload->>numero,client:payload->>client,date:payload->>date,adresse:payload->>adresse,heureDebut:payload->>heureDebut,heureFin:payload->>heureFin,duree:payload->>duree,lignes:payload->lignes,rapport:payload->>rapport,totalHT:payload->totalHT,totalTTC:payload->totalTTC,tvaRate:payload->tvaRate,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos';
+    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=' + fields + '&payload->>suiviRequis=eq.true&payload->>suiviClos=neq.true&payload->>type=eq.bon&order=id.desc&limit=100', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    const rows = r.ok ? await r.json() : [];
+    if (!rows.length) {
+      list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun bon "à suivre" trouvé.<br><span style="font-size:11px;">Coche "Intervention à suivre" sur les bons concernés.</span></div>';
+      return;
+    }
+    list.innerHTML = rows.map(function(row) {
+      const ttc = row.totalTTC != null ? parseFloat(row.totalTTC).toFixed(2) + ' €' : '';
+      return '<div onclick="selectionnerBonLie(' + JSON.stringify(JSON.stringify(row)).slice(1,-1) + ')" style="background:var(--surface2);border-radius:10px;padding:12px;cursor:pointer;border:1px solid var(--border);">'
+        + '<div style="font-weight:700;font-size:13px;">' + (row.numero||row.id) + ' — ' + (row.client||'') + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:3px;">' + (row.date||'') + ' · ' + (row.adresse||'') + '</div>'
+        + (ttc ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">' + ttc + ' TTC</div>' : '')
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Erreur de chargement</div>';
+  }
+}
+
+function selectionnerBonLie(rowJson) {
+  document.getElementById('modal-bon-lie').style.display = 'none';
+  var row;
+  try { row = JSON.parse(rowJson); } catch(e) { return; }
+  BON_LIE = {
+    id:         row.id,
+    numero:     row.numero || row.id,
+    date:       row.date || '',
+    heureDebut: row.heureDebut || '',
+    heureFin:   row.heureFin || '',
+    duree:      row.duree || '',
+    lignes:     row.lignes || [],
+    rapport:    row.rapport || '',
+    totalHT:    parseFloat(row.totalHT)||0,
+    totalTTC:   parseFloat(row.totalTTC)||0,
+    tvaRate:    parseFloat(row.tvaRate)||20,
+    client:     row.client || '',
+    adresse:    row.adresse || ''
+  };
+  document.getElementById('bon-lie-card').style.display = 'block';
+  renderBonLie();
+}
+
+function renderBonLie() {
+  const preview = document.getElementById('bon-lie-preview');
+  const btn     = document.getElementById('btn-choisir-bon-lie');
+  if (!BON_LIE) {
+    preview.style.display = 'none';
+    btn.style.display = 'block';
+    return;
+  }
+  btn.style.display = 'none';
+  preview.style.display = 'block';
+  const htPrev = BON_LIE.lignes.reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); }, 0);
+  const lignesHtml = BON_LIE.lignes.slice(0,5).map(function(l){
+    return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 0;">'
+      + '<span>' + (l.nom||'') + (l.qty && l.qty!=1 ? ' ×'+l.qty : '') + '</span>'
+      + '<span>' + ((l.qty||1)*(parseFloat(l.pu)||0)).toFixed(2) + ' €</span></div>';
+  }).join('') + (BON_LIE.lignes.length > 5 ? '<div style="font-size:10px;color:var(--muted);">+ '+(BON_LIE.lignes.length-5)+' ligne(s)…</div>' : '');
+  preview.innerHTML = '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">📋 Bon ' + BON_LIE.numero
+    + ' · ' + BON_LIE.date
+    + (BON_LIE.heureDebut ? ' · ' + BON_LIE.heureDebut + (BON_LIE.heureFin ? '–'+BON_LIE.heureFin : '') : '')
+    + '</div>'
+    + lignesHtml
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">'
+    + '<span>Total intervention préc.</span><span style="color:var(--accent);">' + BON_LIE.totalTTC.toFixed(2) + ' € TTC</span></div>'
+    + '<button type="button" onclick="BON_LIE=null;renderBonLie();document.getElementById(\'btn-choisir-bon-lie\').style.display=\'block\'" style="margin-top:8px;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Changer</button>';
+}
+
+async function _cloturerBonLie(bonId) {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId) + '&select=id,payload', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (!rows || !rows[0]) return;
+    const updated = Object.assign({}, rows[0].payload, { suiviClos: true });
+    await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId), {
+      method: 'PATCH',
+      headers: Object.assign({}, SB_H),
+      body: JSON.stringify({ payload: updated })
+    });
+  } catch(e) {}
+}
+
 function basculerEtatValide() {
   DOC_VALIDE = true;
   // Griser bouton valider
@@ -833,6 +981,7 @@ window.addEventListener('load', async function() {
       return { ref:l.ref||'', nom:l.nom||'', qty:l.qty||1, pu:l.pu||0, unite:l.unite||'U', commander:false };
     });
     PHOTOS = docToRender.photos || [];
+    BON_LIE = docToRender.bonLieData || null;
 
     // ── Mode PDF direct : ?pdf=detail (ou semi/sansprix) ──
     // Ouvre directement le PDF dans le lecteur du navigateur, sans afficher
@@ -1024,6 +1173,8 @@ window.addEventListener('load', async function() {
     if (DOC_TYPE === 'bon') {
       const btnPause = document.getElementById('btn-pause');
       if (btnPause) btnPause.style.display = 'flex';
+      const btnSuite = document.getElementById('btn-suite-intervention');
+      if (btnSuite) btnSuite.style.display = 'flex';
     }
   }
 
@@ -2237,8 +2388,22 @@ async function validerDoc() {
       eventId: DOC_EVENT_ID,
       pdfMode: PDF_MODE,
       createdAt: Date.now(),
-      statut: 'valide'
+      statut: 'valide',
+      suiviRequis: document.getElementById('f-suivi-requis')?.checked || false,
+      bonLieId:   BON_LIE ? BON_LIE.id : null,
+      bonLieData: BON_LIE ? BON_LIE : null
     };
+  }
+
+  // Marquer le bon lié comme clôturé (suite créée)
+  if (BON_LIE && BON_LIE.id && navigator.onLine) {
+    fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(BON_LIE.id), {
+      method: 'PATCH',
+      headers: Object.assign({}, SB_H),
+      body: JSON.stringify({ payload: Object.assign({}, { suiviClos: true }) })
+    }).catch(function(){});
+    // Patch partiel via RPC n'existe pas en PostgREST simple — on récupère + re-sauvegarde
+    _cloturerBonLie(BON_LIE.id);
   }
 
   // Sauvegarder — toujours en IndexedDB + Supabase si online
@@ -3205,10 +3370,84 @@ async function _genererPDFInner(docData) {
   const showPU    = pdfMode === 'detail';
   const showTotal = pdfMode !== 'sansprix';
 
+  // ── INTERVENTION PRÉCÉDENTE (bon lié) ────────────────────
+  const bonLieData = docData && docData.bonLieData;
+  if (bonLieData && bonLieData.lignes && bonLieData.lignes.length) {
+    const bonLieHT  = bonLieData.lignes.reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); }, 0);
+    const bonLieTTC = bonLieData.totalTTC || bonLieHT * (1 + (bonLieData.tvaRate||20)/100);
+
+    if (y + 14 > 277) { doc.addPage(); y = 14; }
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...ORANGE);
+    doc.text('INTERVENTION PRÉCÉDENTE — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||''), M, y + 4);
+    y += 7;
+
+    // Heures intervention précédente
+    if (bonLieData.heureDebut) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...GREY);
+      doc.text('Horaires : ' + bonLieData.heureDebut + (bonLieData.heureFin ? ' – ' + bonLieData.heureFin : '') + (bonLieData.duree ? '  (' + bonLieData.duree + ')' : ''), M, y + 4);
+      y += 6;
+    }
+
+    // En-tête tableau précédent
+    doc.setFillColor(60, 60, 60);
+    doc.rect(M, y, W - 2*M, 7, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Réf.', M + 2, y + 5);
+    doc.text('Désignation', M + 20, y + 5);
+    doc.text('Qté', M + 115, y + 5, { align:'right' });
+    doc.text('Unité', M + 130, y + 5, { align:'right' });
+    if (showPU) doc.text('PU HT', M + 152, y + 5, { align:'right' });
+    if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    bonLieData.lignes.forEach(function(l, ri) {
+      const nomLines2 = doc.splitTextToSize(l.nom||'', 92);
+      const rowH2 = Math.max(8, nomLines2.length * 4 + 3);
+      if (y + rowH2 > 277) { doc.addPage(); y = 14; }
+      if (ri % 2 === 0) { doc.setFillColor(248,248,248); doc.rect(M, y, W-2*M, rowH2, 'F'); }
+      doc.setDrawColor(230,230,230); doc.rect(M, y, W-2*M, rowH2, 'S');
+      doc.setTextColor(...DARK); doc.setFontSize(8);
+      doc.text((l.ref||'').slice(0,12), M+2, y+5);
+      doc.text(nomLines2.slice(0,5), M+20, y+5);
+      const midY2 = y + rowH2/2 + 2;
+      doc.text(String(l.qty), M+115, midY2, { align:'right' });
+      doc.text(l.unite||'U', M+130, midY2, { align:'right' });
+      if (showPU) {
+        doc.text((parseFloat(l.pu)||0).toFixed(2)+' €', M+152, midY2, { align:'right' });
+        doc.setFont('helvetica','bold');
+        doc.text(((l.qty||0)*(parseFloat(l.pu)||0)).toFixed(2)+' €', W-M-2, midY2, { align:'right' });
+        doc.setFont('helvetica','normal');
+      }
+      y += rowH2;
+    });
+
+    // Sous-total intervention précédente
+    if (showTotal) {
+      y += 2;
+      const totW2 = 80; const totX2 = W-M-totW2;
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
+      doc.text('Sous-total interv. préc. HT', totX2-2, y+5, { align:'right' });
+      doc.setTextColor(...DARK); doc.setFont('helvetica','bold');
+      doc.text(bonLieHT.toFixed(2)+' €', W-M-2, y+5, { align:'right' });
+      y += 8;
+    }
+    y += 4;
+    doc.setDrawColor(200,200,200);
+    doc.line(M, y, W-M, y);
+    y += 6;
+  }
+
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...ORANGE);
-  doc.text('DÉTAIL DES PRESTATIONS', M, y + 4);
+  doc.text(bonLieData ? 'INTERVENTION DU ' + (d && d.date ? d.date : '') + ' — DÉTAIL' : 'DÉTAIL DES PRESTATIONS', M, y + 4);
   y += 7;
 
   // En-tête tableau — adapté selon le mode
@@ -3287,22 +3526,39 @@ async function _genererPDFInner(docData) {
     const totW = 80;
     const totX = W - M - totW;
 
+    // Totaux cumulés si bon lié
+    const bonLieTTCVal = bonLieData ? (bonLieData.totalTTC || 0) : 0;
+    const bonLieHTVal  = bonLieData ? (bonLieData.lignes||[]).reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); },0) : 0;
+    const htCumul  = ht + bonLieHTVal;
+    const ttcCumul = ttc + bonLieTTCVal;
+    const tvaCumul = htCumul * tvaRate / 100;
+
+    const boxH = bonLieData ? 30 : 22;
     doc.setFillColor(250, 250, 250);
-    doc.rect(totX, y, totW, 22, 'F');
+    doc.rect(totX, y, totW, boxH, 'F');
     doc.setDrawColor(220, 220, 220);
-    doc.rect(totX, y, totW, 22, 'S');
+    doc.rect(totX, y, totW, boxH, 'S');
 
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...GREY);
-    doc.text('Total HT', totX + 4, y + 7);
-    doc.text('TVA ' + tvaRate + '%', totX + 4, y + 14);
+    if (bonLieData) {
+      doc.text('Interv. préc. HT', totX + 4, y + 7);
+      doc.text('Interv. courante HT', totX + 4, y + 14);
+      doc.text('TVA ' + tvaRate + '%', totX + 4, y + 21);
+      doc.setTextColor(...DARK);
+      doc.text(bonLieHTVal.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+      doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 14, { align:'right' });
+      doc.text(tvaCumul.toFixed(2) + ' €', W - M - 2, y + 21, { align:'right' });
+    } else {
+      doc.text('Total HT', totX + 4, y + 7);
+      doc.text('TVA ' + tvaRate + '%', totX + 4, y + 14);
+      doc.setTextColor(...DARK);
+      doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+      doc.text(tva.toFixed(2) + ' €', W - M - 2, y + 14, { align:'right' });
+    }
 
-    doc.setTextColor(...DARK);
-    doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
-    doc.text(tva.toFixed(2) + ' €', W - M - 2, y + 14, { align:'right' });
-
-    y += 22;
+    y += boxH;
 
     // Total TTC — fond orange/doré
     doc.setFillColor(...ORANGE);
@@ -3311,7 +3567,7 @@ async function _genererPDFInner(docData) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL TTC', totX + 4, y + 7);
-    doc.text(ttc.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+    doc.text((bonLieData ? ttcCumul : ttc).toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
 
     y += 14;
   } else {
