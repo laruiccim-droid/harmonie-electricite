@@ -871,6 +871,18 @@ async function _cloturerBonLie(bonId) {
       headers: Object.assign({}, SB_H),
       body: JSON.stringify({ payload: updated })
     });
+    // Passer le RDV du 1er bon en jaune dans Google Calendar (bouclé par une suite)
+    const prevEventId = rows[0].payload && rows[0].payload.eventId;
+    if (prevEventId) {
+      const tok = localStorage.getItem('gcal_access_token');
+      if (tok) {
+        fetch('https://gcal-harmonie.harmonie-electricite.workers.dev/events/' + prevEventId, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+          body: JSON.stringify({ colorId: '5' })
+        }).catch(function(){});
+      }
+    }
   } catch(e) {}
 }
 
@@ -2649,10 +2661,18 @@ async function mettreAJourRDVGcal(doc) {
 
     if (!accessToken) return;
 
+    // Couleur selon état :
+    // bon normal validé → vert (10), à suivre en attente → orange (6), à suivre bouclé → jaune (5)
+    let gcalColorId;
+    if (!isBon) gcalColorId = '3';
+    else if (doc.suiviRequis && !doc.suiviClos) gcalColorId = '6';
+    else if (doc.suiviRequis && doc.suiviClos)  gcalColorId = '5';
+    else gcalColorId = '10';
+
     // Construire le patch — mise à jour description, couleur ET heures réelles
     const patchData = {
       description: description,
-      colorId: isBon ? '10' : '3'
+      colorId: gcalColorId
     };
 
     // Déplacer le RDV aux vraies heures si on a heure début et fin

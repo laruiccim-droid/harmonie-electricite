@@ -2603,10 +2603,18 @@ async function loadAgenda() {
           : 'Journée entière';
         const past = isPast || (start && new Date(start) < new Date());
         const bonCache = window._bonExistant && window._bonExistant[e.id];
-        const evColor = bonCache ? '10' : ((window._gcalColorCache && window._gcalColorCache[e.id]) || e.colorId);
+        let evColor;
+        if (bonCache) {
+          if (bonCache.suiviRequis && !bonCache.suiviClos) evColor = '6';   // orange : à suivre, pas encore bouclé
+          else if (bonCache.suiviRequis && bonCache.suiviClos) evColor = '5'; // jaune : bouclé par une suite
+          else evColor = '10';                                                 // vert : terminé normal
+        } else {
+          evColor = (window._gcalColorCache && window._gcalColorCache[e.id]) || e.colorId;
+        }
         const gcalColors = {
-          '6': {border:'#f97316', bg:'rgba(249,115,22,0.12)',  badge:'⏸'},  // orange = en pause
-          '10':{border:'#6FA86A', bg:'rgba(111,168,106,0.12)',   badge:'✅'},  // vert = clôturé
+          '5': {border:'#f59e0b', bg:'rgba(245,158,11,0.12)',  badge:'🔄'},  // jaune = à suivre bouclé
+          '6': {border:'#f97316', bg:'rgba(249,115,22,0.12)',  badge:'⏸'},  // orange = à suivre en attente
+          '10':{border:'#6FA86A', bg:'rgba(111,168,106,0.12)', badge:'✅'},  // vert = terminé
           '3': {border:'#a855f7', bg:'rgba(168,85,247,0.12)',  badge:'📄'},  // violet = devis
           '7': {border:'#0ea5e9', bg:'rgba(14,165,233,0.12)',  badge:'🔧'},  // bleu = autre
           '11':{border:'#C2624C', bg:'rgba(194,98,76,0.12)',   badge:'❗'}   // rouge = urgent
@@ -5498,7 +5506,7 @@ function docsOpenDetail(id) {
           headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
           body: JSON.stringify({
             description: description,
-            colorId: d.statut === 'en_cours' ? '6' : (isBon ? '10' : '3') // orange si en pause, vert si validé
+            colorId: d.statut === 'en_cours' ? '6' : (isBon ? (d.suiviRequis && !d.suiviClos ? '6' : d.suiviRequis && d.suiviClos ? '5' : '10') : '3')
           })
         });
 
