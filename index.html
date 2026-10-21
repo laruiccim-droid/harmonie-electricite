@@ -2113,6 +2113,18 @@ let gcalToken = localStorage.getItem('gcal_access_token') || null;
 let gcalRefresh = localStorage.getItem('gcal_refresh_token') || null;
 var gcalSearchQuery = '';
 
+// Token age : persister entre sessions pour éviter le refresh inutile au démarrage
+window._gcalTokenFetchedAt = parseInt(localStorage.getItem('gcal_token_fetched_at') || '0', 10);
+
+// Cache agenda localStorage (synchrone) — clé = "he_agenda_YYYY-Www"
+function _agendaCacheKey(tMin) { return 'he_agenda_' + (tMin || '').slice(0, 10); }
+function _agendaCacheRead(tMin) {
+  try { var d = localStorage.getItem(_agendaCacheKey(tMin)); return d ? JSON.parse(d) : null; } catch(e) { return null; }
+}
+function _agendaCacheWrite(tMin, events) {
+  try { localStorage.setItem(_agendaCacheKey(tMin), JSON.stringify(events)); } catch(e) {}
+}
+
 async function gcalDoSearch() {
   const el = document.getElementById('agendaContent');
   const weekHeader = document.getElementById('gcal-week-header');
@@ -2251,6 +2263,7 @@ async function gcalRefreshToken() {
       gcalToken = d.access_token;
       localStorage.setItem('gcal_access_token', gcalToken);
       window._gcalTokenFetchedAt = Date.now();
+      localStorage.setItem('gcal_token_fetched_at', String(window._gcalTokenFetchedAt));
       return true;
     }
     return false;
@@ -2346,11 +2359,11 @@ async function loadAgenda() {
   const tMin = tMinDate.toISOString();
   const tMax = tMaxDate.toISOString();
 
-  console.log('[Agenda] Chargement semaine:', tMin.slice(0,10), '→', tMax.slice(0,10));
+  // ── Cache-first niveau 1 : localStorage (synchrone, instantané) ──
+  let cachedEvents = _agendaCacheRead(tMin) || [];
 
-  // ── Cache-first : lire IndexedDB avant de toucher le réseau ──
-  let cachedEvents = [];
-  if (typeof HE !== 'undefined') {
+  // ── Cache-first niveau 2 : IndexedDB si localStorage vide ──
+  if (!cachedEvents.length && typeof HE !== 'undefined') {
     try {
       const all = await HE.getAll('agenda');
       if (all && all.length) {
@@ -2358,6 +2371,8 @@ async function loadAgenda() {
           const start = ev.start && (ev.start.dateTime || ev.start.date);
           return start >= tMin && start < tMax;
         });
+        // Remettre en localStorage pour la prochaine fois
+        if (cachedEvents.length) _agendaCacheWrite(tMin, cachedEvents);
       }
     } catch(err) {}
   }
@@ -2370,7 +2385,6 @@ async function loadAgenda() {
     if (cachedEvents.length) {
       events = cachedEvents;
       isOfflineData = true;
-      console.log('[Offline] Agenda from IndexedDB:', events.length, 'events');
     } else {
       el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
       authBar && (authBar.style.display = 'block');
@@ -2381,7 +2395,6 @@ async function loadAgenda() {
   } else if (cachedEvents.length) {
     // En ligne avec cache : afficher le cache MAINTENANT, réseau en arrière-plan
     events = cachedEvents;
-    console.log('[Agenda] Cache immédiat:', events.length, 'events — réseau en arrière-plan');
 
     // Mise à jour silencieuse depuis le réseau (sans bloquer l'affichage)
     gcalFetch(`/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime`)
@@ -2389,13 +2402,14 @@ async function loadAgenda() {
         if (!r || !r.ok) return;
         const data = await r.json();
         const freshEvents = data.items || [];
+        // Mettre à jour les deux caches
+        _agendaCacheWrite(tMin, freshEvents);
         if (typeof HE !== 'undefined' && freshEvents.length) {
           await HE.putMany('agenda', freshEvents);
           await HE.meta('agenda_synced', Date.now());
         }
-        // Re-rendre seulement si le nombre de RDV a changé (nouveau RDV ou annulation)
+        // Re-rendre seulement si le contenu a changé
         if (freshEvents.length !== cachedEvents.length) {
-          console.log('[Agenda] Mise à jour réseau:', freshEvents.length, 'events');
           loadAgenda();
         }
       }).catch(function() {});
@@ -2412,11 +2426,13 @@ async function loadAgenda() {
     }
     const data = await r.json();
     events = data.items || [];
-    if (typeof HE !== 'undefined' && events.length) {
-      try {
-        await HE.putMany('agenda', events);
-        await HE.meta('agenda_synced', Date.now());
-      } catch(err) {}
+    // Mettre en cache localStorage + IndexedDB pour la prochaine fois
+    if (events.length) {
+      _agendaCacheWrite(tMin, events);
+      if (typeof HE !== 'undefined') {
+        HE.putMany('agenda', events).catch(function(){});
+        HE.meta('agenda_synced', Date.now()).catch(function(){});
+      }
     }
   }
 
