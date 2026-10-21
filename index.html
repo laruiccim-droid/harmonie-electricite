@@ -4284,7 +4284,7 @@ async function devisLoad() {
         return;
       }
     }
-    const r = await fetch(SUPA_DEVIS + '?select=id,payload&order=id.desc', { headers: SB_HEADERS });
+    const r = await fetch(SUPA_DEVIS + '?select=id,payload&order=id.desc&limit=300', { headers: SB_HEADERS });
     if (!r.ok) return;
     const rows = await r.json();
     DEVIS_LIST = rows.map(r => ({ id: r.id, ...r.payload }));
