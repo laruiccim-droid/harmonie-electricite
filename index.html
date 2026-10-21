@@ -2326,16 +2326,20 @@ async function loadAgenda() {
   }
 
   if (!gcalToken) {
-    // Essayer de rafraîchir depuis Supabase
     if (gcalRefresh) {
-      const ok = await gcalRefreshToken();
-      if (!ok) {
-        authBar && (authBar.style.display = 'block');
-        el.innerHTML = '<div class="empty-state">Connecte ton Google Agenda<br>pour voir tes RDV ici.</div>';
-        clearTimeout(window._agendaLockTimer);
-        window._agendaLoading = false;
-        return;
+      if (navigator.onLine) {
+        // En ligne : rafraîchir le token
+        const ok = await gcalRefreshToken();
+        if (!ok) {
+          authBar && (authBar.style.display = 'block');
+          el.innerHTML = '<div class="empty-state">Connecte ton Google Agenda<br>pour voir tes RDV ici.</div>';
+          clearTimeout(window._agendaLockTimer);
+          window._agendaLoading = false;
+          return;
+        }
       }
+      // Hors ligne sans token : continuer quand même vers le cache
+      // (le cache ne nécessite pas de token valide pour s'afficher)
     } else {
       authBar && (authBar.style.display = 'block');
       el.innerHTML = '<div class="empty-state">Connecte ton Google Agenda<br>pour voir tes RDV ici.</div>';
