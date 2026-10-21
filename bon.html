@@ -732,18 +732,34 @@ async function ouvrirPickerBonLie() {
   modal.style.display = 'block';
   list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Chargement…</div>';
   try {
-    const fields = 'id,numero:payload->>numero,client:payload->>client,date:payload->>date,adresse:payload->>adresse,heureDebut:payload->>heureDebut,heureFin:payload->>heureFin,duree:payload->>duree,lignes:payload->lignes,rapport:payload->>rapport,totalHT:payload->totalHT,totalTTC:payload->totalTTC,tvaRate:payload->tvaRate,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos';
-    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=' + fields + '&payload->>suiviRequis=eq.true&payload->>type=eq.bon&order=id.desc&limit=100', {
+    // Récupérer les 200 derniers bons et filtrer côté client
+    const r = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&order=id.desc&limit=200', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
     const allRows = r.ok ? await r.json() : [];
-    // Exclure les bons déjà clôturés (suiviClos peut être absent/null sur les anciens bons)
-    // Garder uniquement ceux où suiviRequis est bien true ET suiviClos absent/false
-    const rows = allRows.filter(function(row) {
-      const requis = row.suiviRequis === 'true' || row.suiviRequis === true;
-      const clos   = row.suiviClos === 'true' || row.suiviClos === true;
-      return requis && !clos;
-    });
+    const rows = allRows
+      .filter(function(row) {
+        const p = row.payload || {};
+        return p.type === 'bon' && p.suiviRequis === true && !p.suiviClos;
+      })
+      .map(function(row) {
+        const p = row.payload || {};
+        return {
+          id:         row.id,
+          numero:     p.numero || row.id,
+          client:     p.client || '',
+          date:       p.date || '',
+          adresse:    p.adresse || '',
+          heureDebut: p.heureDebut || '',
+          heureFin:   p.heureFin || '',
+          duree:      p.duree || '',
+          lignes:     p.lignes || [],
+          rapport:    p.rapport || '',
+          totalHT:    p.totalHT || 0,
+          totalTTC:   p.totalTTC || 0,
+          tvaRate:    p.tvaRate || 20
+        };
+      });
     if (!rows.length) {
       list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun bon "à suivre" trouvé.<br><span style="font-size:11px;">Coche "Intervention à suivre" sur les bons concernés.</span></div>';
       return;
@@ -774,9 +790,9 @@ function selectionnerBonLie(rowJson) {
     duree:      row.duree || '',
     lignes:     row.lignes || [],
     rapport:    row.rapport || '',
-    totalHT:    parseFloat(row.totalHT)||0,
-    totalTTC:   parseFloat(row.totalTTC)||0,
-    tvaRate:    parseFloat(row.tvaRate)||20,
+    totalHT:    parseFloat(row.totalHT) || 0,
+    totalTTC:   parseFloat(row.totalTTC) || 0,
+    tvaRate:    parseFloat(row.tvaRate) || 20,
     client:     row.client || '',
     adresse:    row.adresse || ''
   };
