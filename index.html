@@ -4293,7 +4293,7 @@ async function devisLoad() {
       }
     }
     // Sélectionner uniquement les champs nécessaires à la liste (exclut les signatures base64 ~50KB chacune)
-    const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos';
+    const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos,bonLieId:payload->>bonLieId';
     const r = await fetch(SUPA_DEVIS + '?select=' + fields + '&order=id.desc&limit=300', { headers: SB_HEADERS });
     if (!r.ok) return;
     const rows = await r.json();
@@ -4312,7 +4312,8 @@ async function devisLoad() {
         lignes: r.lignes || [],
         eventId: r.eventId,
         suiviRequis: r.suiviRequis === 'true' || r.suiviRequis === true,
-        suiviClos: r.suiviClos === 'true' || r.suiviClos === true
+        suiviClos: r.suiviClos === 'true' || r.suiviClos === true,
+        bonLieId: r.bonLieId || null
       };
     });
   } catch(e) {}
@@ -5048,11 +5049,11 @@ async function renderDocsList() {
       const prevLen = DEVIS_LIST.length;
       const prevIds = DEVIS_LIST.map(function(d){ return d.id; }).join(',');
       try {
-        const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos';
+        const fields = 'id,numero:payload->>numero,statut:payload->>statut,type:payload->>type,client:payload->>client,date:payload->>date,adresse:payload->>adresse,totalTTC:payload->totalTTC,motif:payload->>motif,createdAt:payload->createdAt,lignes:payload->lignes,eventId:payload->>eventId,suiviRequis:payload->>suiviRequis,suiviClos:payload->>suiviClos,bonLieId:payload->>bonLieId';
         const r = await fetch(SUPA_DEVIS + '?select=' + fields + '&order=id.desc&limit=300', { headers: SB_HEADERS });
         if (!r.ok) return;
         const rows = await r.json();
-        const fresh = rows.map(function(r){ return { id: r.id, numero: r.numero, statut: r.statut, type: r.type, client: r.client, date: r.date, adresse: r.adresse, totalTTC: r.totalTTC!=null?parseFloat(r.totalTTC):null, motif: r.motif, createdAt: r.createdAt!=null?parseInt(r.createdAt):0, lignes: r.lignes||[], eventId: r.eventId, suiviRequis: r.suiviRequis==='true'||r.suiviRequis===true, suiviClos: r.suiviClos==='true'||r.suiviClos===true }; });
+        const fresh = rows.map(function(r){ return { id: r.id, numero: r.numero, statut: r.statut, type: r.type, client: r.client, date: r.date, adresse: r.adresse, totalTTC: r.totalTTC!=null?parseFloat(r.totalTTC):null, motif: r.motif, createdAt: r.createdAt!=null?parseInt(r.createdAt):0, lignes: r.lignes||[], eventId: r.eventId, suiviRequis: r.suiviRequis==='true'||r.suiviRequis===true, suiviClos: r.suiviClos==='true'||r.suiviClos===true, bonLieId: r.bonLieId||null }; });
         const freshIds = fresh.map(function(d){ return d.id; }).join(',');
         if (freshIds !== prevIds || fresh.length !== prevLen) {
           DEVIS_LIST = fresh;
@@ -5558,8 +5559,22 @@ function docsOpenDetail(id) {
   document.body.appendChild(overlay);
 }
 
-function genererPDFDepuisDoc(d, pdfMode) {
-  // Ouvrir bon.html avec le doc complet et le mode PDF choisi
+async function _chargerPayloadComplet(d) {
+  // Si bonLieData absent mais bonLieId présent → recharger le payload complet
+  if (d.bonLieId && !d.bonLieData && d.id) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(d.id) + '&select=id,payload', { headers: SB_HEADERS });
+      if (r.ok) {
+        const rows = await r.json();
+        if (rows && rows[0] && rows[0].payload) return Object.assign({}, rows[0].payload, { id: rows[0].id });
+      }
+    } catch(e) {}
+  }
+  return d;
+}
+
+async function genererPDFDepuisDoc(d, pdfMode) {
+  d = await _chargerPayloadComplet(d);
   const data = {
     type: d.type || (d.numero && d.numero.startsWith('BI') ? 'bon' : 'devis'),
     clientNom: d.client||'', clientTel: d.tel||'', clientEmail: d.email||'',
@@ -5567,16 +5582,18 @@ function genererPDFDepuisDoc(d, pdfMode) {
     date: d.date||'', heureDebut: d.heureDebut||'', heureFin: d.heureFin||'',
     duree: d.duree||'', dureeMin: 0, description: d.motif||'',
     lignes: d.lignes || [],
-    pdfModeAuto: pdfMode  // déclencher PDF automatiquement avec ce mode
+    bonLieId:   d.bonLieId   || null,
+    bonLieData: d.bonLieData || null,
+    pdfModeAuto: pdfMode
   };
   sessionStorage.setItem('he_bon_data', JSON.stringify(data));
   sessionStorage.setItem('he_bon_existing', JSON.stringify(d));
-  sessionStorage.setItem('he_bon_pdf_auto', pdfMode); // mode auto
+  sessionStorage.setItem('he_bon_pdf_auto', pdfMode);
   window.open('https://laruiccim-droid.github.io/harmonie-electricite/bon.html', '_blank');
 }
 
-function ouvrirPDFDoc(d, withEmail) {
-  // S'assurer que l'id est bien dans bonExistant
+async function ouvrirPDFDoc(d, withEmail) {
+  d = await _chargerPayloadComplet(d);
   const bonAvecId = Object.assign({}, d, { id: d.id || d.numero });
   const data = {
     type: d.type || (d.numero && d.numero.startsWith('BI') ? 'bon' : 'devis'),
@@ -5592,6 +5609,8 @@ function ouvrirPDFDoc(d, withEmail) {
     lignes: d.lignes || [],
     tvaRate: d.tvaRate || 20,
     eventId: d.eventId || '',
+    bonLieId:   d.bonLieId   || null,
+    bonLieData: d.bonLieData || null,
     withEmail: withEmail || false
   };
   sessionStorage.setItem('he_bon_data', JSON.stringify(data));
