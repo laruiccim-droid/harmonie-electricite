@@ -2390,7 +2390,9 @@ async function loadAgenda() {
       events = cachedEvents;
       isOfflineData = true;
     } else {
-      el.innerHTML = '<div class="empty-state">📵 Pas de réseau<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine</span></div>';
+      var lastPreload = localStorage.getItem('he_agenda_preloaded');
+      var lastPreloadStr = lastPreload ? ' · chargé le ' + new Date(parseInt(lastPreload)).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+      el.innerHTML = '<div class="empty-state">📵 Hors ligne<br><span style="font-size:12px;color:var(--muted);">Aucun RDV en cache pour cette semaine' + lastPreloadStr + '</span></div>';
       authBar && (authBar.style.display = 'block');
       clearTimeout(window._agendaLockTimer);
       window._agendaLoading = false;
@@ -6947,6 +6949,45 @@ async function heInitAuth() {
 var appVersionLabelEl = document.getElementById('app-version-label');
 if (appVersionLabelEl) appVersionLabelEl.textContent = window.APP_BUILD || '';
 
+// Pré-chargement silencieux de l'agenda (semaine courante + S+1 + S-1)
+// Permet la consultation hors-ligne même sans ouvrir l'onglet agenda
+async function preloadAgendaCache() {
+  if (!navigator.onLine || !gcalToken) return;
+  try {
+    const tokenAge = Date.now() - (window._gcalTokenFetchedAt || 0);
+    if (tokenAge > 55 * 60 * 1000) {
+      const ok = await gcalRefreshToken();
+      if (!ok) return;
+    }
+    // Pré-charger S-1, semaine en cours et S+1
+    const monday = getMonday(new Date());
+    const weeks = [-7, 0, 7].map(function(offset) {
+      return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+    });
+    for (var i = 0; i < weeks.length; i++) {
+      var wStart = weeks[i];
+      var tMinD = new Date(wStart.getFullYear(), wStart.getMonth(), wStart.getDate());
+      var tMaxD = new Date(wStart.getFullYear(), wStart.getMonth(), wStart.getDate() + 7);
+      tMinD.setHours(0,0,0,0); tMaxD.setHours(23,59,59,999);
+      var tMin = tMinD.toISOString();
+      var tMax = tMaxD.toISOString();
+      try {
+        var r = await gcalFetch('/events?timeMin=' + encodeURIComponent(tMin) + '&timeMax=' + encodeURIComponent(tMax) + '&singleEvents=true&orderBy=startTime');
+        if (r && r.ok) {
+          var data = await r.json();
+          var evts = data.items || [];
+          _agendaCacheWrite(tMin, evts);
+          if (typeof HE !== 'undefined' && evts.length) {
+            HE.putMany('agenda', evts).catch(function(){});
+          }
+        }
+      } catch(e) {}
+    }
+    localStorage.setItem('he_agenda_preloaded', String(Date.now()));
+    console.log('[Agenda] Pré-chargement hors-ligne terminé (3 semaines)');
+  } catch(e) {}
+}
+
 // Démarrage : auth d'abord, puis sync
 heInitAuth().then(function() {
   initSync();
@@ -6955,6 +6996,9 @@ heInitAuth().then(function() {
   setTimeout(loadPrefs, 500);
   // Vérifier les rappels maintenance au démarrage
   setTimeout(verifierRappelsMaintenance, 8000);
+  // Pré-charger l'agenda en arrière-plan pour usage hors-ligne
+  // (décalé de 5s pour ne pas concurrencer initSync)
+  setTimeout(preloadAgendaCache, 5000);
 });
 
 // ── Préférences ───────────────────────────────────────────
