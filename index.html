@@ -7059,6 +7059,14 @@ heInitAuth().then(function() {
   // Pré-charger l'agenda en arrière-plan pour usage hors-ligne
   // (décalé de 5s pour ne pas concurrencer initSync)
   setTimeout(preloadAgendaCache, 5000);
+  // Charger l'agenda au démarrage si l'onglet est actif par défaut
+  // (évite l'écran vide quand l'app s'ouvre directement sur l'agenda)
+  setTimeout(function() {
+    const agendaTab = document.getElementById('tab-agenda');
+    if (agendaTab && agendaTab.classList.contains('active')) {
+      loadAgenda();
+    }
+  }, 200);
 });
 
 // ── Préférences ───────────────────────────────────────────
