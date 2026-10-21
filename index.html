@@ -5010,11 +5010,31 @@ async function renderDocsList() {
   const el = document.getElementById('docsList');
   const countEl = document.getElementById('docsCount');
   if (!el) return;
-  // Toujours recharger depuis Supabase pour avoir les derniers docs
-  await devisLoad();
 
-  // Charger depuis Supabase si pas en mémoire
-  if (!DEVIS_LIST || !DEVIS_LIST.length) await devisLoad();
+  // ── Cache-first : afficher immédiatement si données en mémoire ──
+  if (!DEVIS_LIST || !DEVIS_LIST.length) {
+    // Rien en mémoire — charger depuis IndexedDB ou réseau (bloquant une seule fois)
+    await devisLoad();
+  } else if (navigator.onLine) {
+    // Données en mémoire + réseau disponible : afficher maintenant, rafraîchir en arrière-plan
+    setTimeout(async function() {
+      const prevLen = DEVIS_LIST.length;
+      const prevIds = DEVIS_LIST.map(function(d){ return d.id; }).join(',');
+      try {
+        const r = await fetch(SUPA_DEVIS + '?select=id,payload&order=id.desc&limit=200', { headers: SB_HEADERS });
+        if (!r.ok) return;
+        const rows = await r.json();
+        const fresh = rows.map(function(r){ return { id: r.id, ...r.payload }; });
+        const freshIds = fresh.map(function(d){ return d.id; }).join(',');
+        if (freshIds !== prevIds || fresh.length !== prevLen) {
+          DEVIS_LIST = fresh;
+          // Mettre à jour IndexedDB en arrière-plan
+          if (typeof HE !== 'undefined') HE.putMany('devis', rows).catch(function(){});
+          renderDocsList();
+        }
+      } catch(e) {}
+    }, 0);
+  }
 
   const q = docsSearch.trim().toLowerCase();
   let list = DEVIS_LIST.filter(d => {
@@ -7056,6 +7076,10 @@ heInitAuth().then(function() {
   setTimeout(loadPrefs, 500);
   // Vérifier les rappels maintenance au démarrage
   setTimeout(verifierRappelsMaintenance, 8000);
+  // Pré-charger les docs en mémoire au démarrage (évite le délai réseau sur l'onglet Docs)
+  setTimeout(async function() {
+    if (!DEVIS_LIST || !DEVIS_LIST.length) await devisLoad();
+  }, 1000);
   // Pré-charger l'agenda en arrière-plan pour usage hors-ligne
   // (décalé de 5s pour ne pas concurrencer initSync)
   setTimeout(preloadAgendaCache, 5000);
