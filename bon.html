@@ -764,15 +764,27 @@ async function ouvrirPickerBonLie() {
       list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun bon "à suivre" trouvé.<br><span style="font-size:11px;">Coche "Intervention à suivre" sur les bons concernés.</span></div>';
       return;
     }
-    window._bonLieRows = rows; // stockage pour éviter JSON dans attribut HTML
+    window._bonLieRows = rows;
     list.innerHTML = rows.map(function(row, i) {
       const ttc = row.totalTTC != null ? parseFloat(row.totalTTC).toFixed(2) + ' €' : '';
-      return '<div onclick="selectionnerBonLieIdx(' + i + ')" style="background:var(--surface2);border-radius:10px;padding:12px;cursor:pointer;border:1px solid var(--border);">'
-        + '<div style="font-weight:700;font-size:13px;">' + (row.numero||row.id) + ' — ' + (row.client||'') + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:3px;">' + (row.date||'') + ' · ' + (row.adresse||'') + '</div>'
-        + (ttc ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">' + ttc + ' TTC</div>' : '')
+      return '<div data-bon-idx="' + i + '" style="background:var(--surface2);border-radius:10px;padding:12px;cursor:pointer;border:1px solid var(--border);">'
+        + '<div style="font-weight:700;font-size:13px;pointer-events:none;">' + (row.numero||row.id) + ' — ' + (row.client||'') + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:3px;pointer-events:none;">' + (row.date||'') + ' · ' + (row.adresse||'') + '</div>'
+        + (ttc ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;pointer-events:none;">' + ttc + ' TTC</div>' : '')
         + '</div>';
     }).join('');
+    // Event listener sur le conteneur (évite les problèmes d'onclick inline)
+    list.onclick = function(e) {
+      var el = e.target.closest('[data-bon-idx]');
+      if (!el) return;
+      var idx = parseInt(el.getAttribute('data-bon-idx'));
+      var row = window._bonLieRows && window._bonLieRows[idx];
+      if (!row) return;
+      document.getElementById('modal-bon-lie').style.display = 'none';
+      BON_LIE = row;
+      document.getElementById('bon-lie-card').style.display = 'block';
+      renderBonLie();
+    };
   } catch(e) {
     list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Erreur de chargement</div>';
   }
