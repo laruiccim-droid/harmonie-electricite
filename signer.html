@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Signature électronique — Harmonie Électricité</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;min-height:100vh;display:flex;flex-direction:column;}
+  :root{--gold:#b9943e;--dark:#111;--grey:#666;--border:#e0e0e0;}
+
+  .header{background:#fff;border-bottom:3px solid var(--gold);padding:14px 16px;display:flex;align-items:center;gap:12px;}
+  .header img{height:36px;}
+  .header-text h1{font-size:15px;font-weight:700;color:var(--dark);}
+  .header-text p{font-size:11px;color:var(--grey);}
+
+  .main{flex:1;padding:16px;max-width:600px;margin:0 auto;width:100%;}
+
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+  .card h2{font-size:14px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+  .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .row:last-child{border-bottom:none;}
+  .row .label{color:var(--grey);}
+  .row .val{font-weight:600;color:var(--dark);text-align:right;}
+
+  .sig-section{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+  .sig-section h2{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:6px;}
+  .sig-section p{font-size:12px;color:var(--grey);margin-bottom:12px;}
+
+  .sig-canvas-wrap{position:relative;border:2px dashed var(--border);border-radius:10px;background:#fafafa;overflow:hidden;}
+  .sig-canvas-wrap canvas{display:block;width:100%;touch-action:none;}
+  .sig-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.35;}
+  .sig-placeholder span{font-size:13px;color:var(--grey);}
+
+  .btn-row{display:flex;gap:8px;margin-top:10px;}
+  .btn{padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;flex:1;transition:opacity .15s;}
+  .btn:active{opacity:.8;}
+  .btn-primary{background:var(--gold);color:#fff;}
+  .btn-secondary{background:#f0f0f0;color:#555;}
+
+  .notice{font-size:11px;color:var(--grey);text-align:center;margin-top:8px;line-height:1.5;}
+
+  #msg-success{display:none;text-align:center;padding:32px 20px;}
+  #msg-success .icon{font-size:56px;margin-bottom:12px;}
+  #msg-success h2{font-size:20px;font-weight:800;color:#16a34a;margin-bottom:6px;}
+  #msg-success p{font-size:14px;color:var(--grey);}
+
+  #msg-error{display:none;text-align:center;padding:32px 20px;}
+  #msg-error .icon{font-size:48px;margin-bottom:12px;}
+  #msg-error p{font-size:14px;color:#ef4444;}
+
+  #loading{text-align:center;padding:48px 20px;color:var(--grey);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-text">
+    <h1>Harmonie Électricité</h1>
+    <p>Signature électronique du bon d'intervention</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div id="loading">⏳ Chargement du bon…</div>
+
+  <div id="content" style="display:none;">
+    <div class="card">
+      <h2>Récapitulatif</h2>
+      <div class="row"><span class="label">N° bon</span><span class="val" id="info-num">—</span></div>
+      <div class="row"><span class="label">Client</span><span class="val" id="info-client">—</span></div>
+      <div class="row"><span class="label">Date</span><span class="val" id="info-date">—</span></div>
+      <div class="row"><span class="label">Adresse</span><span class="val" id="info-adresse">—</span></div>
+      <div class="row"><span class="label">Objet</span><span class="val" id="info-motif">—</span></div>
+    </div>
+
+    <div class="sig-section">
+      <h2>✍️ Votre signature</h2>
+      <p>Signez ci-dessous avec votre doigt pour valider le bon d'intervention.</p>
+      <div class="sig-canvas-wrap">
+        <canvas id="sig-canvas" height="200"></canvas>
+        <div class="sig-placeholder" id="sig-placeholder"><span>Signez ici avec votre doigt</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="effacer()">🗑 Effacer</button>
+        <button class="btn btn-primary" onclick="valider()">✅ Valider et signer</button>
+      </div>
+      <p class="notice">En signant, vous certifiez avoir pris connaissance et accepté le bon d'intervention N°<span id="notice-num">—</span>.<br>Date et heure : <span id="notice-date">—</span></p>
+    </div>
+  </div>
+
+  <div id="msg-success">
+    <div class="icon">✅</div>
+    <h2>Signature enregistrée</h2>
+    <p>Merci ! Votre signature a bien été transmise à<br><strong>Harmonie Électricité</strong>.</p>
+  </div>
+
+  <div id="msg-error">
+    <div class="icon">⚠️</div>
+    <p id="msg-error-text">Ce lien de signature est invalide ou a expiré.</p>
+  </div>
+
+</div>
+
+<script>
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+
+var token = new URLSearchParams(window.location.search).get('token');
+var bonData = null;
+var bonId = null;
+var ctx = null;
+var drawing = false;
+var hasSigned = false;
+
+async function init() {
+  if (!token) { showError('Lien de signature manquant.'); return; }
+
+  // Chercher le bon par sigToken dans Supabase
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&limit=200', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) { showError('Impossible de charger le bon.'); return; }
+    var rows = await r.json();
+    var found = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].payload && rows[i].payload.sigToken === token) { found = rows[i]; break; }
+    }
+    if (!found) { showError('Ce lien de signature est invalide ou a expiré.'); return; }
+    bonId = found.id;
+    bonData = found.payload;
+
+    // Vérifier si déjà signé
+    if (bonData.sigClientData && bonData.sigClientData.length > 100) {
+      showSuccess(); return;
+    }
+
+    // Afficher les infos
+    document.getElementById('info-num').textContent = bonData.numero || bonId;
+    document.getElementById('info-client').textContent = bonData.client || '—';
+    document.getElementById('info-date').textContent = bonData.date ? new Date(bonData.date).toLocaleDateString('fr-FR') : '—';
+    document.getElementById('info-adresse').textContent = bonData.adresse || '—';
+    document.getElementById('info-motif').textContent = bonData.motif || '—';
+    document.getElementById('notice-num').textContent = bonData.numero || bonId;
+    document.getElementById('notice-date').textContent = new Date().toLocaleString('fr-FR');
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    initCanvas();
+  } catch(e) {
+    showError('Erreur réseau. Vérifiez votre connexion.');
+  }
+}
+
+function initCanvas() {
+  var canvas = document.getElementById('sig-canvas');
+  canvas.width = canvas.parentElement.clientWidth;
+
+  ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  var lastX = 0, lastY = 0;
+
+  function getPos(ev) {
+    var rect = canvas.getBoundingClientRect();
+    var src = ev.touches ? ev.touches[0] : ev;
+    return {
+      x: (src.clientX - rect.left) * (canvas.width / rect.width),
+      y: (src.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+  function start(ev) { ev.preventDefault(); drawing=true; hasSigned=true; var p=getPos(ev); lastX=p.x; lastY=p.y; ctx.beginPath(); ctx.moveTo(p.x,p.y); document.getElementById('sig-placeholder').style.display='none'; }
+  function move(ev) { if(!drawing)return; ev.preventDefault(); var p=getPos(ev); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; }
+  function end() { drawing=false; }
+
+  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',end); canvas.addEventListener('mouseleave',end);
+  canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',end);
+}
+
+function effacer() {
+  var canvas = document.getElementById('sig-canvas');
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  hasSigned = false;
+  document.getElementById('sig-placeholder').style.display='flex';
+}
+
+async function valider() {
+  if (!hasSigned) { alert('Veuillez signer avant de valider.'); return; }
+
+  var canvas = document.getElementById('sig-canvas');
+  var sigData = canvas.toDataURL('image/png');
+
+  var btn = document.querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = '⏳ Envoi…';
+
+  try {
+    // Sauvegarder la signature dans le bon
+    var payload = Object.assign({}, bonData, {
+      sigClientData: sigData,
+      sigClientDate: Date.now(),
+      sigClientOk: true
+    });
+    // Supprimer le token pour invalider le lien
+    delete payload.sigToken;
+
+    var r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId), {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ payload: payload })
+    });
+
+    if (r.ok || r.status === 204) {
+      showSuccess();
+    } else {
+      btn.disabled=false; btn.textContent='✅ Valider et signer';
+      alert('Erreur lors de l\'enregistrement. Réessayez.');
+    }
+  } catch(e) {
+    btn.disabled=false; btn.textContent='✅ Valider et signer';
+    alert('Erreur réseau. Vérifiez votre connexion.');
+  }
+}
+
+function showSuccess() {
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='none';
+  document.getElementById('msg-success').style.display='block';
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display='none';
+  document.getElementById('msg-error-text').textContent = msg;
+  document.getElementById('msg-error').style.display='block';
+}
+
+init();
+</script>
+</body>
+</html>

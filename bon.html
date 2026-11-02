@@ -296,6 +296,20 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
 <h2>Signatures</h2>
 <div class="card">
   <label>Signature du client</label>
+  <!-- Boutons signature client -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+    <button class="btn btn-secondary" style="flex:1;min-width:140px;font-size:13px;" onclick="ouvrirSignaturePleinEcran()">✍️ Signer sur téléphone</button>
+    <button class="btn btn-secondary" style="flex:1;min-width:140px;font-size:13px;" id="btn-sig-distance" onclick="genererLienSignature()">🔗 Signature à distance</button>
+  </div>
+  <!-- Statut signature distante -->
+  <div id="sig-distance-status" style="display:none;margin-bottom:8px;padding:10px 12px;border-radius:10px;font-size:13px;background:rgba(185,148,62,0.1);border:1px solid rgba(185,148,62,0.3);">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span id="sig-distance-msg">⏳ En attente de signature…</span>
+      <button onclick="verifierSignatureDistante()" style="background:none;border:none;color:var(--gold,#b9943e);font-size:12px;cursor:pointer;padding:2px 6px;border:1px solid var(--gold,#b9943e);border-radius:6px;">🔄 Actualiser</button>
+      <button onclick="copierLienSignature()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:2px 6px;border:1px solid var(--border);border-radius:6px;">📋 Copier lien</button>
+    </div>
+    <div id="sig-distance-qr" style="margin-top:10px;text-align:center;"></div>
+  </div>
   <div class="sig-wrap">
     <canvas id="sig-client" width="440" height="140"></canvas>
     <button class="sig-clear" onclick="clearSig('sig-client')">Effacer</button>
@@ -304,6 +318,24 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
   <div class="sig-wrap">
     <canvas id="sig-intervenant" width="440" height="140"></canvas>
     <button class="sig-clear" onclick="clearSig('sig-intervenant')">Effacer</button>
+  </div>
+</div>
+
+<!-- OVERLAY SIGNATURE PLEIN ÉCRAN -->
+<div id="sig-fullscreen-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#fff;flex-direction:column;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:2px solid #b9943e;">
+    <div>
+      <div style="font-weight:700;font-size:16px;color:#111;">Signature du client</div>
+      <div style="font-size:12px;color:#888;" id="sig-fs-nom">Signez dans le cadre ci-dessous</div>
+    </div>
+    <button onclick="fermerSignaturePleinEcran()" style="background:none;border:none;font-size:26px;color:#888;cursor:pointer;line-height:1;">×</button>
+  </div>
+  <div style="flex:1;position:relative;background:#f9f9f9;display:flex;align-items:center;justify-content:center;">
+    <canvas id="sig-fullscreen-canvas" style="touch-action:none;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);max-width:calc(100vw - 32px);max-height:calc(100vh - 160px);"></canvas>
+  </div>
+  <div style="display:flex;gap:10px;padding:14px 16px;border-top:1px solid #eee;">
+    <button onclick="effacerSignaturePleinEcran()" style="flex:1;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#666;font-size:14px;cursor:pointer;">🗑 Effacer</button>
+    <button onclick="validerSignaturePleinEcran()" style="flex:2;padding:12px;border:none;border-radius:10px;background:#b9943e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">✅ Valider la signature</button>
   </div>
 </div>
 
@@ -1196,6 +1228,7 @@ window.addEventListener('load', async function() {
     window._bonMode    = 'edition'; // ← stocker globalement
     window._bonExistantId = data.bonExistantId;
     window._bonExistant   = data.bonExistant;
+    window._currentBonId  = data.bonExistantId;
     DOC_NUM = data.bonExistant.numero || data.bonExistantId;
     document.getElementById('f-num').value = DOC_NUM;
     const elNum = document.getElementById('doc-num'); if (elNum) elNum.textContent = DOC_NUM;
@@ -2203,6 +2236,190 @@ function sigIsEmpty(id) {
 }
 
 // ============================================================
+//  SIGNATURE PLEIN ÉCRAN & DISTANCE
+// ============================================================
+var _sigFSCtx = null, _sigFSDrawing = false, _sigFSLastX = 0, _sigFSLastY = 0;
+
+function ouvrirSignaturePleinEcran() {
+  var overlay = document.getElementById('sig-fullscreen-overlay');
+  var canvas = document.getElementById('sig-fullscreen-canvas');
+  // Nom client pour titre
+  var client = document.getElementById('f-client') ? document.getElementById('f-client').value.trim() : '';
+  var nomEl = document.getElementById('sig-fs-nom');
+  if (nomEl && client) nomEl.textContent = client;
+
+  // Dimensionner le canvas
+  var maxW = Math.min(window.innerWidth - 32, 600);
+  var maxH = Math.max(window.innerHeight - 160, 200);
+  canvas.width = maxW;
+  canvas.height = Math.min(maxH, 300);
+
+  _sigFSCtx = canvas.getContext('2d');
+  _sigFSCtx.fillStyle = '#ffffff';
+  _sigFSCtx.fillRect(0, 0, canvas.width, canvas.height);
+  _sigFSCtx.strokeStyle = '#111';
+  _sigFSCtx.lineWidth = 2.5;
+  _sigFSCtx.lineCap = 'round';
+  _sigFSCtx.lineJoin = 'round';
+
+  function getPos(ev) {
+    var rect = canvas.getBoundingClientRect();
+    var src = ev.touches ? ev.touches[0] : ev;
+    return { x: (src.clientX - rect.left) * (canvas.width / rect.width), y: (src.clientY - rect.top) * (canvas.height / rect.height) };
+  }
+  function start(ev) { ev.preventDefault(); _sigFSDrawing=true; var p=getPos(ev); _sigFSLastX=p.x; _sigFSLastY=p.y; _sigFSCtx.beginPath(); _sigFSCtx.moveTo(p.x,p.y); }
+  function move(ev) { if(!_sigFSDrawing)return; ev.preventDefault(); var p=getPos(ev); _sigFSCtx.lineTo(p.x,p.y); _sigFSCtx.stroke(); _sigFSLastX=p.x; _sigFSLastY=p.y; }
+  function end() { _sigFSDrawing=false; }
+
+  canvas.onmousedown=start; canvas.onmousemove=move; canvas.onmouseup=end; canvas.onmouseleave=end;
+  canvas.ontouchstart=start; canvas.ontouchmove=move; canvas.ontouchend=end;
+
+  overlay.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+
+function fermerSignaturePleinEcran() {
+  document.getElementById('sig-fullscreen-overlay').style.display='none';
+  document.body.style.overflow='';
+}
+
+function effacerSignaturePleinEcran() {
+  var canvas = document.getElementById('sig-fullscreen-canvas');
+  _sigFSCtx.fillStyle='#ffffff';
+  _sigFSCtx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function validerSignaturePleinEcran() {
+  var canvas = document.getElementById('sig-fullscreen-canvas');
+  // Vérifier que ce n'est pas vide
+  var data = _sigFSCtx.getImageData(0,0,canvas.width,canvas.height).data;
+  var empty = true;
+  for (var i=0;i<data.length;i+=4) { if (!(data[i]>240&&data[i+1]>240&&data[i+2]>240)) { empty=false; break; } }
+  if (empty) { toast('Veuillez signer avant de valider'); return; }
+
+  // Copier dans le canvas sig-client
+  var dest = document.getElementById('sig-client');
+  var destCtx = dest.getContext('2d');
+  destCtx.fillStyle='#ffffff';
+  destCtx.fillRect(0,0,dest.width,dest.height);
+  destCtx.drawImage(canvas, 0, 0, dest.width, dest.height);
+
+  fermerSignaturePleinEcran();
+  toast('✅ Signature enregistrée');
+}
+
+// ── Signature à distance ──
+var _sigDistanceToken = null;
+var _sigDistanceBonId = null;
+var _sigDistanceUrl = null;
+var _sigDistanceInterval = null;
+
+async function genererLienSignature() {
+  // Récupérer le numéro du bon courant
+  var bonId = window._currentBonId || (document.getElementById('bon-numero') ? document.getElementById('bon-numero').textContent.trim() : null);
+  if (!bonId) {
+    // Chercher dans l'URL
+    var params = new URLSearchParams(window.location.search);
+    bonId = params.get('id') || params.get('bon');
+  }
+  if (!bonId) { toast('Veuillez d\'abord valider le bon pour obtenir un numéro'); return; }
+
+  var btn = document.getElementById('btn-sig-distance');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ Génération…'; }
+
+  // Générer token unique
+  _sigDistanceToken = 'sig_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  _sigDistanceBonId = bonId;
+
+  // Sauvegarder le token dans le bon (PATCH)
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId), {
+      method: 'PATCH',
+      headers: Object.assign({}, SB_H),
+      body: JSON.stringify({ payload: Object.assign({}, await _getBonPayload(bonId), { sigToken: _sigDistanceToken, sigTokenDate: Date.now() }) })
+    });
+    if (!r.ok) { toast('Erreur lors de la préparation de la signature'); if(btn){btn.disabled=false;btn.textContent='🔗 Signature à distance';} return; }
+  } catch(e) { toast('Erreur réseau'); if(btn){btn.disabled=false;btn.textContent='🔗 Signature à distance';} return; }
+
+  // Construire l'URL
+  var base = window.location.origin + window.location.pathname.replace('bon.html','');
+  _sigDistanceUrl = base + 'signer.html?token=' + _sigDistanceToken;
+
+  // Afficher le statut
+  document.getElementById('sig-distance-status').style.display='block';
+  document.getElementById('sig-distance-msg').textContent = '⏳ En attente de signature du client…';
+
+  // QR Code (lib QRCode.js via CDN si disponible, sinon lien simple)
+  var qrDiv = document.getElementById('sig-distance-qr');
+  qrDiv.innerHTML = '<a href="' + _sigDistanceUrl + '" target="_blank" style="word-break:break-all;font-size:11px;color:var(--gold,#b9943e);">' + _sigDistanceUrl + '</a>';
+  // Essayer d'afficher un QR code
+  _afficherQR(_sigDistanceUrl, qrDiv);
+
+  if (btn) { btn.disabled=false; btn.textContent='🔗 Nouveau lien'; }
+  toast('📋 Lien généré — envoyez-le au client');
+
+  // Démarrer la vérification automatique toutes les 5s
+  if (_sigDistanceInterval) clearInterval(_sigDistanceInterval);
+  _sigDistanceInterval = setInterval(verifierSignatureDistante, 5000);
+}
+
+async function _getBonPayload(bonId) {
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId) + '&select=payload', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (r.ok) { var rows = await r.json(); if (rows && rows[0]) return rows[0].payload || {}; }
+  } catch(e) {}
+  return {};
+}
+
+async function verifierSignatureDistante() {
+  if (!_sigDistanceBonId) return;
+  try {
+    var payload = await _getBonPayload(_sigDistanceBonId);
+    if (payload.sigClientData && payload.sigClientData.length > 100) {
+      // Signature reçue !
+      if (_sigDistanceInterval) { clearInterval(_sigDistanceInterval); _sigDistanceInterval = null; }
+
+      // Injecter dans le canvas sig-client
+      var img = new Image();
+      img.onload = function() {
+        var dest = document.getElementById('sig-client');
+        var ctx = dest.getContext('2d');
+        ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,dest.width,dest.height);
+        ctx.drawImage(img, 0, 0, dest.width, dest.height);
+      };
+      img.src = payload.sigClientData;
+
+      document.getElementById('sig-distance-msg').textContent = '✅ Signature reçue le ' + new Date().toLocaleString('fr-FR');
+      document.getElementById('sig-distance-status').style.backgroundColor='rgba(34,197,94,0.1)';
+      document.getElementById('sig-distance-status').style.borderColor='rgba(34,197,94,0.3)';
+      toast('✅ Signature client reçue !');
+    }
+  } catch(e) {}
+}
+
+function copierLienSignature() {
+  if (!_sigDistanceUrl) return;
+  navigator.clipboard.writeText(_sigDistanceUrl).then(function() { toast('📋 Lien copié'); }).catch(function() {
+    // Fallback
+    var el = document.createElement('textarea');
+    el.value = _sigDistanceUrl;
+    document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    toast('📋 Lien copié');
+  });
+}
+
+function _afficherQR(url, container) {
+  // Utiliser l'API QR code Google Charts (ou générer SVG simple)
+  var img = document.createElement('img');
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(url);
+  img.style.cssText = 'width:140px;height:140px;border-radius:8px;margin-top:8px;';
+  img.alt = 'QR Code';
+  container.appendChild(img);
+}
+
+// ============================================================
 //  VALIDER & SAUVEGARDER
 // ============================================================
 // ── Mettre le bon en pause (garder ouvert pour nouvelle session) ──
@@ -2559,6 +2776,9 @@ async function validerDoc() {
       } catch(e) {}
     }
   }
+
+  // Exposer l'ID du bon pour la signature à distance
+  if (saveOk && doc && doc.id) window._currentBonId = doc.id;
 
   // Verrouiller le formulaire et changer les boutons
   basculerEtatValide();
