@@ -117,16 +117,24 @@ var hasSigned = false;
 async function init() {
   if (!token) { showError('Lien de signature manquant.'); return; }
 
-  // Chercher le bon par sigToken dans Supabase
+  // Chercher le bon par sigToken : fonction sécurisée (sql/securite-1-fonctions.sql), qui ne renvoie que ce bon.
+  // Repli sur l'ancienne lecture tant que la fonction n'est pas installée.
   try {
-    var r = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&limit=200', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-    });
-    if (!r.ok) { showError('Impossible de charger le bon.'); return; }
-    var rows = await r.json();
     var found = null;
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i].payload && rows[i].payload.sigToken === token) { found = rows[i]; break; }
+    var f = await fetch(SUPA_URL + '/rest/v1/rpc/signer_bon_lire', {
+      method: 'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jeton: token })
+    });
+    if (f.ok) found = await f.json();
+    else {
+      var r = await fetch(SUPA_URL + '/rest/v1/devis?select=id,payload&limit=1000', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      if (!r.ok) { showError('Impossible de charger le bon.'); return; }
+      var rows = await r.json();
+      for (var i = 0; i < rows.length; i++) {
+        if (rows[i].payload && rows[i].payload.sigToken === token) { found = rows[i]; break; }
+      }
     }
     if (!found) { showError('Ce lien de signature est invalide ou a expiré.'); return; }
     bonId = found.id;
@@ -211,6 +219,16 @@ async function valider() {
     // Supprimer le token pour invalider le lien
     delete payload.sigToken;
 
+    // Fonction sécurisée : enregistre la signature et invalide le lien, sans accès à la table.
+    var f = await fetch(SUPA_URL + '/rest/v1/rpc/signer_bon_signer', {
+      method: 'POST', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jeton: token, signature: sigData })
+    });
+    if (f.ok) {
+      if ((await f.json()) === true) { showSuccess(); return; }
+      btn.disabled=false; btn.textContent='✅ Valider et signer';
+      alert('Ce lien de signature n’est plus valide.'); return;
+    }
     var r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(bonId), {
       method: 'PATCH',
       headers: {
