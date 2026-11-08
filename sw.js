@@ -2,7 +2,7 @@
 //  SERVICE WORKER — Harmonie Électricité v5
 //  Offline-first complet
 // ============================================================
-const CACHE_NAME = 'harmonie-v45';
+const CACHE_NAME = 'harmonie-v46';
 const BASE = self.registration.scope;
 
 const PRECACHE = [
@@ -11,6 +11,7 @@ const PRECACHE = [
   BASE + 'signer.html',
   BASE + 'maintenance.html',
   BASE + 'offline.js',
+  BASE + 'auth.js',
   BASE + 'sw.js',
   // jsPDF depuis CDN — précaché pour PDF offline
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
