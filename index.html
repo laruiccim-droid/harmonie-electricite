@@ -1140,14 +1140,19 @@
     <input class="modal-input" id="cf-nom" placeholder="Nom complet *" />
     <input class="modal-input" id="cf-tel" placeholder="Téléphone" type="tel" />
     <input class="modal-input" id="cf-email" placeholder="Email" type="email" />
-    <input class="modal-input" id="cf-adresse" placeholder="Adresse" />
-    <input class="modal-input" id="cf-ville" placeholder="Ville" />
+    <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin:8px 0 4px;">Adresse de facturation</div>
+    <input class="modal-input" id="cf-adresse" placeholder="N° et rue" />
     <input class="modal-input" id="cf-cp" placeholder="Code postal" />
+    <input class="modal-input" id="cf-ville" placeholder="Ville" />
+    <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin:8px 0 4px;">Adresse d'intervention <span style="font-weight:400;text-transform:none;">(si différente)</span></div>
+    <input class="modal-input" id="cf-adresse-interv" placeholder="N° et rue" />
+    <input class="modal-input" id="cf-cp-interv" placeholder="Code postal" />
+    <input class="modal-input" id="cf-ville-interv" placeholder="Ville" />
     <input class="modal-input" id="cf-notes" placeholder="Notes (optionnel)" />
     <input type="hidden" id="cf-id" value="" />
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button class="btn btn-secondary btn-full" onclick="fermerFormulaireClient()">Annuler</button>
-      <button class="btn btn-primary btn-full" onclick="sauvegarderClient()">Enregistrer</button>
+      <button class="btn btn-primary btn-full" id="cf-submit-btn" onclick="sauvegarderClient()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -1835,15 +1840,31 @@ function ouvrirFormulaireClient(client) {
     titre.textContent = 'Dupliquer le client';
   } else {
     titre.textContent = 'Nouveau client';
+    client = null;
   }
-  document.getElementById('cf-id').value      = (client && client.id) || '';
-  document.getElementById('cf-nom').value     = (client && client.name) || '';
-  document.getElementById('cf-tel').value     = (client && client.phone) || '';
-  document.getElementById('cf-email').value   = (client && client.email) || '';
-  document.getElementById('cf-adresse').value = (client && (client.address || client.adresse)) || '';
-  document.getElementById('cf-ville').value   = (client && client.city) || '';
-  document.getElementById('cf-cp').value      = (client && (client.zip || client.cp)) || '';
-  document.getElementById('cf-notes').value   = (client && client.notes) || '';
+  // Décomposer l'adresse stockée : "rue, CP ville" → champs séparés si possible
+  function parseAdresse(str) {
+    str = (str || '').trim();
+    var match = str.match(/^(.*?),?\s*(\d{5})\s+(.*)$/);
+    if (match) return { rue: match[1].trim(), cp: match[2], ville: match[3].trim() };
+    return { rue: str, cp: '', ville: '' };
+  }
+  var aFact = parseAdresse(client && (client.address || client.adresse));
+  var aInterv = parseAdresse(client && client.addressIntervention);
+
+  document.getElementById('cf-id').value           = (client && client.id) || '';
+  document.getElementById('cf-nom').value          = (client && client.name) || '';
+  document.getElementById('cf-tel').value          = (client && client.phone) || '';
+  document.getElementById('cf-email').value        = (client && client.email) || '';
+  document.getElementById('cf-adresse').value      = aFact.rue;
+  document.getElementById('cf-cp').value           = (client && client.zip) || aFact.cp;
+  document.getElementById('cf-ville').value        = (client && client.city) || aFact.ville;
+  document.getElementById('cf-adresse-interv').value = aInterv.rue;
+  document.getElementById('cf-cp-interv').value    = (client && client.zipIntervention) || aInterv.cp;
+  document.getElementById('cf-ville-interv').value = (client && client.cityIntervention) || aInterv.ville;
+  document.getElementById('cf-notes').value        = (client && client.notes) || '';
+  var btn = document.getElementById('cf-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
   modal.style.display = 'flex';
 }
 
@@ -1854,18 +1875,36 @@ function fermerFormulaireClient() {
 async function sauvegarderClient() {
   var nom = document.getElementById('cf-nom').value.trim();
   if (!nom) { toast('Le nom est obligatoire'); return; }
+
+  var btn = document.getElementById('cf-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
+
   var id  = document.getElementById('cf-id').value.trim();
   var estModif = !!id;
   if (!id) id = 'C_' + Date.now();
+
+  // Construire adresses formatées
+  var rue  = document.getElementById('cf-adresse').value.trim();
+  var cp   = document.getElementById('cf-cp').value.trim();
+  var ville = document.getElementById('cf-ville').value.trim();
+  var addressFact = [rue, cp && ville ? cp + ' ' + ville : (cp || ville)].filter(Boolean).join(', ');
+
+  var rueI  = document.getElementById('cf-adresse-interv').value.trim();
+  var cpI   = document.getElementById('cf-cp-interv').value.trim();
+  var villeI = document.getElementById('cf-ville-interv').value.trim();
+  var addressInterv = [rueI, cpI && villeI ? cpI + ' ' + villeI : (cpI || villeI)].filter(Boolean).join(', ');
 
   var payload = {
     id:      id,
     name:    nom,
     phone:   document.getElementById('cf-tel').value.trim(),
     email:   document.getElementById('cf-email').value.trim(),
-    address: document.getElementById('cf-adresse').value.trim(),
-    city:    document.getElementById('cf-ville').value.trim(),
-    zip:     document.getElementById('cf-cp').value.trim(),
+    address: addressFact,
+    city:    ville,
+    zip:     cp,
+    addressIntervention: addressInterv,
+    cityIntervention:    villeI,
+    zipIntervention:     cpI,
     notes:   document.getElementById('cf-notes').value.trim(),
     manuel:  true,
     updatedAt: Date.now()
@@ -1886,11 +1925,13 @@ async function sauvegarderClient() {
       },
       body: JSON.stringify(payload)
     });
-    if (!r.ok && r.status !== 204) throw new Error('HTTP ' + r.status);
+    if (!r.ok && r.status !== 204) {
+      var txt = await r.text().catch(function(){ return ''; });
+      throw new Error('HTTP ' + r.status + (txt ? ' — ' + txt.slice(0,120) : ''));
+    }
 
     fermerFormulaireClient();
     toast(estModif ? '✅ Client modifié' : '✅ Client créé');
-    // Mettre à jour CLIENTS en mémoire
     if (estModif) {
       var idx = CLIENTS.findIndex(function(c){ return c.id === id; });
       if (idx >= 0) CLIENTS[idx] = payload; else CLIENTS.push(payload);
@@ -1899,6 +1940,7 @@ async function sauvegarderClient() {
     }
     renderClientsList();
   } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
     toast('Erreur : ' + e.message);
   }
 }
@@ -5474,7 +5516,10 @@ function docsOpenDetail(id) {
       if (clientSelectionne) {
         if (clientSelectionne.phone)   d.tel   = clientSelectionne.phone;
         if (clientSelectionne.email)   d.email = clientSelectionne.email;
-        if (clientSelectionne.address) { d.adresse = clientSelectionne.address; d.adresseFacturation = clientSelectionne.address; }
+        if (clientSelectionne.address) {
+          d.adresseFacturation = clientSelectionne.address;
+          d.adresse = clientSelectionne.addressIntervention || clientSelectionne.address;
+        }
       }
       d.updatedAt = Date.now();
       const r = await fetch(SUPA_URL + '/rest/v1/devis', {
@@ -5875,12 +5920,13 @@ async function openFicheClient(id) {
   btnBon.textContent = '📋 Nouveau bon d\'intervention';
   btnBon.onclick = function() {
     overlay.remove();
-    // Pré-remplir sessionStorage avec les infos client
+    const adresseInterv = c.addressIntervention || c.address || '';
     const data = {
       type: 'bon', clientNom: c.name, clientTel: c.phone||'',
-      clientEmail: c.email||'', clientAdresse: c.address||'',
+      clientEmail: c.email||'', clientAdresse: adresseInterv,
+      adresseFacturation: c.address||'',
       date: new Date().toLocaleDateString('fr-FR'),
-      heureDebut:'', heureFin:'', dureeMin:0, description:'', adresse:c.address||''
+      heureDebut:'', heureFin:'', dureeMin:0, description:'', adresse:adresseInterv
     };
     sessionStorage.setItem('he_bon_data', JSON.stringify(data));
     window.open('https://laruiccim-droid.github.io/harmonie-electricite/bon.html', '_blank');
@@ -5893,11 +5939,13 @@ async function openFicheClient(id) {
   btnDevis.textContent = '📄 Nouveau devis';
   btnDevis.onclick = function() {
     overlay.remove();
+    const adresseInterv = c.addressIntervention || c.address || '';
     const data = {
       type: 'devis', clientNom: c.name, clientTel: c.phone||'',
-      clientEmail: c.email||'', clientAdresse: c.address||'',
+      clientEmail: c.email||'', clientAdresse: adresseInterv,
+      adresseFacturation: c.address||'',
       date: new Date().toLocaleDateString('fr-FR'),
-      heureDebut:'', heureFin:'', dureeMin:0, description:'', adresse:c.address||''
+      heureDebut:'', heureFin:'', dureeMin:0, description:'', adresse:adresseInterv
     };
     sessionStorage.setItem('he_bon_data', JSON.stringify(data));
     window.open('https://laruiccim-droid.github.io/harmonie-electricite/bon.html', '_blank');
