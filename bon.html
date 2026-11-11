@@ -3809,6 +3809,84 @@ async function _genererPDFInner(docData) {
   }
   _chainePrev.reverse(); // afficher du plus ancien au plus récent
 
+  // ── INTERVENTION COURANTE (détail) — affichée en premier ──
+  if (y + MIN_SECTION > SAFE_PDF) { doc.addPage(); y = 14; }
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...ORANGE);
+  var _labelCurrent = _chainePrev.length > 0
+    ? 'DÉTAIL INTERVENTION COURANTE — DU ' + (d && d.date ? d.date : '')
+    : 'DÉTAIL DES PRESTATIONS';
+  doc.text(_labelCurrent, M, y + 4);
+  y += 7;
+
+  // En-tête tableau — adapté selon le mode
+  doc.setFillColor(...DARK);
+  doc.rect(M, y, W - 2*M, 7, 'F');
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Réf.', M + 2, y + 5);
+  doc.text('Désignation', M + 20, y + 5);
+  doc.text('Qté', M + 115, y + 5, { align:'right' });
+  doc.text('Unité', M + 130, y + 5, { align:'right' });
+  if (showPU)    doc.text('PU HT', M + 152, y + 5, { align:'right' });
+  if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
+  y += 7;
+
+  // Lignes tableau
+  doc.setFont('helvetica', 'normal');
+  let rowIndex = 0;
+  lignesPDF.forEach(function(l, i) {
+    const nomLines = doc.splitTextToSize(l.nom || '', 90);
+    const nbLignes = Math.min(nomLines.length, 5);
+    const rowH = Math.max(7, nbLignes * 4.5 + 2);
+    if (y + rowH > SAFE_PDF) {
+      doc.addPage();
+      y = 14;
+      doc.setFillColor(...DARK);
+      doc.rect(M, y, W - 2*M, 7, 'F');
+      doc.setTextColor(...WHITE);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Réf.', M + 2, y + 5);
+      doc.text('Désignation', M + 20, y + 5);
+      doc.text('Qté', M + 115, y + 5, { align:'right' });
+      doc.text('Unité', M + 130, y + 5, { align:'right' });
+      if (showPU)    doc.text('PU HT', M + 152, y + 5, { align:'right' });
+      if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
+      y += 7;
+      rowIndex = 0;
+      doc.setFont('helvetica', 'normal');
+    }
+    if (rowIndex % 2 === 0) {
+      doc.setFillColor(248, 248, 248);
+      doc.rect(M, y, W - 2*M, rowH, 'F');
+    }
+    rowIndex++;
+    doc.setDrawColor(230, 230, 230);
+    doc.rect(M, y, W - 2*M, rowH, 'S');
+    doc.setTextColor(...DARK);
+    doc.setFontSize(8);
+    doc.text((l.ref||'').slice(0,12), M + 2, y + 5);
+    const nomLinesLimited = nomLines.slice(0, 5);
+    doc.text(nomLinesLimited, M + 20, y + 5);
+    const midY = y + rowH / 2 + 2;
+    doc.text(String(l.qty), M + 115, midY, { align:'right' });
+    doc.text(l.unite||'U', M + 130, midY, { align:'right' });
+    if (showPU) {
+      doc.text((parseFloat(l.pu)||0).toFixed(2) + ' €', M + 152, midY, { align:'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(((l.qty||0) * (parseFloat(l.pu)||0)).toFixed(2) + ' €', W - M - 2, midY, { align:'right' });
+      doc.setFont('helvetica', 'normal');
+    }
+    y += rowH;
+  });
+
+  y += 4;
+
+  // ── INTERVENTIONS PRÉCÉDENTES (chaîne complète) ──────────
   for (var _ci = 0; _ci < _chainePrev.length; _ci++) {
   var bonLieData = _chainePrev[_ci];
   if (bonLieData && bonLieData.lignes && bonLieData.lignes.length) {
@@ -3820,7 +3898,7 @@ async function _genererPDFInner(docData) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...ORANGE);
     var _labelPrev = _chainePrev.length > 1
-      ? 'INTERVENTION ' + (_ci + 1) + '/' + (_chainePrev.length + 1) + ' — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'')
+      ? 'INTERV. PRÉCÉDENTE ' + (_ci + 1) + '/' + _chainePrev.length + ' — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'')
       : 'INTERVENTION PRÉCÉDENTE — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'');
     doc.text(_labelPrev, M, y + 4);
     y += 7;
@@ -3948,86 +4026,6 @@ async function _genererPDFInner(docData) {
   }
   } // fin boucle chaîne interventions précédentes
 
-  if (y + MIN_SECTION > SAFE_PDF) { doc.addPage(); y = 14; }
-
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...ORANGE);
-  var _labelCurrent = _chainePrev.length > 0
-    ? 'INTERVENTION ' + (_chainePrev.length + 1) + '/' + (_chainePrev.length + 1) + ' DU ' + (d && d.date ? d.date : '') + ' — DÉTAIL'
-    : 'DÉTAIL DES PRESTATIONS';
-  doc.text(_labelCurrent, M, y + 4);
-  y += 7;
-
-  // En-tête tableau — adapté selon le mode
-  doc.setFillColor(...DARK);
-  doc.rect(M, y, W - 2*M, 7, 'F');
-  doc.setTextColor(...WHITE);
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Réf.', M + 2, y + 5);
-  doc.text('Désignation', M + 20, y + 5);
-  doc.text('Qté', M + 115, y + 5, { align:'right' });
-  doc.text('Unité', M + 130, y + 5, { align:'right' });
-  if (showPU)    doc.text('PU HT', M + 152, y + 5, { align:'right' });
-  if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
-  y += 7;
-
-  // Lignes tableau
-  doc.setFont('helvetica', 'normal');
-  let rowIndex = 0;
-  lignesPDF.forEach(function(l, i) {
-    // Hauteur adaptative selon le contenu (max 5 lignes)
-    const nomLines = doc.splitTextToSize(l.nom || '', 90);
-    const nbLignes = Math.min(nomLines.length, 5);
-    const rowH = Math.max(7, nbLignes * 4.5 + 2);
-
-    // Saut de page si la ligne ne rentre plus
-    if (y + rowH > SAFE_PDF) {
-      doc.addPage();
-      y = 14;
-      // Ré-afficher l'en-tête tableau sur la nouvelle page
-      doc.setFillColor(...DARK);
-      doc.rect(M, y, W - 2*M, 7, 'F');
-      doc.setTextColor(...WHITE);
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Réf.', M + 2, y + 5);
-      doc.text('Désignation', M + 20, y + 5);
-      doc.text('Qté', M + 115, y + 5, { align:'right' });
-      doc.text('Unité', M + 130, y + 5, { align:'right' });
-      if (showPU)    doc.text('PU HT', M + 152, y + 5, { align:'right' });
-      if (showTotal && showPU) doc.text('Total HT', W - M - 2, y + 5, { align:'right' });
-      y += 7;
-      rowIndex = 0;
-      doc.setFont('helvetica', 'normal');
-    }
-
-    if (rowIndex % 2 === 0) {
-      doc.setFillColor(248, 248, 248);
-      doc.rect(M, y, W - 2*M, rowH, 'F');
-    }
-    rowIndex++;
-    doc.setDrawColor(230, 230, 230);
-    doc.rect(M, y, W - 2*M, rowH, 'S');
-    doc.setTextColor(...DARK);
-    doc.setFontSize(8);
-    doc.text((l.ref||'').slice(0,12), M + 2, y + 5);
-    // Nom sur plusieurs lignes si nécessaire (max 5)
-    const nomLinesLimited = nomLines.slice(0, 5);
-    doc.text(nomLinesLimited, M + 20, y + 5);
-    const midY = y + rowH / 2 + 2;
-    doc.text(String(l.qty), M + 115, midY, { align:'right' });
-    doc.text(l.unite||'U', M + 130, midY, { align:'right' });
-    if (showPU) {
-      doc.text((parseFloat(l.pu)||0).toFixed(2) + ' €', M + 152, midY, { align:'right' });
-      doc.setFont('helvetica', 'bold');
-      doc.text(((l.qty||0) * (parseFloat(l.pu)||0)).toFixed(2) + ' €', W - M - 2, midY, { align:'right' });
-      doc.setFont('helvetica', 'normal');
-    }
-    y += rowH;
-  });
-
   y += 4;
 
   // ── TOTAUX ───────────────────────────────────────────────
@@ -4043,7 +4041,9 @@ async function _genererPDFInner(docData) {
     const tvaCumul = htCumul * tvaRate / 100;
     const ttcCumul = htCumul + tvaCumul;
 
-    const boxH = bonLieData ? 30 : 22;
+    // boxH dynamique : 1 ligne par interv. précédente + 1 courante + 1 TVA
+    const _nbLigTot = _chainePrev.length > 0 ? _chainePrev.length + 2 : 2;
+    const boxH = _nbLigTot * 7 + 1;
     if (y + boxH + 14 > SAFE_PDF) { doc.addPage(); y = 14; }
     doc.setFillColor(250, 250, 250);
     doc.rect(totX, y, totW, boxH, 'F');
@@ -4052,16 +4052,28 @@ async function _genererPDFInner(docData) {
 
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...GREY);
-    if (bonLieData) {
-      doc.text(_chainePrev.length > 1 ? 'Interv. préc. HT (' + _chainePrev.length + ')' : 'Interv. préc. HT', totX + 4, y + 7);
-      doc.text('Interv. courante HT', totX + 4, y + 14);
-      doc.text('TVA ' + tvaRate + '%', totX + 4, y + 21);
+    if (_chainePrev.length > 0) {
+      var _yOff = 7;
+      for (var _ti = 0; _ti < _chainePrev.length; _ti++) {
+        var _bp = _chainePrev[_ti];
+        var _bpHT = (_bp.lignes||[]).reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); },0);
+        doc.setTextColor(...GREY);
+        doc.text((_bp.numero || ('Interv. ' + (_ti+1))) + ' HT', totX + 4, y + _yOff);
+        doc.setTextColor(...DARK);
+        doc.text(_bpHT.toFixed(2) + ' €', W - M - 2, y + _yOff, { align:'right' });
+        _yOff += 7;
+      }
+      doc.setTextColor(...GREY);
+      doc.text('Interv. courante HT', totX + 4, y + _yOff);
       doc.setTextColor(...DARK);
-      doc.text(bonLieHTVal.toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
-      doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 14, { align:'right' });
-      doc.text(tvaCumul.toFixed(2) + ' €', W - M - 2, y + 21, { align:'right' });
+      doc.text(ht.toFixed(2) + ' €', W - M - 2, y + _yOff, { align:'right' });
+      _yOff += 7;
+      doc.setTextColor(...GREY);
+      doc.text('TVA ' + tvaRate + '%', totX + 4, y + _yOff);
+      doc.setTextColor(...DARK);
+      doc.text(tvaCumul.toFixed(2) + ' €', W - M - 2, y + _yOff, { align:'right' });
     } else {
+      doc.setTextColor(...GREY);
       doc.text('Total HT', totX + 4, y + 7);
       doc.text('TVA ' + tvaRate + '%', totX + 4, y + 14);
       doc.setTextColor(...DARK);
@@ -4078,7 +4090,7 @@ async function _genererPDFInner(docData) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL TTC', totX + 4, y + 7);
-    doc.text((bonLieData ? ttcCumul : ttc).toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
+    doc.text((_chainePrev.length > 0 ? ttcCumul : ttc).toFixed(2) + ' €', W - M - 2, y + 7, { align:'right' });
 
     y += 14;
   } else {
