@@ -1473,6 +1473,12 @@ window.addEventListener('load', async function() {
       renderLignes();
     }
 
+    // Restaurer le taux TVA en mode édition
+    if (data.mode === 'edition' && data.tvaRate) {
+      var selTva = document.getElementById('f-tva');
+      if (selTva) { selTva.value = String(data.tvaRate); refreshTotaux && refreshTotaux(); }
+    }
+
     // Restaurer les photos en mode édition
     if (data.mode === 'edition') {
       var bonExPhotos = data.bonExistant || {};
