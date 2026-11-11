@@ -1473,8 +1473,8 @@ window.addEventListener('load', async function() {
       renderLignes();
     }
 
-    // Restaurer le taux TVA en mode édition
-    if (data.mode === 'edition' && data.tvaRate) {
+    // Restaurer le taux TVA (édition et ajout_session)
+    if (data.tvaRate && (data.mode === 'edition' || data.type === 'ajout_session')) {
       var selTva = document.getElementById('f-tva');
       if (selTva) { selTva.value = String(data.tvaRate); refreshTotaux && refreshTotaux(); }
     }
@@ -1932,6 +1932,7 @@ function restaurerAutoSave() {
     if (saved.heureFin)  document.getElementById('f-heure-fin').value  = saved.heureFin;
     if (saved.duree)     document.getElementById('f-duree').value      = saved.duree;
     if (saved.lignes && saved.lignes.length) { LIGNES = saved.lignes; renderLignes(); }
+    if (saved.tvaRate) { var asTva = document.getElementById('f-tva'); if (asTva) { asTva.value = String(saved.tvaRate); refreshTotaux && refreshTotaux(); } }
     toast('✅ Brouillon restauré');
   } catch(e) { toast('Erreur restauration'); }
 }
