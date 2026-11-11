@@ -478,6 +478,14 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
         <div><label>PU HT (€)</label><input type="number" id="cat-pu" step="0.01" min="0"></div>
         <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" id="cat-confirm-btn" ontouchstart="catConfirmTouch(event)" onclick="catConfirm()" style="width:100%;touch-action:manipulation;">Ajouter</button></div>
       </div>
+      <!-- Prix d'achat — uniquement pour les articles Supabase -->
+      <div id="cat-pa-row" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="flex:1;margin:0;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;">Prix d'achat (€)</label>
+          <input type="number" id="cat-pa" step="0.01" min="0" style="width:110px;text-align:right;" placeholder="—">
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="cat-pa-hint">Modifier pour mettre à jour la fiche article et l'historique des prix</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2133,7 +2141,7 @@ async function loadCatalogue() {
       if (!r.ok) break;
       const rows = await r.json();
       if (!rows.length) break;
-      rows.forEach(function(row){ if(row.payload) all.push(row.payload); });
+      rows.forEach(function(row){ if(row.payload) all.push(Object.assign({}, row.payload, {_supaId: row.id})); });
       if (rows.length < 500) break;
       offset += 500;
     }
@@ -2216,6 +2224,27 @@ function catSelectByIndex(i) {
   if (puEl) puEl.value = (e.pv || 0).toFixed(2);
   if (qtyEl) qtyEl.value = 1;
   if (rowEl) rowEl.style.display = 'block';
+  // Prix d'achat — uniquement pour les articles Supabase
+  var paRow = document.getElementById('cat-pa-row');
+  var paEl = document.getElementById('cat-pa');
+  var paHint = document.getElementById('cat-pa-hint');
+  if (e._supaId) {
+    if (paRow) paRow.style.display = 'block';
+    if (paEl) paEl.value = e.prixAchat != null ? parseFloat(e.prixAchat).toFixed(2) : '';
+    if (paHint) {
+      if (e.prixAchat != null) {
+        var lastDate = '';
+        if (Array.isArray(e.historiquesPrix) && e.historiquesPrix.length) {
+          lastDate = ' — dernière màj : ' + e.historiquesPrix[e.historiquesPrix.length-1].date;
+        }
+        paHint.textContent = 'Modifier pour mettre à jour la fiche article' + lastDate;
+      } else {
+        paHint.textContent = 'Prix d\'achat non renseigné — saisir pour enregistrer';
+      }
+    }
+  } else {
+    if (paRow) paRow.style.display = 'none';
+  }
   // Fermer le clavier virtuel pour libérer l'espace et voir le bouton Ajouter
   const qInp = document.getElementById('cat-q');
   if (qInp) qInp.blur();
@@ -2242,6 +2271,16 @@ function catConfirm() {
     if (!CAT_SELECTED) { toast('⚠️ Sélectionnez un article d\'abord'); return; }
     const qty = parseFloat(document.getElementById('cat-qty').value) || 1;
     const pu  = parseFloat(document.getElementById('cat-pu').value) || 0;
+    // Vérifier si le prix d'achat a été modifié
+    var paRow = document.getElementById('cat-pa-row');
+    var paEl = document.getElementById('cat-pa');
+    if (CAT_SELECTED._supaId && paRow && paRow.style.display !== 'none' && paEl && paEl.value !== '') {
+      var newPa = parseFloat(paEl.value);
+      var oldPa = CAT_SELECTED.prixAchat;
+      if (!isNaN(newPa) && newPa !== oldPa) {
+        _updatePrixAchatCatalogue(CAT_SELECTED, newPa);
+      }
+    }
     LIGNES.push({ ref: CAT_SELECTED.ref, nom: CAT_SELECTED.nom || CAT_SELECTED.ref, qty: qty, pu: pu, unite: CAT_SELECTED.unite || 'U', commander: false });
     var refAdded = CAT_SELECTED.ref;
     CAT_SELECTED = null;
@@ -2250,6 +2289,35 @@ function catConfirm() {
     toast(refAdded + ' ajouté ✓');
   } catch(err) {
     toast('Erreur: ' + err.message);
+  }
+}
+
+async function _updatePrixAchatCatalogue(article, newPrix) {
+  if (!article._supaId) return;
+  var today = new Date().toISOString().slice(0, 10);
+  var histo = Array.isArray(article.historiquesPrix) ? article.historiquesPrix.slice() : [];
+  histo.push({ date: today, prixAchat: newPrix });
+  var newPayload = Object.assign({}, article, { prixAchat: newPrix, historiquesPrix: histo });
+  delete newPayload._supaId; // Ne pas stocker l'id Supabase dans le payload
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/catalogue?id=eq.' + encodeURIComponent(article._supaId), {
+      method: 'PATCH',
+      headers: SB_H,
+      body: JSON.stringify({ payload: newPayload })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    // Mettre à jour CAT_CACHE en mémoire
+    if (CAT_CACHE) {
+      for (var i = 0; i < CAT_CACHE.length; i++) {
+        if (CAT_CACHE[i]._supaId === article._supaId) {
+          CAT_CACHE[i] = Object.assign({}, newPayload, { _supaId: article._supaId });
+          break;
+        }
+      }
+    }
+    toast('Prix d\'achat mis à jour ✓');
+  } catch(e) {
+    toast('⚠️ Erreur MAJ prix d\'achat : ' + e.message);
   }
 }
 
