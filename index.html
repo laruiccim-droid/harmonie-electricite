@@ -5458,104 +5458,86 @@ function docsOpenDetail(id) {
   btnCorrigerClient.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:1px solid var(--accent);background:rgba(201,168,106,0.08);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:10px;';
   btnCorrigerClient.textContent = '👤 Corriger le nom du client';
   btnCorrigerClient.onclick = function() {
-    btnCorrigerClient.style.display = 'none';
-    const form = document.createElement('div');
-    form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;';
+    // Overlay plein écran — plus fiable sur mobile qu'un dropdown inline
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;';
 
-    // Info actuelle
-    const labelActuel = document.createElement('div');
-    labelActuel.style.cssText = 'font-size:12px;color:var(--muted);margin-bottom:8px;';
-    labelActuel.innerHTML = 'Actuel : <strong style="color:var(--text);">' + escHtml(d.client||'—') + '</strong>';
-    form.appendChild(labelActuel);
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;';
+    header.innerHTML = '<button id="cc-back" style="background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:0 6px 0 0;">‹</button>'
+      + '<span style="font-weight:700;font-size:16px;">Choisir un client</span>';
 
-    // Barre de recherche
-    const searchInp = document.createElement('input');
-    searchInp.type = 'text';
-    searchInp.value = d.client || '';
-    searchInp.placeholder = 'Rechercher un client…';
-    searchInp.style.cssText = 'width:100%;padding:9px;background:#111;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:4px;box-sizing:border-box;';
+    const searchWrap = document.createElement('div');
+    searchWrap.style.cssText = 'padding:12px 16px;flex-shrink:0;';
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = 'Nom, téléphone, ville…';
+    inp.style.cssText = 'width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;box-sizing:border-box;outline:none;';
+    searchWrap.appendChild(inp);
 
-    // Résultats
-    const searchRes = document.createElement('div');
-    searchRes.style.cssText = 'max-height:150px;overflow-y:auto;background:#111;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:none;';
+    const list = document.createElement('div');
+    list.style.cssText = 'flex:1;overflow-y:auto;padding:0 16px 24px;';
 
-    let clientSelectionne = null;
-
-    searchInp.oninput = function() {
-      const q = (searchInp.value||'').toLowerCase();
-      if (!q) { searchRes.style.display = 'none'; return; }
+    function renderList(q) {
+      q = (q||'').toLowerCase().trim();
       const filtered = CLIENTS.filter(function(c){
-        const p = c.payload || c;
-        return ((p.name||'')).toLowerCase().includes(q);
-      }).slice(0, 15);
-      searchRes.innerHTML = filtered.map(function(c){
-        const p = c.payload || c;
-        return '<div style="padding:9px 10px;cursor:pointer;border-bottom:1px solid #1a1a1a;font-size:13px;" data-json="' + escHtml(JSON.stringify(p)) + '">'
-          + '<div style="font-weight:600;">' + escHtml(p.name||'') + '</div>'
-          + (p.address ? '<div style="font-size:11px;color:#888;">' + escHtml(p.address||'') + '</div>' : '')
-          + (p.phone ? '<div style="font-size:11px;color:#888;">📞 ' + escHtml(p.phone||'') + '</div>' : '')
-          + '</div>';
-      }).join('') || '<div style="padding:8px;color:#888;font-size:12px;">Aucun résultat</div>';
-      searchRes.querySelectorAll('div[data-json]').forEach(function(el){
-        function choisir(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          clientSelectionne = JSON.parse(el.getAttribute('data-json'));
-          searchInp.value = clientSelectionne.name || '';
-          searchRes.style.display = 'none';
-        }
-        el.addEventListener('mousedown', choisir);
-        el.addEventListener('touchend', choisir, {passive: false});
-      });
-      searchRes.style.display = 'block';
-    };
-
-    const btnRow = document.createElement('div');
-    btnRow.style.cssText = 'display:flex;gap:8px;';
-
-    const btnOk = document.createElement('button');
-    btnOk.textContent = '✅ Confirmer';
-    btnOk.style.cssText = 'flex:1;padding:9px;border-radius:8px;border:none;background:#6FA86A;color:#000;font-weight:700;cursor:pointer;';
-    btnOk.onclick = async function() {
-      const nomFinal = clientSelectionne ? clientSelectionne.name : searchInp.value.trim();
-      if (!nomFinal) { showToast('Nom requis'); return; }
-      btnOk.textContent = '⏳'; btnOk.disabled = true;
-      d.client = nomFinal;
-      if (clientSelectionne) {
-        if (clientSelectionne.phone)   d.tel   = clientSelectionne.phone;
-        if (clientSelectionne.email)   d.email = clientSelectionne.email;
-        if (clientSelectionne.address) {
-          d.adresseFacturation = clientSelectionne.address;
-          d.adresse = clientSelectionne.addressIntervention || clientSelectionne.address;
-        }
+        return (c.name||'').toLowerCase().includes(q) ||
+               (c.phone||'').includes(q) ||
+               (c.address||'').toLowerCase().includes(q);
+      }).slice(0, 30);
+      list.innerHTML = '';
+      if (!filtered.length) {
+        list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:14px;">Aucun résultat</div>';
+        return;
       }
-      d.updatedAt = Date.now();
-      const r = await fetch(SUPA_URL + '/rest/v1/devis', {
-        method: 'POST',
-        headers: Object.assign({}, SB_HEADERS, {'Prefer':'resolution=merge-duplicates,return=minimal'}),
-        body: JSON.stringify({id: d.id, payload: d})
-      }).catch(function(){ return {ok:false}; });
-      if (r.ok || r.status === 201) {
-        // Mettre à jour GCal
-        if (d.eventId) envoyerDescriptionGcal(d).catch(function(){});
-        form.remove();
-        btnCorrigerClient.style.display = 'block';
-        const nomEl = sheet.querySelector('.doc-client-nom');
-        if (nomEl) nomEl.textContent = nomFinal;
-        showToast('✅ Client mis à jour : ' + nomFinal);
-        if (renderDocsList) renderDocsList();
-      } else { btnOk.textContent = '❌'; btnOk.disabled = false; }
-    };
+      filtered.forEach(function(c) {
+        const item = document.createElement('button');
+        item.style.cssText = 'display:block;width:100%;text-align:left;padding:14px 12px;border-radius:12px;border:none;background:var(--surface2);margin-bottom:8px;cursor:pointer;color:var(--text);';
+        item.innerHTML = '<div style="font-weight:700;font-size:15px;">' + escHtml(c.name||'') + '</div>'
+          + (c.phone ? '<div style="font-size:12px;color:var(--muted);margin-top:2px;">📞 ' + escHtml(c.phone) + '</div>' : '')
+          + (c.address ? '<div style="font-size:12px;color:var(--muted);margin-top:2px;">📍 ' + escHtml(c.address) + '</div>' : '');
+        item.onclick = async function() {
+          ov.remove();
+          const nomFinal = c.name;
+          btnCorrigerClient.textContent = '⏳';
+          btnCorrigerClient.disabled = true;
+          d.client = nomFinal;
+          if (c.phone)   d.tel   = c.phone;
+          if (c.email)   d.email = c.email;
+          if (c.address) {
+            d.adresseFacturation = c.address;
+            d.adresse = c.addressIntervention || c.address;
+          }
+          d.updatedAt = Date.now();
+          const r = await fetch(SUPA_URL + '/rest/v1/devis', {
+            method: 'POST',
+            headers: Object.assign({}, SB_HEADERS, {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+            body: JSON.stringify({id: d.id, payload: d})
+          }).catch(function(){ return {ok:false}; });
+          btnCorrigerClient.textContent = '👤 Corriger le nom du client';
+          btnCorrigerClient.disabled = false;
+          if (r.ok || r.status === 201) {
+            if (d.eventId) envoyerDescriptionGcal(d).catch(function(){});
+            const nomEl = sheet.querySelector('.doc-client-nom');
+            if (nomEl) nomEl.textContent = nomFinal;
+            showToast('✅ Client mis à jour : ' + nomFinal);
+            if (renderDocsList) renderDocsList();
+          } else { showToast('❌ Erreur sauvegarde'); }
+        };
+        list.appendChild(item);
+      });
+    }
 
-    const btnAnn = document.createElement('button');
-    btnAnn.textContent = 'Annuler';
-    btnAnn.style.cssText = 'padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;';
-    btnAnn.onclick = function() { form.remove(); btnCorrigerClient.style.display = 'block'; };
+    renderList('');
+    inp.oninput = function() { renderList(inp.value); };
 
-    btnRow.appendChild(btnOk); btnRow.appendChild(btnAnn);
-    form.appendChild(labelActuel); form.appendChild(searchInp); form.appendChild(searchRes); form.appendChild(btnRow);
-    btnCorrigerClient.parentNode.insertBefore(form, btnCorrigerClient.nextSibling);
-    searchInp.focus(); searchInp.select();
+    ov.appendChild(header);
+    ov.appendChild(searchWrap);
+    ov.appendChild(list);
+    document.body.appendChild(ov);
+    setTimeout(function(){ inp.focus(); }, 150);
+
+    header.querySelector('#cc-back').onclick = function() { ov.remove(); };
   };
   btnCorrigerClient.id = 'btn-corriger-client-' + d.id;
   sheet.appendChild(btnCorrigerClient);
