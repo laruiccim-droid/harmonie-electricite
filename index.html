@@ -5501,23 +5501,43 @@ function docsOpenDetail(id) {
           const nomFinal = c.name;
           btnCorrigerClient.textContent = '⏳';
           btnCorrigerClient.disabled = true;
-          d.client = nomFinal;
-          if (c.phone)   d.tel   = c.phone;
-          if (c.email)   d.email = c.email;
+
+          // Recharger le payload COMPLET depuis Supabase avant de modifier
+          // (DEVIS_LIST ne contient que les champs résumés, pas rapport/photos/signatures)
+          let fullPayload = null;
+          try {
+            const rFetch = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(d.id) + '&select=payload', {
+              headers: SB_HEADERS
+            });
+            if (rFetch.ok) {
+              const rows = await rFetch.json();
+              if (rows && rows[0] && rows[0].payload) fullPayload = rows[0].payload;
+            }
+          } catch(e) {}
+
+          // Fallback : utiliser d si le rechargement a échoué
+          const payload = fullPayload || Object.assign({}, d);
+
+          // Appliquer uniquement les champs client
+          payload.client = nomFinal;
+          if (c.phone)   payload.tel   = c.phone;
+          if (c.email)   payload.email = c.email;
           if (c.address) {
-            d.adresseFacturation = c.address;
-            d.adresse = c.addressIntervention || c.address;
+            payload.adresseFacturation = c.address;
+            // Ne pas écraser l'adresse d'intervention si elle était déjà remplie
+            if (!payload.adresse) payload.adresse = c.addressIntervention || c.address;
           }
-          d.updatedAt = Date.now();
+          payload.updatedAt = Date.now();
+
           const r = await fetch(SUPA_URL + '/rest/v1/devis', {
             method: 'POST',
             headers: Object.assign({}, SB_HEADERS, {'Prefer':'resolution=merge-duplicates,return=minimal'}),
-            body: JSON.stringify({id: d.id, payload: d})
+            body: JSON.stringify({id: d.id, payload: payload})
           }).catch(function(){ return {ok:false}; });
           btnCorrigerClient.textContent = '👤 Corriger le nom du client';
           btnCorrigerClient.disabled = false;
           if (r.ok || r.status === 201) {
-            if (d.eventId) envoyerDescriptionGcal(d).catch(function(){});
+            if (payload.eventId) envoyerDescriptionGcal(payload).catch(function(){});
             const nomEl = sheet.querySelector('.doc-client-nom');
             if (nomEl) nomEl.textContent = nomFinal;
             showToast('✅ Client mis à jour : ' + nomFinal);
