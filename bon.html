@@ -1479,6 +1479,17 @@ window.addEventListener('load', async function() {
       if (Array.isArray(bonExPhotos.photos) && bonExPhotos.photos.length) {
         PHOTOS = bonExPhotos.photos.slice();
         renderPhotos();
+      } else if (data.bonExistantId) {
+        // Fallback : re-fetcher le payload complet depuis Supabase (évite limite sessionStorage)
+        fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(data.bonExistantId) + '&select=id,payload', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        }).then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(rows) {
+            if (rows && rows[0] && rows[0].payload && Array.isArray(rows[0].payload.photos) && rows[0].payload.photos.length) {
+              PHOTOS = rows[0].payload.photos.slice();
+              renderPhotos();
+            }
+          }).catch(function(){});
       }
     }
 
