@@ -1894,8 +1894,7 @@ async function sauvegarderClient() {
   var villeI = document.getElementById('cf-ville-interv').value.trim();
   var addressInterv = [rueI, cpI && villeI ? cpI + ' ' + villeI : (cpI || villeI)].filter(Boolean).join(', ');
 
-  var payload = {
-    id:      id,
+  var clientPayload = {
     name:    nom,
     phone:   document.getElementById('cf-tel').value.trim(),
     email:   document.getElementById('cf-email').value.trim(),
@@ -1910,6 +1909,9 @@ async function sauvegarderClient() {
     updatedAt: Date.now()
   };
 
+  // La table clients a id + payload (JSON), pas de colonnes directes
+  var row = { id: id, payload: clientPayload };
+
   var url    = SUPA_URL + '/rest/v1/clients';
   var method = estModif ? 'PATCH' : 'POST';
   if (estModif) url += '?id=eq.' + encodeURIComponent(id);
@@ -1921,22 +1923,24 @@ async function sauvegarderClient() {
         'apikey': SUPA_KEY,
         'Authorization': 'Bearer ' + SUPA_KEY,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': estModif ? 'return=minimal' : 'resolution=merge-duplicates,return=minimal'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(row)
     });
-    if (!r.ok && r.status !== 204) {
+    if (!r.ok && r.status !== 204 && r.status !== 201) {
       var txt = await r.text().catch(function(){ return ''; });
       throw new Error('HTTP ' + r.status + (txt ? ' — ' + txt.slice(0,120) : ''));
     }
 
+    // Objet en mémoire = id + champs du payload (comme le fait le chargement)
+    var memObj = Object.assign({ id: id }, clientPayload);
     fermerFormulaireClient();
     showToast(estModif ? '✅ Client modifié' : '✅ Client créé');
     if (estModif) {
       var idx = CLIENTS.findIndex(function(c){ return c.id === id; });
-      if (idx >= 0) CLIENTS[idx] = payload; else CLIENTS.push(payload);
+      if (idx >= 0) CLIENTS[idx] = memObj; else CLIENTS.push(memObj);
     } else {
-      CLIENTS.push(payload);
+      CLIENTS.push(memObj);
     }
     renderClientsList();
   } catch(e) {
