@@ -1473,6 +1473,13 @@ window.addEventListener('load', async function() {
       renderLignes();
     }
 
+    // Restaurer suiviRequis en mode édition
+    if (data.mode === 'edition') {
+      var bonExSuivi = data.bonExistant || {};
+      var cbSuivi = document.getElementById('f-suivi-requis');
+      if (cbSuivi) cbSuivi.checked = bonExSuivi.suiviRequis === true;
+    }
+
     // Restaurer le taux TVA (édition et ajout_session)
     if (data.tvaRate && (data.mode === 'edition' || data.type === 'ajout_session')) {
       var selTva = document.getElementById('f-tva');
@@ -3014,6 +3021,8 @@ async function validerDoc() {
         sigIntervenantOk:   !sigIsEmpty('sig-intervenant'),
         sigClientData:      document.getElementById('sig-client').toDataURL(),
         sigIntervenantData: document.getElementById('sig-intervenant').toDataURL(),
+        suiviRequis:        document.getElementById('f-suivi-requis')?.checked || false,
+        suiviClos:          window._bonExistant.suiviClos || false,
         statut:             'valide',
         updatedAt:          Date.now()
       });
