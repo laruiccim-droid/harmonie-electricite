@@ -1473,6 +1473,15 @@ window.addEventListener('load', async function() {
       renderLignes();
     }
 
+    // Restaurer les photos en mode édition
+    if (data.mode === 'edition') {
+      var bonExPhotos = data.bonExistant || {};
+      if (Array.isArray(bonExPhotos.photos) && bonExPhotos.photos.length) {
+        PHOTOS = bonExPhotos.photos.slice();
+        renderPhotos();
+      }
+    }
+
     // Restaurer les signatures en mode édition (setTimeout pour laisser le DOM se stabiliser)
     if (data.mode === 'edition') {
       var bonExSig = data.bonExistant || {};
