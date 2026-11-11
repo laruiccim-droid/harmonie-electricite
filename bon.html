@@ -1324,16 +1324,21 @@ window.addEventListener('load', async function() {
       if (!s) return '';
       return s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
     };
-    // Tout le contenu va dans motif — rapport reste vide par défaut
-    const motifBase = stripHtml(data.description || data.motif || '');
-    const rapportExtra = stripHtml(data.rapport || '');
-    document.getElementById('f-motif').value = rapportExtra && rapportExtra !== motifBase
-      ? (motifBase ? motifBase + '\n\n' + rapportExtra : rapportExtra)
-      : motifBase;
+    if (data.mode === 'edition') {
+      // Mode édition : motif et rapport sont des champs distincts — les restaurer séparément
+      document.getElementById('f-motif').value  = stripHtml(data.motif || data.description || '');
+      document.getElementById('f-rapport').value = stripHtml(data.rapport || '');
+    } else {
+      // Nouveau bon : tout dans motif, rapport vide par défaut
+      const motifBase = stripHtml(data.description || data.motif || '');
+      const rapportExtra = stripHtml(data.rapport || '');
+      document.getElementById('f-motif').value = rapportExtra && rapportExtra !== motifBase
+        ? (motifBase ? motifBase + '\n\n' + rapportExtra : rapportExtra)
+        : motifBase;
+    }
     document.getElementById('f-reference').value = data.reference || '';
     // Afficher les liens détectés dans le motif
     updateMotifLinks();
-    // f-rapport laissé vide intentionnellement (tout dans motif)
     document.getElementById('f-date').value     = data.date || new Date().toLocaleDateString('fr-FR');
     document.getElementById('f-rapport').placeholder = isBon
       ? 'Décris ici ce qui a été fait...'
@@ -1365,6 +1370,26 @@ window.addEventListener('load', async function() {
         return { ref: l.ref||'', nom: l.nom||'', qty: l.qty||1, pu: l.pu||0, unite: l.unite||'U', commander: false };
       });
       renderLignes();
+    }
+
+    // Restaurer les signatures en mode édition
+    if (data.mode === 'edition') {
+      var bonEx = data.bonExistant || {};
+      ['sigClientData', 'sigIntervenantData'].forEach(function(key) {
+        var sigData = bonEx[key];
+        if (!sigData || sigData.length < 100) return;
+        var canvasId = key === 'sigClientData' ? 'sig-client' : 'sig-intervenant';
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        var img = new Image();
+        img.onload = function() {
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = sigData;
+      });
     }
   } else {
     document.getElementById('f-date').value = new Date().toLocaleDateString('fr-FR');

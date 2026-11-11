@@ -5712,8 +5712,8 @@ function docsOpenDetail(id) {
 }
 
 async function _chargerPayloadComplet(d) {
-  // Si bonLieData absent mais bonLieId présent → recharger le payload complet
-  if (d.bonLieId && !d.bonLieData && d.id) {
+  // Toujours re-fetcher le payload complet depuis Supabase (rapport, heures, signatures absents du résumé DEVIS_LIST)
+  if (d.id) {
     try {
       const r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(d.id) + '&select=id,payload', { headers: SB_HEADERS });
       if (r.ok) {
