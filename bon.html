@@ -1250,6 +1250,15 @@ window.addEventListener('load', async function() {
     const btnPause = document.getElementById('btn-pause');
     if (btnPause) btnPause.style.display = 'none';
 
+    // Afficher bouton Suite d'intervention en mode édition (pour re-lier ou corriger la chaîne)
+    if (DOC_TYPE === 'bon') {
+      const btnSuiteEdit = document.getElementById('btn-suite-intervention');
+      if (btnSuiteEdit) btnSuiteEdit.style.display = 'flex';
+      // Pré-remplir BON_LIE depuis le payload existant
+      var bonEx1 = data.bonExistant || {};
+      if (bonEx1.bonLieData) { BON_LIE = bonEx1.bonLieData; setTimeout(renderBonLie, 100); }
+    }
+
   } else if (data && data.type === 'ajout_session') {
     window._bonMode    = 'ajout_session'; // ← stocker globalement
     window._bonExistantId = data.bonExistantId;
