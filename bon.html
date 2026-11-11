@@ -1326,8 +1326,9 @@ window.addEventListener('load', async function() {
     };
     if (data.mode === 'edition') {
       // Mode édition : motif et rapport sont des champs distincts — les restaurer séparément
-      document.getElementById('f-motif').value  = stripHtml(data.motif || data.description || '');
-      document.getElementById('f-rapport').value = stripHtml(data.rapport || '');
+      var bonEx0 = data.bonExistant || {};
+      document.getElementById('f-motif').value  = stripHtml(data.motif || data.description || bonEx0.motif || '');
+      document.getElementById('f-rapport').value = stripHtml(data.rapport || bonEx0.rapport || '');
     } else {
       // Nouveau bon : tout dans motif, rapport vide par défaut
       const motifBase = stripHtml(data.description || data.motif || '');
@@ -1346,6 +1347,7 @@ window.addEventListener('load', async function() {
 
     if (data.heureDebut) document.getElementById('f-heure-debut').value = data.heureDebut.replace('h',':').padEnd(5,'0');
     if (data.heureFin) document.getElementById('f-heure-fin').value = data.heureFin.replace('h',':').padEnd(5,'0');
+    if (data.heureDebut && data.heureFin) calcDuree(); // programmatic fill ne déclenche pas les listeners
 
     // Durée automatique depuis minuterie — ajouter MO seulement si pas de lignes pré-générées
     if (data.dureeMin && data.dureeMin > 0 && (!data.lignes || !data.lignes.length)) {
@@ -1372,24 +1374,34 @@ window.addEventListener('load', async function() {
       renderLignes();
     }
 
-    // Restaurer les signatures en mode édition
+    // Restaurer les signatures en mode édition (setTimeout pour laisser le DOM se stabiliser)
     if (data.mode === 'edition') {
-      var bonEx = data.bonExistant || {};
-      ['sigClientData', 'sigIntervenantData'].forEach(function(key) {
-        var sigData = bonEx[key];
-        if (!sigData || sigData.length < 100) return;
-        var canvasId = key === 'sigClientData' ? 'sig-client' : 'sig-intervenant';
-        var canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        var img = new Image();
-        img.onload = function() {
-          var ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        };
-        img.src = sigData;
-      });
+      var bonExSig = data.bonExistant || {};
+      setTimeout(function() {
+        ['sigClientData', 'sigIntervenantData'].forEach(function(key) {
+          var sigData = bonExSig[key];
+          // Un canvas blanc sauvegardé produit un PNG > 100 chars — vérifier la présence de pixels non-blancs via l'image chargée
+          if (!sigData || sigData.length < 500) return;
+          var canvasId = key === 'sigClientData' ? 'sig-client' : 'sig-intervenant';
+          var canvas = document.getElementById(canvasId);
+          if (!canvas) return;
+          var img = new Image();
+          img.onload = function() {
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // Vérifier si l'image contient vraiment une signature (pixels non-blancs)
+            var d2 = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            var hasInk = false;
+            for (var pi = 0; pi < d2.length; pi += 4) {
+              if (d2[pi] < 240 || d2[pi+1] < 240 || d2[pi+2] < 240) { hasInk = true; break; }
+            }
+            if (!hasInk) { ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); } // remettre blanc si vide
+          };
+          img.src = sigData;
+        });
+      }, 300);
     }
   } else {
     document.getElementById('f-date').value = new Date().toLocaleDateString('fr-FR');
