@@ -450,7 +450,7 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
 <div class="toast" id="toast"></div>
 
 <!-- MODAL CATALOGUE -->
-<div class="modal-overlay" id="cat-modal" style="display:none;">
+<div class="modal-overlay" id="cat-modal" style="display:none;" ontouchmove="catModalTouchMove(event)">
   <div class="modal-sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <h3>📦 Catalogue</h3>
@@ -476,7 +476,7 @@ canvas{display:block;width:100%;height:140px;border-radius:9px;touch-action:none
           </div>
         </div>
         <div><label>PU HT (€)</label><input type="number" id="cat-pu" step="0.01" min="0"></div>
-        <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="catConfirm()" style="width:100%;">Ajouter</button></div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn btn-primary btn-sm" id="cat-confirm-btn" ontouchstart="catConfirmTouch(event)" onclick="catConfirm()" style="width:100%;touch-action:manipulation;">Ajouter</button></div>
       </div>
     </div>
   </div>
@@ -2177,15 +2177,32 @@ function catSelectByIndex(i) {
   }, 300);
 }
 
+function catModalTouchMove(e) {
+  // Autoriser le scroll dans la liste résultats et les inputs
+  if (e.target.closest('#cat-results') || e.target.closest('input')) return;
+  e.preventDefault();
+}
+
+function catConfirmTouch(e) {
+  // Sur iOS, touchend est plus fiable que click dans un modal fixed
+  e.preventDefault();
+  catConfirm();
+}
+
 function catConfirm() {
-  if (!CAT_SELECTED) return;
-  const qty = parseFloat(document.getElementById('cat-qty').value) || 1;
-  const pu  = parseFloat(document.getElementById('cat-pu').value) || 0;
-  LIGNES.push({ ref: CAT_SELECTED.ref, nom: CAT_SELECTED.nom || CAT_SELECTED.ref, qty: qty, pu: pu, unite: CAT_SELECTED.unite || 'U', commander: false });
-  renderLignes();
-  closeCatalogue();
-  toast(CAT_SELECTED.ref + ' ajouté ✓');
-  CAT_SELECTED = null;
+  try {
+    if (!CAT_SELECTED) { toast('⚠️ Sélectionnez un article d\'abord'); return; }
+    const qty = parseFloat(document.getElementById('cat-qty').value) || 1;
+    const pu  = parseFloat(document.getElementById('cat-pu').value) || 0;
+    LIGNES.push({ ref: CAT_SELECTED.ref, nom: CAT_SELECTED.nom || CAT_SELECTED.ref, qty: qty, pu: pu, unite: CAT_SELECTED.unite || 'U', commander: false });
+    var refAdded = CAT_SELECTED.ref;
+    CAT_SELECTED = null;
+    renderLignes();
+    closeCatalogue();
+    toast(refAdded + ' ajouté ✓');
+  } catch(err) {
+    toast('Erreur: ' + err.message);
+  }
 }
 
 // ============================================================

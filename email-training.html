@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entraînement classification mails</title>
+<style>
+  :root {
+    --bg:#0f1117;--surface:#1c1f2e;--surface2:#252839;--border:#2e3148;
+    --accent:#f0c040;--text:#e8eaf0;--muted:#8b90a8;
+    --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--orange:#f97316;--purple:#a855f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:10px;}
+  .header h1{font-size:17px;font-weight:800;}
+  .badge{background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .container{max-width:1100px;margin:0 auto;padding:16px;}
+  .toolbar{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
+  .btn{padding:9px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+  .btn:hover{opacity:.85;}
+  .btn-primary{background:var(--accent);color:#000;}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-orange{background:var(--orange);color:#fff;}
+  .btn-purple{background:var(--purple);color:#fff;}
+  .btn-sm{padding:5px 10px;font-size:11px;}
+  .status{font-size:12px;color:var(--muted);}
+  .counter{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .cnt{background:var(--surface2);border-radius:10px;padding:8px 14px;text-align:center;}
+  .cnt .n{font-size:22px;font-weight:800;}
+  .cnt .l{font-size:10px;color:var(--muted);text-transform:uppercase;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;}
+
+  /* Card mail */
+  .mail-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+  .mail-card.done-intervention{border-color:var(--green);}
+  .mail-card.done-devis{border-color:var(--blue);}
+  .mail-card.done-autre{border-color:var(--muted);opacity:.55;}
+  .mail-card.done-spam{border-color:var(--red);opacity:.4;}
+
+  .mail-header{background:var(--surface2);padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .mail-meta{flex:1;min-width:0;}
+  .mail-subject{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mail-from{font-size:11px;color:var(--muted);margin-top:2px;}
+  .mail-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+
+  .mail-body{display:none;padding:14px 16px;}
+  .mail-body.open{display:block;}
+
+  .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 6px;}
+  .text-block{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-word;color:#adb5c8;max-height:180px;overflow-y:auto;}
+  .collab-card{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:12px;margin-bottom:8px;}
+  .collab-field{margin-bottom:6px;font-size:13px;}
+  .collab-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:2px;}
+
+  /* Formulaire extraction */
+  .extract-form{background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.2);border-radius:12px;padding:14px;margin-top:12px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+  .form-field label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:3px;}
+  .form-field input,.form-field textarea,.form-field select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;font-family:inherit;}
+  .form-field textarea{resize:vertical;min-height:60px;}
+  .form-field input:focus,.form-field textarea:focus,.form-field select:focus{outline:none;border-color:var(--accent);}
+  .urgency-row{display:flex;gap:6px;margin-top:4px;}
+  .urgency-btn{flex:1;padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;}
+  .urgency-btn.active-basse{background:rgba(34,197,94,.2);border-color:var(--green);color:var(--green);}
+  .urgency-btn.active-moyenne{background:rgba(249,115,22,.2);border-color:var(--orange);color:var(--orange);}
+  .urgency-btn.active-haute{background:rgba(239,68,68,.2);border-color:var(--red);color:var(--red);}
+
+  .export-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:20px;display:none;}
+  .export-box h2{font-size:14px;margin-bottom:10px;}
+  .export-ta{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;height:280px;}
+  .pdf-badge{display:inline-block;background:rgba(168,85,247,.15);color:var(--purple);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:4px;}
+  .link-pill{display:inline-block;background:rgba(59,130,246,.15);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:11px;margin-right:4px;margin-bottom:4px;word-break:break-all;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📬 Entraînement — Mails</h1>
+  <div class="badge">Classification</div>
+  <div style="margin-left:auto;font-size:11px;color:var(--muted);">Classe chaque mail pour m'apprendre à détecter les demandes</div>
+</div>
+
+<div class="container">
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="charger()">🔄 Charger les mails</button>
+    <label style="font-size:12px;color:var(--muted);">
+      <input type="checkbox" id="chk-all" checked> Inclure déjà classifiés
+    </label>
+    <div class="status" id="status-txt"></div>
+    <button class="btn btn-secondary" onclick="exporter()" style="margin-left:auto;">📥 Exporter</button>
+  </div>
+
+  <div class="counter" id="counter" style="display:none;">
+    <div class="cnt"><div class="n" id="cnt-total">0</div><div class="l">Total</div></div>
+    <div class="cnt"><div class="n" id="cnt-inter" style="color:var(--green)">0</div><div class="l">✅ Intervention</div></div>
+    <div class="cnt"><div class="n" id="cnt-devis" style="color:var(--blue)">0</div><div class="l">📄 Devis</div></div>
+    <div class="cnt"><div class="n" id="cnt-autre" style="color:var(--muted)">0</div><div class="l">Autre</div></div>
+    <div class="cnt"><div class="n" id="cnt-spam" style="color:var(--red)">0</div><div class="l">Spam</div></div>
+    <div class="cnt"><div class="n" id="cnt-pending" style="color:var(--orange)">0</div><div class="l">En attente</div></div>
+  </div>
+
+  <div id="mails-container"><div class="empty">Lance le script Node.js puis clique sur Charger</div></div>
+
+  <div class="export-box" id="export-box">
+    <h2>📋 Données d'entraînement exportées</h2>
+    <textarea class="export-ta" id="export-ta" readonly></textarea>
+    <button class="btn btn-primary" style="margin-top:10px;" onclick="copier()">📋 Copier</button>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://bqzebkobyfktemnwfwbt.supabase.co';
+const SUPA_KEY = 'sb_publishable_vh62KxFcG1NuLcnya6WpMg_oFRtY-2v';
+const SB_H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' };
+
+let MAILS = [];
+
+// ── Chargement ────────────────────────────────────────────────
+async function charger() {
+  document.getElementById('mails-container').innerHTML = '<div class="empty" style="animation:none;opacity:.7">⏳ Chargement…</div>';
+  document.getElementById('status-txt').textContent = '';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/notes?id=like.email_train_*&select=id,payload&order=id.desc&limit=200', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    if (!r.ok) throw new Error('Supabase ' + r.status);
+    const rows = await r.json();
+    const inclDone = document.getElementById('chk-all').checked;
+    MAILS = rows
+      .filter(row => row.payload && row.payload.source === 'email_training')
+      .filter(row => inclDone || !row.payload.label)
+      .map(row => ({ supaId: row.id, ...row.payload }));
+
+    if (!MAILS.length) {
+      document.getElementById('mails-container').innerHTML = '<div class="empty">Aucun mail en base.<br><br>Lance le script :<br><code>cd email-fetcher && npm install && node fetch.js</code></div>';
+      return;
+    }
+    afficher();
+    majCompteurs();
+    document.getElementById('counter').style.display = 'flex';
+    document.getElementById('status-txt').textContent = MAILS.length + ' mail(s) chargés';
+  } catch(e) {
+    document.getElementById('mails-container').innerHTML = '<div class="empty">Erreur : ' + e.message + '</div>';
+  }
+}
+
+// ── Affichage ─────────────────────────────────────────────────
+function afficher() {
+  const cont = document.getElementById('mails-container');
+  cont.innerHTML = '';
+  MAILS.forEach(function(m, idx) {
+    const card = document.createElement('div');
+    card.className = 'mail-card' + (m.label ? ' done-' + m.label : '');
+    card.id = 'card-' + idx;
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'mail-header';
+
+    const meta = document.createElement('div');
+    meta.className = 'mail-meta';
+
+    const subj = document.createElement('div');
+    subj.className = 'mail-subject';
+    subj.textContent = m.subject || '(sans objet)';
+
+    const from = document.createElement('div');
+    from.className = 'mail-from';
+    from.textContent = (m.from || '') + (m.date ? ' · ' + new Date(m.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '');
+
+    meta.appendChild(subj);
+    meta.appendChild(from);
+
+    const actions = document.createElement('div');
+    actions.className = 'mail-actions';
+
+    // Bouton expand
+    const btnOpen = makeBtn('🔍 Voir', 'btn-secondary btn-sm', function() { toggleBody(idx); });
+    // Boutons classification
+    const btnInter = makeBtn('✅ Intervention', 'btn-green btn-sm', function() { classifier(idx, 'intervention'); });
+    const btnDevis = makeBtn('📄 Devis', 'btn btn-sm', function() { classifier(idx, 'devis'); });
+    btnDevis.style.cssText = 'padding:5px 10px;font-size:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;';
+    const btnAutre = makeBtn('⏭ Autre', 'btn-secondary btn-sm', function() { classifier(idx, 'autre'); });
+    const btnSpam  = makeBtn('🚫 Spam',  'btn-secondary btn-sm', function() { classifier(idx, 'spam'); });
+
+    if (m.label) {
+      const badge = document.createElement('span');
+      badge.style.cssText = 'font-size:11px;font-weight:700;color:var(--' + (m.label==='intervention'?'green':m.label==='devis'?'blue':'muted') + ');';
+      badge.textContent = {intervention:'✅ Intervention',devis:'📄 Devis',autre:'⏭ Autre',spam:'🚫 Spam'}[m.label] || m.label;
+      actions.appendChild(badge);
+    }
+    actions.appendChild(btnOpen);
+    actions.appendChild(btnInter);
+    actions.appendChild(btnDevis);
+    actions.appendChild(btnAutre);
+    actions.appendChild(btnSpam);
+
+    hdr.appendChild(meta);
+    hdr.appendChild(actions);
+    card.appendChild(hdr);
+
+    // Body (caché par défaut)
+    const body = document.createElement('div');
+    body.className = 'mail-body';
+    body.id = 'body-' + idx;
+    body.appendChild(buildBody(m, idx));
+    card.appendChild(body);
+
+    cont.appendChild(card);
+  });
+}
+
+function makeBtn(label, cls, fn) {
+  const b = document.createElement('button');
+  b.className = 'btn ' + cls;
+  b.textContent = label;
+  b.onclick = fn;
+  return b;
+}
+
+function buildBody(m, idx) {
+  const wrap = document.createElement('div');
+
+  // Corps du mail
+  const st1 = document.createElement('div'); st1.className = 'section-title'; st1.textContent = '📧 Corps du mail';
+  const tb = document.createElement('div'); tb.className = 'text-block'; tb.textContent = m.bodyText || '(vide)';
+  wrap.appendChild(st1); wrap.appendChild(tb);
+
+  // PDFs
+  if (m.pdfTexts && m.pdfTexts.length) {
+    const st2 = document.createElement('div'); st2.className = 'section-title'; st2.textContent = '📄 Pièces jointes PDF';
+    wrap.appendChild(st2);
+    m.pdfTexts.forEach(function(p) {
+      const pb = document.createElement('div'); pb.style.marginBottom = '8px';
+      const badge = document.createElement('span'); badge.className = 'pdf-badge'; badge.textContent = p.filename;
+      const txt = document.createElement('div'); txt.className = 'text-block'; txt.style.marginTop = '4px'; txt.textContent = p.text;
+      pb.appendChild(badge); pb.appendChild(txt);
+      wrap.appendChild(pb);
+    });
+  }
+
+  // Citya Collab
+  if (m.collabData && m.collabData.length) {
+    const st3 = document.createElement('div'); st3.className = 'section-title'; st3.textContent = '🔗 Citya Collab';
+    wrap.appendChild(st3);
+    m.collabData.filter(function(c) {
+      // Ignorer les URLs non-dossier (logos, images) qui n'ont pas de topicId
+      return c.topicId || (!c.erreur && (c.titre || c.descriptionClient));
+    }).forEach(function(c) {
+      const cc = document.createElement('div'); cc.className = 'collab-card';
+      if (c.erreur) {
+        cc.innerHTML = '<div style="color:var(--red);font-size:12px;">⚠️ ' + c.erreur + '</div>';
+      } else {
+        const fields = [
+          ['Type', c.type], ['Immeuble', c.immeuble || c.titre], ['Adresse', c.adresse],
+          ['Description client', c.descriptionClient], ['Digicode', c.digicode],
+          ['Agence', c.agence], ['Contact agence', c.agenceContact + (c.agenceEmail ? ' — ' + c.agenceEmail : '')],
+          ['Dossier N°', c.topicId]
+        ];
+        fields.forEach(function(f) {
+          if (!f[1]) return;
+          const d = document.createElement('div'); d.className = 'collab-field';
+          const l = document.createElement('div'); l.className = 'collab-label'; l.textContent = f[0];
+          const v = document.createElement('div'); v.style.fontSize = '13px'; v.textContent = f[1];
+          d.appendChild(l); d.appendChild(v); cc.appendChild(d);
+        });
+      }
+      if (c.url) {
+        const link = document.createElement('a');
+        link.href = c.url; link.target = '_blank';
+        link.style.cssText = 'display:inline-block;margin-top:8px;font-size:12px;color:var(--blue);';
+        link.textContent = '🔗 Ouvrir sur Citya Collab →';
+        cc.appendChild(link);
+      }
+      wrap.appendChild(cc);
+    });
+  }
+
+  // Autres liens
+  if (m.allLinks && m.allLinks.length) {
+    const nonCitya = m.allLinks.filter(function(u) { return !u.includes('collab.citya'); });
+    if (nonCitya.length) {
+      const st4 = document.createElement('div'); st4.className = 'section-title'; st4.textContent = '🌐 Liens dans le mail';
+      wrap.appendChild(st4);
+      const lw = document.createElement('div');
+      nonCitya.slice(0, 10).forEach(function(u) {
+        const a = document.createElement('a');
+        a.href = u; a.target = '_blank'; a.className = 'link-pill'; a.textContent = u.substring(0, 60) + (u.length > 60 ? '…' : '');
+        lw.appendChild(a);
+      });
+      wrap.appendChild(lw);
+    }
+  }
+
+  // Formulaire d'extraction
+  const ef = buildExtractionForm(m, idx);
+  wrap.appendChild(ef);
+
+  return wrap;
+}
+
+function buildExtractionForm(m, idx) {
+  const form = document.createElement('div');
+  form.className = 'extract-form';
+  form.id = 'form-' + idx;
+
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.style.marginTop = '0';
+  title.textContent = '✏️ Données extraites — valide ou corrige';
+  form.appendChild(title);
+
+  const ed = m.extractedData || {};
+  const collab = m.collabData && m.collabData[0];
+
+  // Pré-remplissage depuis Citya si disponible
+  const defaultMotif = (collab && !collab.erreur) ? (collab.descriptionClient || collab.motifTitre || collab.titre || '') : '';
+  const defaultAdresse = (collab && !collab.erreur) ? collab.adresse : '';
+  const defaultNom = (collab && !collab.erreur)
+    ? [collab.immeuble || collab.titre, collab.agence].filter(Boolean).join(' / ')
+    : '';
+
+  const grid = document.createElement('div');
+  grid.className = 'form-grid';
+
+  function addField(id, label, val, multiline) {
+    const wrap = document.createElement('div'); wrap.className = 'form-field';
+    const lbl = document.createElement('label'); lbl.textContent = label;
+    const inp = multiline ? document.createElement('textarea') : document.createElement('input');
+    inp.id = 'f-' + idx + '-' + id;
+    inp.value = ed[id] || val || '';
+    if (!multiline) inp.type = 'text';
+    wrap.appendChild(lbl); wrap.appendChild(inp);
+    return wrap;
+  }
+
+  grid.appendChild(addField('nom', 'Nom client / syndic', defaultNom));
+  grid.appendChild(addField('adresse', 'Adresse intervention', defaultAdresse));
+  grid.appendChild(addField('motif', 'Motif de la demande', defaultMotif, true));
+  grid.appendChild(addField('datesouhaitee', 'Date souhaitée', ''));
+  form.appendChild(grid);
+
+  // Urgence
+  const urgWrap = document.createElement('div');
+  urgWrap.className = 'form-field';
+  urgWrap.style.marginTop = '10px';
+  const urgLabel = document.createElement('label'); urgLabel.textContent = 'Urgence';
+  const urgRow = document.createElement('div'); urgRow.className = 'urgency-row';
+  ['basse','moyenne','haute'].forEach(function(u) {
+    const btn = document.createElement('button');
+    btn.className = 'urgency-btn' + (ed.urgence === u ? ' active-' + u : '');
+    btn.textContent = u === 'basse' ? '🟢 Basse' : u === 'moyenne' ? '🟡 Moyenne' : '🔴 Haute';
+    btn.onclick = function() {
+      urgRow.querySelectorAll('.urgency-btn').forEach(b => b.className = 'urgency-btn');
+      btn.className = 'urgency-btn active-' + u;
+      MAILS[idx].extractedData = MAILS[idx].extractedData || {};
+      MAILS[idx].extractedData.urgence = u;
+    };
+    urgRow.appendChild(btn);
+  });
+  urgWrap.appendChild(urgLabel); urgWrap.appendChild(urgRow);
+  form.appendChild(urgWrap);
+
+  // Bouton sauvegarder extraction
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn-primary';
+  saveBtn.style.marginTop = '12px';
+  saveBtn.textContent = '💾 Sauvegarder les données extraites';
+  saveBtn.onclick = function() { sauvegarderExtraction(idx); };
+  form.appendChild(saveBtn);
+
+  return form;
+}
+
+function toggleBody(idx) {
+  const body = document.getElementById('body-' + idx);
+  body.classList.toggle('open');
+}
+
+// ── Actions ────────────────────────────────────────────────────
+async function classifier(idx, label) {
+  MAILS[idx].label = label;
+  // Récupérer les données du formulaire si ouvert
+  sauvegarderExtraction(idx, false);
+
+  const card = document.getElementById('card-' + idx);
+  card.className = 'mail-card done-' + label;
+
+  // Sauvegarder en Supabase
+  try {
+    await fetch(SUPA_URL + '/rest/v1/notes', {
+      method: 'POST',
+      headers: SB_H,
+      body: JSON.stringify([{ id: MAILS[idx].supaId, payload: Object.assign({}, MAILS[idx]) }])
+    });
+  } catch(e) { console.error(e); }
+
+  majCompteurs();
+}
+
+function sauvegarderExtraction(idx, withToast) {
+  const get = function(id) { const el = document.getElementById('f-' + idx + '-' + id); return el ? el.value : ''; };
+  MAILS[idx].extractedData = Object.assign(MAILS[idx].extractedData || {}, {
+    nom: get('nom'),
+    adresse: get('adresse'),
+    motif: get('motif'),
+    datesouhaitee: get('datesouhaitee'),
+    urgence: MAILS[idx].extractedData?.urgence || ''
+  });
+  if (withToast !== false) {
+    fetch(SUPA_URL + '/rest/v1/notes', {
+      method: 'POST', headers: SB_H,
+      body: JSON.stringify([{ id: MAILS[idx].supaId, payload: Object.assign({}, MAILS[idx]) }])
+    }).catch(function(){});
+  }
+}
+
+// ── Compteurs ──────────────────────────────────────────────────
+function majCompteurs() {
+  document.getElementById('cnt-total').textContent  = MAILS.length;
+  document.getElementById('cnt-inter').textContent  = MAILS.filter(m => m.label==='intervention').length;
+  document.getElementById('cnt-devis').textContent  = MAILS.filter(m => m.label==='devis').length;
+  document.getElementById('cnt-autre').textContent  = MAILS.filter(m => m.label==='autre').length;
+  document.getElementById('cnt-spam').textContent   = MAILS.filter(m => m.label==='spam').length;
+  document.getElementById('cnt-pending').textContent= MAILS.filter(m => !m.label).length;
+}
+
+// ── Export ────────────────────────────────────────────────────
+function exporter() {
+  const valides = MAILS.filter(m => m.label === 'intervention' || m.label === 'devis');
+  if (!valides.length) { alert('Aucune demande classifiée.'); return; }
+
+  let md = '## Exemples de mails — Demandes d\'intervention et devis (validés le ' + new Date().toLocaleDateString('fr-FR') + ')\n\n';
+
+  valides.forEach(function(m) {
+    const ed = m.extractedData || {};
+    const collab = m.collabData && m.collabData[0] && !m.collabData[0].erreur ? m.collabData[0] : null;
+    md += '### ' + (m.label === 'intervention' ? '✅ Intervention' : '📄 Devis') + '\n';
+    md += '**Objet** : `' + (m.subject || '').replace(/`/g, "'") + '`\n';
+    md += '**De** : `' + (m.from || '').split('<')[0].trim() + '`\n';
+    if (collab) {
+      md += '**Citya Collab** : Dossier N°' + collab.topicId + ' — ' + (collab.titre || '') + '\n';
+    }
+    md += '\n| Champ | Valeur extraite |\n|---|---|\n';
+    md += '| Nom / Syndic | `' + (ed.nom || '').replace(/`/g,"'") + '` |\n';
+    md += '| Adresse | `' + (ed.adresse || collab?.adresse || '').replace(/`/g,"'") + '` |\n';
+    md += '| Motif | `' + (ed.motif || collab?.titre || '').replace(/`/g,"'").substring(0,120) + '` |\n';
+    md += '| Urgence | `' + (ed.urgence || 'non précisée') + '` |\n';
+    if (ed.datesouhaitee) md += '| Date souhaitée | `' + ed.datesouhaitee + '` |\n';
+    md += '\n';
+  });
+
+  md += '\n---\n*Généré par email-training.html*\n';
+
+  const box = document.getElementById('export-box');
+  box.style.display = 'block';
+  document.getElementById('export-ta').value = md;
+  box.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copier() {
+  const ta = document.getElementById('export-ta'); ta.select(); document.execCommand('copy');
+  alert('✅ Copié !');
+}
+</script>
+</body>
+</html>
