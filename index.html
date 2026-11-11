@@ -5497,11 +5497,15 @@ function docsOpenDetail(id) {
           + '</div>';
       }).join('') || '<div style="padding:8px;color:#888;font-size:12px;">Aucun résultat</div>';
       searchRes.querySelectorAll('div[data-json]').forEach(function(el){
-        el.onclick = function(){
+        function choisir(e) {
+          e.preventDefault();
+          e.stopPropagation();
           clientSelectionne = JSON.parse(el.getAttribute('data-json'));
           searchInp.value = clientSelectionne.name || '';
           searchRes.style.display = 'none';
-        };
+        }
+        el.addEventListener('mousedown', choisir);
+        el.addEventListener('touchend', choisir, {passive: false});
       });
       searchRes.style.display = 'block';
     };
