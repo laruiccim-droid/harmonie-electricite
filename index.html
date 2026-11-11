@@ -1874,7 +1874,7 @@ function fermerFormulaireClient() {
 
 async function sauvegarderClient() {
   var nom = document.getElementById('cf-nom').value.trim();
-  if (!nom) { toast('Le nom est obligatoire'); return; }
+  if (!nom) { showToast('Le nom est obligatoire'); return; }
 
   var btn = document.getElementById('cf-submit-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
@@ -1931,7 +1931,7 @@ async function sauvegarderClient() {
     }
 
     fermerFormulaireClient();
-    toast(estModif ? '✅ Client modifié' : '✅ Client créé');
+    showToast(estModif ? '✅ Client modifié' : '✅ Client créé');
     if (estModif) {
       var idx = CLIENTS.findIndex(function(c){ return c.id === id; });
       if (idx >= 0) CLIENTS[idx] = payload; else CLIENTS.push(payload);
@@ -1941,7 +1941,7 @@ async function sauvegarderClient() {
     renderClientsList();
   } catch(e) {
     if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
-    toast('Erreur : ' + e.message);
+    showToast('Erreur : ' + e.message);
   }
 }
 
