@@ -3768,8 +3768,18 @@ async function _genererPDFInner(docData) {
   // Espace minimal avant d'imprimer un titre de section + en-tête tableau + 2 lignes
   const MIN_SECTION = 38;
 
-  // ── INTERVENTION PRÉCÉDENTE (bon lié) ────────────────────
-  const bonLieData = docData && docData.bonLieData;
+  // ── INTERVENTIONS PRÉCÉDENTES (chaîne complète) ──────────
+  // Construire la chaîne complète : bonLieData → bonLieData.bonLieData → ...
+  var _chainePrev = [];
+  var _ptr = docData && docData.bonLieData;
+  while (_ptr && _chainePrev.length < 20) { // garde-fou 20 niveaux max
+    _chainePrev.push(_ptr);
+    _ptr = _ptr.bonLieData || null;
+  }
+  _chainePrev.reverse(); // afficher du plus ancien au plus récent
+
+  for (var _ci = 0; _ci < _chainePrev.length; _ci++) {
+  var bonLieData = _chainePrev[_ci];
   if (bonLieData && bonLieData.lignes && bonLieData.lignes.length) {
     const bonLieHT  = bonLieData.lignes.reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); }, 0);
     const bonLieTTC = bonLieData.totalTTC || bonLieHT * (1 + (bonLieData.tvaRate||20)/100);
@@ -3778,7 +3788,10 @@ async function _genererPDFInner(docData) {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...ORANGE);
-    doc.text('INTERVENTION PRÉCÉDENTE — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||''), M, y + 4);
+    var _labelPrev = _chainePrev.length > 1
+      ? 'INTERVENTION ' + (_ci + 1) + '/' + _chainePrev.length + ' — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'')
+      : 'INTERVENTION PRÉCÉDENTE — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'');
+    doc.text(_labelPrev, M, y + 4);
     y += 7;
 
     // Heures intervention précédente
@@ -3902,13 +3915,17 @@ async function _genererPDFInner(docData) {
     doc.line(M, y, W-M, y);
     y += 6;
   }
+  } // fin boucle chaîne interventions précédentes
 
   if (y + MIN_SECTION > SAFE_PDF) { doc.addPage(); y = 14; }
 
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...ORANGE);
-  doc.text(bonLieData ? 'INTERVENTION DU ' + (d && d.date ? d.date : '') + ' — DÉTAIL' : 'DÉTAIL DES PRESTATIONS', M, y + 4);
+  var _labelCurrent = _chainePrev.length > 0
+    ? 'INTERVENTION ' + (_chainePrev.length + 1) + '/' + (_chainePrev.length + 1) + ' DU ' + (d && d.date ? d.date : '') + ' — DÉTAIL'
+    : 'DÉTAIL DES PRESTATIONS';
+  doc.text(_labelCurrent, M, y + 4);
   y += 7;
 
   // En-tête tableau — adapté selon le mode
