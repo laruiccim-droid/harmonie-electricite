@@ -874,7 +874,9 @@ function selectionnerBonLie(row) {
     totalTTC:   parseFloat(row.totalTTC) || 0,
     tvaRate:    parseFloat(row.tvaRate) || 20,
     client:     row.client || '',
-    adresse:    row.adresse || ''
+    adresse:    row.adresse || '',
+    bonLieId:   row.bonLieId   || null,
+    bonLieData: row.bonLieData || null
   };
   document.getElementById('bon-lie-card').style.display = 'block';
   renderBonLie();
@@ -3408,8 +3410,28 @@ async function genererPDF(docData) {
   }
 }
 
+async function _completerChaineBonLie(node, depth) {
+  // Compléter récursivement les maillons qui ont un bonLieId mais pas de bonLieData
+  if (!node || depth > 10) return;
+  if (node.bonLieId && !node.bonLieData) {
+    try {
+      var r = await fetch(SUPA_URL + '/rest/v1/devis?id=eq.' + encodeURIComponent(node.bonLieId) + '&select=id,payload',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY } });
+      if (r.ok) {
+        var rows = await r.json();
+        if (rows && rows[0] && rows[0].payload) {
+          node.bonLieData = Object.assign({}, rows[0].payload, { id: rows[0].id });
+        }
+      }
+    } catch(e) {}
+  }
+  if (node.bonLieData) await _completerChaineBonLie(node.bonLieData, depth + 1);
+}
+
 async function _genererPDFInner(docData) {
   toast('Génération du PDF…');
+  // Compléter la chaîne bonLieData si des maillons manquent (bons sauvegardés avant le fix)
+  await _completerChaineBonLie(docData, 0);
 
   // Charger jsPDF dynamiquement
   if (!window.jsPDF) {
