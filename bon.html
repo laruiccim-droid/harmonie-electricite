@@ -3820,7 +3820,7 @@ async function _genererPDFInner(docData) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...ORANGE);
     var _labelPrev = _chainePrev.length > 1
-      ? 'INTERVENTION ' + (_ci + 1) + '/' + _chainePrev.length + ' — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'')
+      ? 'INTERVENTION ' + (_ci + 1) + '/' + (_chainePrev.length + 1) + ' — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'')
       : 'INTERVENTION PRÉCÉDENTE — ' + (bonLieData.numero||'') + ' du ' + (bonLieData.date||'');
     doc.text(_labelPrev, M, y + 4);
     y += 7;
@@ -4035,12 +4035,13 @@ async function _genererPDFInner(docData) {
     const totW = 80;
     const totX = W - M - totW;
 
-    // Totaux cumulés si bon lié
-    const bonLieTTCVal = bonLieData ? (bonLieData.totalTTC || 0) : 0;
-    const bonLieHTVal  = bonLieData ? (bonLieData.lignes||[]).reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); },0) : 0;
+    // Totaux cumulés si bon lié — somme toute la chaîne _chainePrev
+    const bonLieHTVal = _chainePrev.reduce(function(acc, b) {
+      return acc + (b.lignes||[]).reduce(function(s,l){ return s+(parseFloat(l.qty)||0)*(parseFloat(l.pu)||0); },0);
+    }, 0);
     const htCumul  = ht + bonLieHTVal;
-    const ttcCumul = ttc + bonLieTTCVal;
     const tvaCumul = htCumul * tvaRate / 100;
+    const ttcCumul = htCumul + tvaCumul;
 
     const boxH = bonLieData ? 30 : 22;
     if (y + boxH + 14 > SAFE_PDF) { doc.addPage(); y = 14; }
@@ -4053,7 +4054,7 @@ async function _genererPDFInner(docData) {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...GREY);
     if (bonLieData) {
-      doc.text('Interv. préc. HT', totX + 4, y + 7);
+      doc.text(_chainePrev.length > 1 ? 'Interv. préc. HT (' + _chainePrev.length + ')' : 'Interv. préc. HT', totX + 4, y + 7);
       doc.text('Interv. courante HT', totX + 4, y + 14);
       doc.text('TVA ' + tvaRate + '%', totX + 4, y + 21);
       doc.setTextColor(...DARK);
