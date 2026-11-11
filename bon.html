@@ -3884,6 +3884,19 @@ async function _genererPDFInner(docData) {
     y += rowH;
   });
 
+  // Rang total HT en pied de tableau de l'intervention courante
+  if (showTotal && lignesPDF.length > 0) {
+    if (y + 8 > SAFE_PDF) { doc.addPage(); y = 14; }
+    doc.setFillColor(45, 45, 45);
+    doc.rect(M, y, W - 2*M, 8, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL HT', M + 2, y + 5.5);
+    doc.text(ht.toFixed(2) + ' €', W - M - 2, y + 5.5, { align:'right' });
+    y += 8;
+  }
+
   y += 4;
 
   // ── INTERVENTIONS PRÉCÉDENTES (chaîne complète) ──────────
@@ -3948,6 +3961,19 @@ async function _genererPDFInner(docData) {
       y += rowH2;
     });
 
+    // Rang total HT en pied de tableau de l'intervention précédente
+    if (showTotal) {
+      if (y + 8 > SAFE_PDF) { doc.addPage(); y = 14; }
+      doc.setFillColor(45, 45, 45);
+      doc.rect(M, y, W - 2*M, 8, 'F');
+      doc.setTextColor(...WHITE);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL HT', M + 2, y + 5.5);
+      doc.text(bonLieHT.toFixed(2) + ' €', W - M - 2, y + 5.5, { align:'right' });
+      y += 8;
+    }
+
     // Rapport intervention précédente
     if (bonLieData.rapport) {
       y += 3;
@@ -4009,16 +4035,6 @@ async function _genererPDFInner(docData) {
       y += 70;
     }
 
-    // Sous-total intervention précédente
-    if (showTotal) {
-      y += 2;
-      const totW2 = 80; const totX2 = W-M-totW2;
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...GREY);
-      doc.text('Sous-total interv. préc. HT', totX2-2, y+5, { align:'right' });
-      doc.setTextColor(...DARK); doc.setFont('helvetica','bold');
-      doc.text(bonLieHT.toFixed(2)+' €', W-M-2, y+5, { align:'right' });
-      y += 8;
-    }
     y += 4;
     doc.setDrawColor(200,200,200);
     doc.line(M, y, W-M, y);
