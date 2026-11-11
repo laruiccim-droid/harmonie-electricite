@@ -5813,7 +5813,8 @@ async function openFicheClient(id) {
     <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Coordonnées</div>`;
   if (c.phone) h += `<div style="font-size:14px;margin-bottom:6px;">📞 <a href="tel:${escHtml(c.phone.replace(/\s/g,''))}" style="color:var(--text);text-decoration:none;">${escHtml(c.phone)}</a></div>`;
   if (c.email) h += `<div style="font-size:14px;margin-bottom:6px;">✉️ <a href="mailto:${escHtml(c.email)}" style="color:var(--text);text-decoration:none;">${escHtml(c.email)}</a></div>`;
-  if (c.address) h += `<div style="font-size:14px;">📍 ${escHtml(c.address)}</div>`;
+  if (c.address) h += `<div style="font-size:14px;margin-bottom:6px;">🏠 <span style="font-size:11px;color:var(--muted);font-weight:700;">FACTURATION </span>${escHtml(c.address)}</div>`;
+  if (c.addressIntervention) h += `<div style="font-size:14px;">📍 <span style="font-size:11px;color:var(--muted);font-weight:700;">INTERVENTION </span>${escHtml(c.addressIntervention)}</div>`;
   h += '</div>';
 
   // Espace client (accès au site)
