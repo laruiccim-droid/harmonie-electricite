@@ -2168,8 +2168,13 @@ function catSelectByIndex(i) {
   if (puEl) puEl.value = (e.pv || 0).toFixed(2);
   if (qtyEl) qtyEl.value = 1;
   if (rowEl) rowEl.style.display = 'block';
-  // Scroll to add row
-  if (rowEl) rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Fermer le clavier virtuel pour libérer l'espace et voir le bouton Ajouter
+  const qInp = document.getElementById('cat-q');
+  if (qInp) qInp.blur();
+  // Scroll après un court délai (attendre que le clavier se ferme)
+  setTimeout(function() {
+    if (rowEl) rowEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, 300);
 }
 
 function catConfirm() {
