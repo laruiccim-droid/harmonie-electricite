@@ -3060,6 +3060,8 @@ async function validerDoc() {
         sigIntervenantData: document.getElementById('sig-intervenant').toDataURL(),
         suiviRequis:        document.getElementById('f-suivi-requis')?.checked || false,
         suiviClos:          window._bonExistant.suiviClos || false,
+        bonLieId:           BON_LIE ? BON_LIE.id : (window._bonExistant.bonLieId || null),
+        bonLieData:         BON_LIE ? BON_LIE : (window._bonExistant.bonLieData || null),
         statut:             'valide',
         updatedAt:          Date.now()
       });
