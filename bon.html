@@ -626,18 +626,28 @@ function filtrerClients(q) {
         const n = ((c.name||'')+' '+(c.company||'')).toLowerCase();
         return (q||'').toLowerCase().split(' ').every(function(w){ return n.includes(w); });
       }).slice(0, 20);
-  results.innerHTML = filtered.map(function(c) {
-    const data = encodeURIComponent(JSON.stringify(c));
-    return '<div onclick="selectionnerClient(\'' + data + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px;">'
-      + '<div style="font-weight:600;">' + (c.name||'').replace(/</g,'&lt;') + '</div>'
-      + (c.address ? '<div style="font-size:11px;color:var(--muted);">' + (c.address||'').replace(/</g,'&lt;') + '</div>' : '')
-      + (c.phone ? '<div style="font-size:11px;color:var(--muted);">📞 ' + c.phone + '</div>' : '')
+  // Stocker les objets dans un tableau indexé pour éviter les problèmes d'apostrophes dans les onclick inline
+  window._clientSearchResults = filtered;
+  results.innerHTML = filtered.map(function(c, i) {
+    return '<div data-ci="' + i + '" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px;">'
+      + '<div style="font-weight:600;pointer-events:none;">' + (c.name||'').replace(/</g,'&lt;') + '</div>'
+      + (c.address ? '<div style="font-size:11px;color:var(--muted);pointer-events:none;">' + (c.address||'').replace(/</g,'&lt;') + '</div>' : '')
+      + (c.phone ? '<div style="font-size:11px;color:var(--muted);pointer-events:none;">📞 ' + c.phone + '</div>' : '')
       + '</div>';
   }).join('') || '<div style="padding:12px;color:var(--muted);font-size:13px;">Aucun résultat</div>';
+  // Délégation d'événement — évite les problèmes avec apostrophes/guillemets dans les données
+  results.onclick = function(e) {
+    var el = e.target.closest('[data-ci]');
+    if (!el) return;
+    var idx = parseInt(el.getAttribute('data-ci'), 10);
+    if (window._clientSearchResults && window._clientSearchResults[idx]) {
+      selectionnerClient(window._clientSearchResults[idx]);
+    }
+  };
 }
 
-function selectionnerClient(encoded) {
-  const c = JSON.parse(decodeURIComponent(encoded));
+function selectionnerClient(encodedOrObj) {
+  const c = (typeof encodedOrObj === 'object') ? encodedOrObj : JSON.parse(decodeURIComponent(encodedOrObj));
   document.getElementById('f-client').value = c.name || '';
   document.getElementById('f-tel').value = c.phone || '';
   document.getElementById('f-email').value = c.email || '';
