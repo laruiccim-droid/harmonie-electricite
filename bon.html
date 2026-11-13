@@ -3430,10 +3430,8 @@ async function mettreAJourRDVGcal(doc) {
     // Couleur selon état :
     // bon normal validé → vert (10), à suivre en attente → orange (6), à suivre bouclé → jaune (5)
     let gcalColorId;
-    if (!isBon) gcalColorId = '3';
-    else if (doc.suiviRequis && !doc.suiviClos) gcalColorId = '6';
-    else if (doc.suiviRequis && doc.suiviClos)  gcalColorId = '5';
-    else gcalColorId = '10';
+    if (!isBon) gcalColorId = '3'; // devis standalone → violet
+    else gcalColorId = '10';        // bon validé → toujours vert
 
     // Construire le patch — mise à jour description, couleur ET heures réelles
     const patchData = {
