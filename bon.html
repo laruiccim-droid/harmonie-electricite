@@ -1324,14 +1324,21 @@ window.addEventListener('load', async function() {
   DOC_EVENT_ID = (data && data.eventId) || '';
 
   // ── Toujours récupérer l'eventId depuis le timer si manquant ──
-  // (cas où le client a été changé après l'arrêt du timer)
-  if (!DOC_EVENT_ID) {
+  // Ne pas le faire pour un devis créé depuis un bon (sinon il écraserait l'événement du bon)
+  if (!DOC_EVENT_ID && DOC_TYPE !== 'devis') {
     try {
       const timerData = JSON.parse(localStorage.getItem('he_timer') || '{}');
       if (timerData.eventId) {
         DOC_EVENT_ID = timerData.eventId;
         console.log('[bon.html] eventId récupéré depuis he_timer:', DOC_EVENT_ID);
       }
+    } catch(e) {}
+  }
+  // Pour un devis créé depuis un bon, retenir l'eventId du bon pour y ajouter une note
+  if (DOC_TYPE === 'devis' && data && data.bonLie && !DOC_EVENT_ID) {
+    try {
+      const timerData = JSON.parse(localStorage.getItem('he_timer') || '{}');
+      if (timerData.eventId) window._bonEventId = timerData.eventId;
     } catch(e) {}
   }
 
@@ -3302,8 +3309,58 @@ async function validerDoc() {
   }
 }
 
+// ── Ajouter une note devis sur l'événement du bon lié ──
+async function _ajouterNoteDevisSurBon(doc, bonEventId) {
+  try {
+    const gcalUrl = 'https://gcal-harmonie.harmonie-electricite.workers.dev';
+    const refreshToken = await getGoogleRefreshToken();
+    if (!refreshToken) return;
+    let accessToken = localStorage.getItem('gcal_access_token');
+    if (!accessToken) {
+      const tr = await fetch(gcalUrl + '/refresh', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      const td = await tr.json();
+      if (td.access_token) { accessToken = td.access_token; localStorage.setItem('gcal_access_token', accessToken); }
+    }
+    if (!accessToken) return;
+
+    // Lire l'événement actuel pour récupérer la description existante
+    const getRes = await fetch(gcalUrl + '/events/' + bonEventId, {
+      headers: { 'Authorization': 'Bearer ' + accessToken }
+    });
+    const eventData = getRes.ok ? await getRes.json() : {};
+    const descExistante = eventData.description || '';
+
+    const devisUrl = 'https://laruiccim-droid.github.io/harmonie-electricite/bon.html?doc='
+      + encodeURIComponent(doc.id) + '&mode=detail';
+    const noteDevis = '\n\n━━━━━━━━━━━━━━━━━━━━━━\n'
+      + '📄 Devis suite à l\'intervention\n'
+      + 'N° ' + (doc.numero || doc.id) + (doc.totalTTC ? ' — ' + parseFloat(doc.totalTTC).toFixed(2) + ' € TTC' : '') + '\n'
+      + devisUrl;
+
+    // N'ajouter la note que si elle n'est pas déjà présente
+    if (descExistante.includes(doc.id)) return;
+
+    await fetch(gcalUrl + '/events/' + bonEventId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
+      body: JSON.stringify({ description: descExistante + noteDevis })
+    });
+    toast('Note devis ajoutée au RDV ✓');
+  } catch(err) {
+    console.log('[GCal] Erreur ajout note devis:', err.message);
+  }
+}
+
 // ── Mettre à jour la description du RDV Google Calendar ──
 async function mettreAJourRDVGcal(doc) {
+  // Devis créé depuis un bon : ajouter une note sur l'événement du bon, ne pas créer un nouvel événement
+  if (doc.type === 'devis' && doc.bonLie && window._bonEventId) {
+    await _ajouterNoteDevisSurBon(doc, window._bonEventId);
+    return;
+  }
   if (!DOC_EVENT_ID) {
     console.log('[GCal] Pas d\'eventId — mise à jour ignorée');
     return;
