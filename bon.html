@@ -583,6 +583,7 @@ let CAT_SELECTED = null;
 let DOC_NUM = '';
 let DOC_EVENT_ID = '';
 let DOC_VALIDE = false;
+let DOC_BON_LIE = ''; // numéro du bon d'intervention lié (quand un devis est créé depuis un bon)
 let PDF_MODE = 'detail'; // 'detail' | 'semi' | 'sansprix'
 let PHOTOS = []; // [{dataUrl, caption}]
 let CLIENTS_BON = [];
@@ -1478,6 +1479,8 @@ window.addEventListener('load', async function() {
         : motifBase;
     }
     document.getElementById('f-reference').value = data.reference || '';
+    // Mémoriser le bon d'intervention lié (devis créé depuis un bon via "devis à suivre")
+    if (data.bonLie) DOC_BON_LIE = data.bonLie;
     // Afficher les liens détectés dans le motif
     updateMotifLinks();
     document.getElementById('f-date').value     = data.date || new Date().toLocaleDateString('fr-FR');
@@ -3159,7 +3162,8 @@ async function validerDoc() {
       statut: 'valide',
       suiviRequis: document.getElementById('f-suivi-requis')?.checked || false,
       bonLieId:   BON_LIE ? BON_LIE.id : null,
-      bonLieData: BON_LIE ? BON_LIE : null
+      bonLieData: BON_LIE ? BON_LIE : null,
+      bonLie:     DOC_BON_LIE || null
     };
   }
 
